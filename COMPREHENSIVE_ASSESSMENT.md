@@ -317,7 +317,7 @@ The technical specification outlines an ambitious feature set across multiple ti
 | iPhone XS/XR/X | iOS 14-17 | ✅ Planned |
 | iPad Pro/Air/Mini | iPadOS 14-17 | 🟡 Partial |
 
-**Total Addressable Devices:** ~1.5 billion active iOS devices worldwide (source: Apple Q4 2023 install base estimates)
+**Total Addressable Devices:** ~1.5 billion active iOS devices worldwide (per Apple's January 2023 earnings call reporting 2 billion active devices total, with iOS devices estimated at ~75% of that installed base)
 
 **Important Note:** Many iOS users rely solely on iCloud backups, which cannot be analyzed directly due to Apple's encryption. This limitation is addressed in our go-to-market strategy by targeting security-conscious users who are more likely to enable local backups.
 
@@ -389,10 +389,10 @@ To use PrivaseeAI.Security, customers need:
 #### **Total Addressable Market (TAM)**
 
 **iOS Security Market:**
-- Active iOS devices worldwide: ~1.5 billion (Apple Q4 2023)
+- Active iOS devices worldwide: ~1.5 billion (Apple January 2023 earnings call)
 - Security-conscious users (estimate 5%): 75 million
   - *Assumption based on: Privacy-focused users, high-profile individuals, those already using VPNs, password managers, or similar security tools*
-- **Potential TAM:** 75M users × $120/year average = **~$9 billion/year** (estimated)
+- **Potential TAM:** 75M users × $120/year average = **$9.0 billion/year**
   - *Note: $120/year is the Personal tier annual pricing; actual ARPU may vary based on tier mix*
 
 **Enterprise Mobile Security:**
@@ -696,24 +696,28 @@ To use PrivaseeAI.Security, customers need:
 **Budget Estimate (Year 1):**
 
 **Funded Scenario (~$518K):**
-Assumes team of 3-4, professional MVP in 7-8 months
+Assumes team of 3-4, professional MVP in 7-8 months (prorated for actual time)
 
-- Development: $360K-420K (3 developers × $120K)
-- Infrastructure: $18K (cloud, tools)
+- Development: $240-280K (3 developers × $120K × 8/12 months)
+- Additional contractors: $80-100K (design, frontend, QA for full 12 months)
+- Infrastructure: $18K (cloud, tools, staging environments)
 - Marketing: $60K (ads, content, events)
 - Legal/Admin: $20K (incorporation, accounting, insurance)
 - **Total: ~$518K**
 
 **Bootstrap Scenario (~$12K):**
-Assumes solo/part-time, reduced MVP in 12-16 months
+Assumes solo/part-time, minimal MVP in 12-16 months
 
 - Development: $0 (sweat equity)
-- Infrastructure: $2K (minimal cloud)
-- Marketing: $5K (content, small ads)
-- Legal: $5K (basic incorporation)
+- Infrastructure: $2K (minimal cloud, essential tools only)
+- Marketing: $5K (content marketing, small ads)
+- Legal: $5K (basic incorporation, template contracts)
 - **Total: ~$12K**
 
-**Note:** Bootstrap delivers simpler MVP with longer timeline but validates market with minimal capital risk.
+**Scope Differences:**
+- **Funded MVP:** iOS backup monitoring, STIX threat detection, network analysis (basic), AI behavioral analysis (basic), web dashboard, mobile app, API, multi-tenant architecture, professional UI/UX, comprehensive testing
+- **Bootstrap MVP:** iOS backup monitoring, STIX threat detection only, basic web dashboard, single-tenant or limited multi-tenant, minimal UI, basic testing
+- **Feature Parity:** Bootstrap achieves ~40% of funded MVP features but covers core value proposition
 
 ---
 
