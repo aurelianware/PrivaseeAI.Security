@@ -317,7 +317,9 @@ The technical specification outlines an ambitious feature set across multiple ti
 | iPhone XS/XR/X | iOS 14-17 | ✅ Planned |
 | iPad Pro/Air/Mini | iPadOS 14-17 | 🟡 Partial |
 
-**Total Addressable Devices:** ~1.5 billion active iOS devices worldwide
+**Total Addressable Devices:** ~1.5 billion active iOS devices worldwide (source: Apple Q4 2023 install base estimates)
+
+**Important Note:** Many iOS users rely solely on iCloud backups, which cannot be analyzed directly due to Apple's encryption. This limitation is addressed in our go-to-market strategy by targeting security-conscious users who are more likely to enable local backups.
 
 #### **Device Requirements for Customers**
 
@@ -367,6 +369,17 @@ To use PrivaseeAI.Security, customers need:
 
 **Important Limitation:** Cannot analyze iCloud-only backups directly. Customers must enable local backups.
 
+**Impact on Market:** This limits addressable market to users willing to:
+- Enable local encrypted backups (Mac/Windows/Gateway device)
+- Provide backup password to PrivaseeAI
+- Accept the convenience trade-off for security
+
+**Mitigation Strategy:**
+- Target security-conscious users (already prioritize security over convenience)
+- Make local backup setup easy (guided onboarding)
+- Emphasize privacy benefit (data stays local)
+- Potential future: Partner with Apple or find technical workaround
+
 ---
 
 ## 6. Market Analysis
@@ -376,9 +389,11 @@ To use PrivaseeAI.Security, customers need:
 #### **Total Addressable Market (TAM)**
 
 **iOS Security Market:**
-- Active iOS devices worldwide: ~1.5 billion
+- Active iOS devices worldwide: ~1.5 billion (Apple Q4 2023)
 - Security-conscious users (estimate 5%): 75 million
+  - *Assumption based on: Privacy-focused users, high-profile individuals, those already using VPNs, password managers, or similar security tools*
 - **Potential TAM:** 75M users × $120/year average = **~$9 billion/year** (estimated)
+  - *Note: $120/year is the Personal tier annual pricing; actual ARPU may vary based on tier mix*
 
 **Enterprise Mobile Security:**
 - Global mobile security market: $4.8 billion (2024)
@@ -679,11 +694,26 @@ To use PrivaseeAI.Security, customers need:
 - 1 Customer Success
 
 **Budget Estimate (Year 1):**
-- Development: $360K-420K
-- Infrastructure: $18K
-- Marketing: $60K
-- Legal/Admin: $20K
-- **Total: ~$518K** (funded) or **~$12K** (bootstrap)
+
+**Funded Scenario (~$518K):**
+Assumes team of 3-4, professional MVP in 7-8 months
+
+- Development: $360K-420K (3 developers × $120K)
+- Infrastructure: $18K (cloud, tools)
+- Marketing: $60K (ads, content, events)
+- Legal/Admin: $20K (incorporation, accounting, insurance)
+- **Total: ~$518K**
+
+**Bootstrap Scenario (~$12K):**
+Assumes solo/part-time, reduced MVP in 12-16 months
+
+- Development: $0 (sweat equity)
+- Infrastructure: $2K (minimal cloud)
+- Marketing: $5K (content, small ads)
+- Legal: $5K (basic incorporation)
+- **Total: ~$12K**
+
+**Note:** Bootstrap delivers simpler MVP with longer timeline but validates market with minimal capital risk.
 
 ---
 
