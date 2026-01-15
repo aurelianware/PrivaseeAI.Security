@@ -377,8 +377,8 @@ To use PrivaseeAI.Security, customers need:
 
 **iOS Security Market:**
 - Active iOS devices worldwide: ~1.5 billion
-- Security-conscious users (5%): 75 million
-- **Potential TAM:** 75M × $120/year = **$9 billion/year**
+- Security-conscious users (estimate 5%): 75 million
+- **Potential TAM:** 75M users × $120/year average = **~$9 billion/year** (estimated)
 
 **Enterprise Mobile Security:**
 - Global mobile security market: $4.8 billion (2024)
@@ -586,13 +586,13 @@ To use PrivaseeAI.Security, customers need:
 
 ### 8.1 Pricing Strategy
 
-| Tier | Monthly | Annual | Max Devices | Target |
-|------|---------|--------|-------------|--------|
+| Tier | Monthly | Annual (save 17%) | Max Devices | Target |
+|------|---------|-------------------|-------------|--------|
 | **Free** | $0 | $0 | 1 | Trial/lead gen |
-| **Personal** | $12 | $120 | 3 | Individuals |
-| **Family** | $25 | $250 | 10 | Families |
-| **Professional** | $50 | $500 | 25 | Small biz |
-| **Business** | $200 | $2,000 | 100 | SMBs |
+| **Personal** | $12 | $120 ($10/mo) | 3 | Individuals |
+| **Family** | $25 | $250 ($21/mo) | 10 | Families |
+| **Professional** | $50 | $500 ($42/mo) | 25 | Small biz |
+| **Business** | $200 | $2,000 ($167/mo) | 100 | SMBs |
 | **Enterprise** | Custom | Custom | Unlimited | Large corps |
 
 ### 8.2 Customer Acquisition
