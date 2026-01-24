@@ -698,8 +698,8 @@ To use PrivaseeAI.Security, customers need:
 **Funded Scenario (~$518K):**
 Assumes team of 3-4, professional MVP in 7-8 months (prorated for actual time)
 
-- Development: $240-280K (3 developers × $120K × 8/12 months)
-- Additional contractors: $80-100K (design, frontend, QA for full 12 months)
+- Development: $240K (3 developers × $120K × 8/12 months)
+- Additional contractors: $180K (design, frontend, QA for full 12 months)
 - Infrastructure: $18K (cloud, tools, staging environments)
 - Marketing: $60K (ads, content, events)
 - Legal/Admin: $20K (incorporation, accounting, insurance)
@@ -836,7 +836,7 @@ Assumes solo/part-time, minimal MVP in 12-16 months
 - **Implementation:** None (0% complete)
 - **Market Opportunity:** Strong ($4-5B SAM)
 - **Competition:** Favorable gaps exist
-- **Timeline to Launch:** 7-9 months (realistic)
+- **Timeline to Launch:** 7-8 months (realistic)
 
 ### Critical Path
 1. Validate market (30 days)
