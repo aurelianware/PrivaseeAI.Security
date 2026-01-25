@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with TimescaleDB
+  postgres:
+    image: timescale/timescaledb:latest-pg15
+    container_name: privaseeai-postgres
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-privaseeai_security}
+      POSTGRES_USER: ${DATABASE_USER:-privaseeai}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-changeme}
+    ports:
+      - "${DATABASE_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-privaseeai}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - privaseeai_network
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: privaseeai-redis
+    command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - privaseeai_network
+
+  # PrivaseeAI.Security Application
+  privaseeai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: privaseeai-security
+    env_file:
+      - .env
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - ./backups:/var/lib/privaseeai/backups:ro
+      - ./logs:/var/log/privaseeai
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - privaseeai_network
+    command: privaseeai status
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  privaseeai_network:
+    driver: bridge
