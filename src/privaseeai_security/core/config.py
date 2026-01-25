@@ -3,7 +3,6 @@
 import os
 from enum import Enum
 from pathlib import Path
-from typing import Optional
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -109,7 +108,7 @@ class LoggingSettings(BaseSettings):
 
     level: str = Field(default="INFO", description="Log level")
     format: LogFormat = Field(default=LogFormat.JSON, description="Log format")
-    file_path: Optional[Path] = Field(
+    file_path: Path | None = Field(
         default=Path("/var/log/privaseeai/security.log"), description="Log file path"
     )
     rotation_size: int = Field(default=10485760, description="Log rotation size in bytes (10 MB)")
@@ -119,7 +118,7 @@ class LoggingSettings(BaseSettings):
 
     @field_validator("file_path", mode="before")
     @classmethod
-    def validate_file_path(cls, v: str | Path | None) -> Optional[Path]:
+    def validate_file_path(cls, v: str | Path | None) -> Path | None:
         """Validate and convert log file path."""
         if v is None:
             return None
@@ -130,7 +129,9 @@ class Settings(BaseSettings):
     """Main application settings."""
 
     app_name: str = Field(default="PrivaseeAI.Security", description="Application name")
-    app_env: Environment = Field(default=Environment.DEVELOPMENT, description="Application environment")
+    app_env: Environment = Field(
+        default=Environment.DEVELOPMENT, description="Application environment"
+    )
     debug: bool = Field(default=False, description="Debug mode")
 
     # Sub-settings
@@ -154,7 +155,7 @@ class Settings(BaseSettings):
     )
 
     @classmethod
-    def load(cls, env_file: Optional[str] = None) -> "Settings":
+    def load(cls, env_file: str | None = None) -> "Settings":
         """Load settings from environment file."""
         if env_file and os.path.exists(env_file):
             return cls(_env_file=env_file)
@@ -162,7 +163,7 @@ class Settings(BaseSettings):
 
 
 # Global settings instance
-_settings: Optional[Settings] = None
+_settings: Settings | None = None
 
 
 def get_settings() -> Settings:
@@ -173,7 +174,7 @@ def get_settings() -> Settings:
     return _settings
 
 
-def reload_settings(env_file: Optional[str] = None) -> Settings:
+def reload_settings(env_file: str | None = None) -> Settings:
     """Reload settings from environment file."""
     global _settings
     _settings = Settings.load(env_file)

@@ -1,7 +1,5 @@
 """Unit tests for iOS device information extraction."""
 
-from pathlib import Path
-
 import pytest
 
 from privaseeai_security.core.exceptions import BackupParseError, DeviceNotFoundError

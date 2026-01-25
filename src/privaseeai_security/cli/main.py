@@ -4,7 +4,6 @@ import json
 import sys
 import time
 from pathlib import Path
-from typing import Optional
 
 import click
 
@@ -26,7 +25,7 @@ from privaseeai_security.ios import BackupMonitor, extract_device_info, find_bac
     is_flag=True,
     help="Enable debug mode",
 )
-def cli(config: Optional[str], debug: bool) -> None:
+def cli(config: str | None, debug: bool) -> None:
     """PrivaseeAI.Security - Continuous iOS Threat Detection & Monitoring System."""
     # Reload settings if custom config provided
     if config:
@@ -48,7 +47,7 @@ def cli(config: Optional[str], debug: bool) -> None:
     type=int,
     help="Monitoring interval in seconds",
 )
-def monitor(backup_path: str, interval: Optional[int]) -> None:
+def monitor(backup_path: str, interval: int | None) -> None:
     """Start continuous monitoring of an iOS backup directory.
 
     BACKUP_PATH: Path to the iOS backup directory to monitor
@@ -100,7 +99,7 @@ def monitor(backup_path: str, interval: Optional[int]) -> None:
     type=click.Path(),
     help="Output file for scan results (JSON)",
 )
-def scan(backup_path: str, output: Optional[str]) -> None:
+def scan(backup_path: str, output: str | None) -> None:
     """Perform a one-time scan of an iOS backup.
 
     BACKUP_PATH: Path to the iOS backup directory to scan
@@ -173,14 +172,13 @@ def device_info(backup_path: str, output_json: bool) -> None:
 @cli.command()
 def status() -> None:
     """Check system status and configuration."""
-    logger = get_logger()
     settings = get_settings()
 
     click.echo("PrivaseeAI.Security Status\n")
     click.echo(f"Version: {__version__}")
     click.echo(f"Environment: {settings.app_env.value}")
     click.echo(f"Debug Mode: {settings.debug}")
-    click.echo(f"\nConfiguration:")
+    click.echo("\nConfiguration:")
     click.echo(f"  Database: {settings.database.host}:{settings.database.port}")
     click.echo(f"  Redis: {settings.redis.host}:{settings.redis.port}")
     click.echo(f"  Backup Path: {settings.ios_backup.backup_path}")
@@ -198,13 +196,22 @@ def init(output: str) -> None:
     """Initialize configuration file from template."""
     output_path = Path(output)
 
-    if output_path.exists():
-        if not click.confirm(f"{output_path} already exists. Overwrite?"):
-            click.echo("Aborted.")
-            return
+    if output_path.exists() and not click.confirm(f"{output_path} already exists. Overwrite?"):
+        click.echo("Aborted.")
+        return
 
-    # Copy .env.example to output path
-    example_path = Path(__file__).parent.parent.parent.parent / ".env.example"
+    # Try to find .env.example in the project root
+    # First try the package approach
+    try:
+        # Get the package directory
+        import privaseeai_security
+
+        package_dir = Path(privaseeai_security.__file__).parent
+        project_root = package_dir.parent.parent
+        example_path = project_root / ".env.example"
+    except Exception:
+        # Fallback to relative path from current file
+        example_path = Path(__file__).parent.parent.parent.parent / ".env.example"
 
     if not example_path.exists():
         click.echo("Error: .env.example not found", err=True)

@@ -8,7 +8,8 @@ services:
     environment:
       POSTGRES_DB: ${DATABASE_NAME:-privaseeai_security}
       POSTGRES_USER: ${DATABASE_USER:-privaseeai}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-changeme}
+      # IMPORTANT: Set DATABASE_PASSWORD in your .env or environment to a strong, unique value.
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     ports:
       - "${DATABASE_PORT:-5432}:5432"
     volumes:

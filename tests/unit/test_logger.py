@@ -2,8 +2,6 @@
 
 import logging
 
-import pytest
-
 from privaseeai_security.core.logger import (
     CorrelationIdFilter,
     JSONFormatter,

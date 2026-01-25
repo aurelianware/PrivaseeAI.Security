@@ -1,8 +1,8 @@
 """iOS backup monitoring system."""
 
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Optional
 
 from privaseeai_security.core.config import get_settings
 from privaseeai_security.core.logger import get_logger
@@ -19,9 +19,9 @@ class BackupMonitor:
     def __init__(
         self,
         backup_path: Path,
-        on_new_file: Optional[callable] = None,
-        on_modified_file: Optional[callable] = None,
-        debounce_seconds: Optional[int] = None,
+        on_new_file: Callable[[Path], None] | None = None,
+        on_modified_file: Callable[[Path], None] | None = None,
+        debounce_seconds: int | None = None,
     ):
         """Initialize backup monitor.
 
@@ -32,7 +32,7 @@ class BackupMonitor:
             debounce_seconds: Optional debounce time (uses config if not provided)
         """
         self.backup_path = backup_path
-        self.device_info: Optional[DeviceInfo] = None
+        self.device_info: DeviceInfo | None = None
         self._is_running = False
 
         # Get settings

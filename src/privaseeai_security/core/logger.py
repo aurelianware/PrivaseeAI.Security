@@ -5,8 +5,6 @@ import logging
 import sys
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
-from pathlib import Path
-from typing import Any, Dict, Optional
 
 from privaseeai_security.core.config import LogFormat, LoggingSettings, get_settings
 
@@ -16,7 +14,7 @@ class JSONFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         """Format log record as JSON."""
-        log_data: Dict[str, Any] = {
+        log_data: dict[str, any] = {
             "timestamp": datetime.utcnow().isoformat(),
             "level": record.levelname,
             "logger": record.name,
@@ -82,7 +80,7 @@ class TextFormatter(logging.Formatter):
 
 def setup_logger(
     name: str = "privaseeai_security",
-    settings: Optional[LoggingSettings] = None,
+    settings: LoggingSettings | None = None,
 ) -> logging.Logger:
     """Set up and configure logger.
 

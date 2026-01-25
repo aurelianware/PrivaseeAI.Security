@@ -1,8 +1,8 @@
 """File system monitoring utilities using watchdog."""
 
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Optional, Set
 
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
@@ -17,11 +17,11 @@ class DebounceEventHandler(FileSystemEventHandler):
 
     def __init__(
         self,
-        on_created: Optional[Callable[[Path], None]] = None,
-        on_modified: Optional[Callable[[Path], None]] = None,
-        on_deleted: Optional[Callable[[Path], None]] = None,
+        on_created: Callable[[Path], None] | None = None,
+        on_modified: Callable[[Path], None] | None = None,
+        on_deleted: Callable[[Path], None] | None = None,
         debounce_seconds: int = 5,
-        file_patterns: Optional[Set[str]] = None,
+        file_patterns: set[str] | None = None,
     ):
         """Initialize debounce event handler.
 
@@ -104,11 +104,11 @@ class FileWatcher:
     def __init__(
         self,
         watch_path: Path,
-        on_created: Optional[Callable[[Path], None]] = None,
-        on_modified: Optional[Callable[[Path], None]] = None,
-        on_deleted: Optional[Callable[[Path], None]] = None,
+        on_created: Callable[[Path], None] | None = None,
+        on_modified: Callable[[Path], None] | None = None,
+        on_deleted: Callable[[Path], None] | None = None,
         debounce_seconds: int = 5,
-        file_patterns: Optional[Set[str]] = None,
+        file_patterns: set[str] | None = None,
         recursive: bool = True,
     ):
         """Initialize file watcher.
@@ -143,9 +143,7 @@ class FileWatcher:
             raise NotADirectoryError(f"Watch path is not a directory: {self.watch_path}")
 
         logger.info(f"Starting file watcher for: {self.watch_path}")
-        self.observer.schedule(
-            self.event_handler, str(self.watch_path), recursive=self.recursive
-        )
+        self.observer.schedule(self.event_handler, str(self.watch_path), recursive=self.recursive)
         self.observer.start()
         self._is_running = True
 

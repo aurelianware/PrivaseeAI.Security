@@ -28,10 +28,12 @@ jobs:
           pip install safety pip-audit
 
       - name: Run Safety check
-        run: safety check --json || true
+        run: safety check --json
+        continue-on-error: true
 
       - name: Run pip-audit
-        run: pip-audit --requirement requirements.txt || true
+        run: pip-audit --requirement requirements.txt
+        continue-on-error: true
 
   secret-scan:
     name: Secret Scanning
@@ -92,9 +94,11 @@ jobs:
         run: pip install bandit[toml]
 
       - name: Run Bandit
-        run: bandit -r src/ -f json -o bandit-report.json || true
+        run: bandit -r src/ -f json -o bandit-report.json
+        continue-on-error: true
 
       - name: Upload Bandit report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: bandit-report

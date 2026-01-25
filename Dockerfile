@@ -52,8 +52,8 @@ WORKDIR /app
 # Copy application code
 COPY --chown=privaseeai:privaseeai . /app/
 
-# Install the package
-RUN pip install -e .
+# Install the package (non-editable, suitable for production)
+RUN pip install .
 
 # Switch to app user
 USER privaseeai

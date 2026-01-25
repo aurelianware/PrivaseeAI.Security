@@ -2,7 +2,6 @@
 
 import plistlib
 from pathlib import Path
-from typing import Any, Dict, Optional
 
 from privaseeai_security.core.exceptions import BackupParseError, DeviceNotFoundError
 from privaseeai_security.core.logger import get_logger
@@ -15,17 +14,17 @@ class DeviceInfo:
 
     def __init__(
         self,
-        device_name: Optional[str] = None,
-        device_model: Optional[str] = None,
-        product_type: Optional[str] = None,
-        product_version: Optional[str] = None,
-        serial_number: Optional[str] = None,
-        unique_identifier: Optional[str] = None,
-        build_version: Optional[str] = None,
-        last_backup_date: Optional[str] = None,
-        phone_number: Optional[str] = None,
-        iccid: Optional[str] = None,
-        imei: Optional[str] = None,
+        device_name: str | None = None,
+        device_model: str | None = None,
+        product_type: str | None = None,
+        product_version: str | None = None,
+        serial_number: str | None = None,
+        unique_identifier: str | None = None,
+        build_version: str | None = None,
+        last_backup_date: str | None = None,
+        phone_number: str | None = None,
+        iccid: str | None = None,
+        imei: str | None = None,
     ):
         """Initialize device info.
 
@@ -54,7 +53,7 @@ class DeviceInfo:
         self.iccid = iccid
         self.imei = imei
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, any]:
         """Convert device info to dictionary."""
         return {
             "device_name": self.device_name,
@@ -114,9 +113,11 @@ def extract_device_info(backup_path: Path) -> DeviceInfo:
             serial_number=info_plist.get("Serial Number"),
             unique_identifier=info_plist.get("Unique Identifier"),
             build_version=info_plist.get("Build Version"),
-            last_backup_date=str(info_plist.get("Last Backup Date", ""))
-            if info_plist.get("Last Backup Date")
-            else None,
+            last_backup_date=(
+                str(info_plist.get("Last Backup Date", ""))
+                if info_plist.get("Last Backup Date")
+                else None
+            ),
             phone_number=info_plist.get("Phone Number"),
             iccid=info_plist.get("ICCID"),
             imei=info_plist.get("IMEI"),
@@ -129,13 +130,13 @@ def extract_device_info(backup_path: Path) -> DeviceInfo:
                 with open(manifest_plist_path, "rb") as f:
                     manifest_plist = plistlib.load(f)
                 if not device_info.device_model:
-                    device_info.device_model = manifest_plist.get(
-                        "Lockdown", {}
-                    ).get("DeviceClass")
+                    device_info.device_model = manifest_plist.get("Lockdown", {}).get("DeviceClass")
             except Exception as e:
                 logger.debug(f"Could not read Manifest.plist: {e}")
 
-        logger.info(f"Extracted device info: {device_info.device_name} ({device_info.product_version})")
+        logger.info(
+            f"Extracted device info: {device_info.device_name} ({device_info.product_version})"
+        )
         return device_info
 
     except plistlib.InvalidFileException as e:

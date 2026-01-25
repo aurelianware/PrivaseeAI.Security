@@ -3,7 +3,6 @@
 import plistlib
 import sqlite3
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
 from privaseeai_security.core.exceptions import BackupParseError
 from privaseeai_security.core.logger import get_logger
@@ -25,7 +24,7 @@ class BackupParser:
         self.manifest_plist_path = backup_path / "Manifest.plist"
         self.info_plist_path = backup_path / "Info.plist"
 
-    def parse_manifest_plist(self) -> Dict[str, Any]:
+    def parse_manifest_plist(self) -> dict[str, any]:
         """Parse Manifest.plist file.
 
         Returns:
@@ -45,7 +44,7 @@ class BackupParser:
         except Exception as e:
             raise BackupParseError(f"Failed to parse Manifest.plist: {e}") from e
 
-    def parse_info_plist(self) -> Dict[str, Any]:
+    def parse_info_plist(self) -> dict[str, any]:
         """Parse Info.plist file.
 
         Returns:
@@ -65,7 +64,7 @@ class BackupParser:
         except Exception as e:
             raise BackupParseError(f"Failed to parse Info.plist: {e}") from e
 
-    def get_manifest_files(self) -> List[Dict[str, Any]]:
+    def get_manifest_files(self) -> list[dict[str, any]]:
         """Get list of files from Manifest.db.
 
         Returns:
@@ -83,13 +82,11 @@ class BackupParser:
             cursor = conn.cursor()
 
             # Query files from manifest
-            cursor.execute(
-                """
+            cursor.execute("""
                 SELECT fileID, domain, relativePath, flags, file
                 FROM Files
                 ORDER BY domain, relativePath
-                """
-            )
+                """)
 
             files = []
             for row in cursor:
@@ -110,7 +107,7 @@ class BackupParser:
         except sqlite3.Error as e:
             raise BackupParseError(f"Failed to query Manifest.db: {e}") from e
 
-    def find_files_by_domain(self, domain: str) -> List[Dict[str, Any]]:
+    def find_files_by_domain(self, domain: str) -> list[dict[str, any]]:
         """Find files belonging to a specific domain.
 
         Args:
@@ -158,7 +155,7 @@ class BackupParser:
         except sqlite3.Error as e:
             raise BackupParseError(f"Failed to query files by domain: {e}") from e
 
-    def get_installed_apps(self) -> List[str]:
+    def get_installed_apps(self) -> list[str]:
         """Get list of installed applications.
 
         Returns:
@@ -175,13 +172,11 @@ class BackupParser:
             cursor = conn.cursor()
 
             # Extract app domains
-            cursor.execute(
-                """
+            cursor.execute("""
                 SELECT DISTINCT domain
                 FROM Files
                 WHERE domain LIKE 'AppDomain-%'
-                """
-            )
+                """)
 
             apps = []
             for row in cursor:

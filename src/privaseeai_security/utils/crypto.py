@@ -1,7 +1,5 @@
 """Encryption utilities for PrivaseeAI.Security."""
 
-from typing import Optional
-
 from cryptography.fernet import Fernet, InvalidToken
 
 from privaseeai_security.core.exceptions import EncryptionError
@@ -13,7 +11,7 @@ logger = get_logger(__name__)
 class CryptoManager:
     """Manager for encryption and decryption operations."""
 
-    def __init__(self, encryption_key: Optional[str] = None):
+    def __init__(self, encryption_key: str | None = None):
         """Initialize crypto manager.
 
         Args:
