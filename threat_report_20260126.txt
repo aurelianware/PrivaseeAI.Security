@@ -1,0 +1,360 @@
+============================================================
+iOS Backup Analyzer Test - iMazing
+============================================================
+
+✅ Found 3 backup(s)
+  • 00008140-0005355630E3C01C - ✅ Valid
+  • 00008140-0005355630E3C01C-20260126-033253 - ✅ Valid
+  • iMazing.Versions - ❌ Missing Info.plist
+
+📱 Analyzing most recent backup:
+   Path: 00008140-0005355630E3C01C
+
+------------------------------------------------------------
+
+🔍 Validating backup structure...
+✅ Backup is valid
+
+📋 Device Information:
+------------------------------------------------------------
+Device ID:     00008140-0005355630E3C01C
+Device Name:   M16P
+iOS Version:   26.2
+Model:         iPhone17,1
+Serial:        CF99TN4CXQ
+Build:         23C55
+
+📱 Installed Applications:
+------------------------------------------------------------
+Found 100 apps:
+  • ch.protonmail.calendar
+  • ch.protonmail.drive
+  • ch.protonmail.protonmail
+  • ch.protonmail.vpn
+  • com.APSQA.MetisTest
+  • com.agmvision.sight
+  • com.anthropic.claude
+  • com.apple.AAUIViewService
+  • com.apple.AMSEngagementViewService
+  • com.apple.AMSUIAuthenticationViewService
+  ... and 90 more
+
+🔒 VPN Profiles:
+------------------------------------------------------------
+Found 2 VPN profile(s):
+
+  Profile ID: com.apple.networkextension.plist
+  Type:       VPN
+  Signed:     False
+  Name:       VPN Profile
+
+  Profile ID: com.apple.networkextension.control.plist
+  Type:       VPN
+  Signed:     False
+  Name:       VPN Profile
+
+🏢 MDM Profiles:
+------------------------------------------------------------
+Found 25 MDM profile(s):
+
+  Profile ID: Library/UserConfigurationProfiles/PublicInfo/MCMeta.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/UserConfigurationProfiles/PayloadDependency.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/UserConfigurationProfiles/PublicInfo/NamespacedUserSettings.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/UserConfigurationProfiles/PublicInfo/PublicEffectiveUserSettings.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/UserConfigurationProfiles/ClientTruth.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/UserConfigurationProfiles/ProfileTruth.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/UserConfigurationProfiles/PublicInfo/Truth.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/UserConfigurationProfiles/UserSettings.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/UserConfigurationProfiles/PayloadManifest.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/UserConfigurationProfiles/EffectiveUserSettings.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/Preferences/com.apple.managedconfiguration.profiled.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/ConfigurationProfiles/PublicInfo/NamespacedUserSettings.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/ConfigurationProfiles/PublicInfo/MCMeta.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/ConfigurationProfiles/PayloadDependency.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/ConfigurationProfiles/ProfileTruth.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/ConfigurationProfiles/AppAccessibilityParameters.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/ConfigurationProfiles/ClientTruth.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/ConfigurationProfiles/PayloadManifest.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/ConfigurationProfiles/MCSettingsEvents.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: com.apple.Verizon_LTE_US.e4a7e9e0-da0e-11eb-bee9-f45c89abb0d9
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: io.nextdns.9789d8.profile
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/ConfigurationProfiles/MCProfileEvents.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/ConfigurationProfiles/UserSettings.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/ConfigurationProfiles/phone/HoldingTankManifest.plist
+  Type:       MDM
+  Signed:     False
+
+  Profile ID: Library/ConfigurationProfiles/CloudConfigurationDetails.plist
+  Type:       MDM
+  Signed:     False
+
+🌐 Network Configuration:
+------------------------------------------------------------
+DNS Servers: None found
+WiFi Networks: None found
+Proxy: None configured
+
+🛡️  Security Profile Analysis:
+------------------------------------------------------------
+🚨 THREATS DETECTED: 27 suspicious profile(s)
+
+⚠️  VPN Profile: com.apple.networkextension.plist
+   Threat Level: ThreatLevel.MEDIUM
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+
+⚠️  VPN Profile: com.apple.networkextension.control.plist
+   Threat Level: ThreatLevel.MEDIUM
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+
+⚠️  MDM Profile: Library/UserConfigurationProfiles/PublicInfo/MCMeta.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/UserConfigurationProfiles/PayloadDependency.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/UserConfigurationProfiles/PublicInfo/NamespacedUserSettings.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/UserConfigurationProfiles/PublicInfo/PublicEffectiveUserSettings.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/UserConfigurationProfiles/ClientTruth.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/UserConfigurationProfiles/ProfileTruth.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/UserConfigurationProfiles/PublicInfo/Truth.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/UserConfigurationProfiles/UserSettings.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/UserConfigurationProfiles/PayloadManifest.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/UserConfigurationProfiles/EffectiveUserSettings.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/Preferences/com.apple.managedconfiguration.profiled.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/ConfigurationProfiles/PublicInfo/NamespacedUserSettings.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/ConfigurationProfiles/PublicInfo/MCMeta.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/ConfigurationProfiles/PayloadDependency.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/ConfigurationProfiles/ProfileTruth.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/ConfigurationProfiles/AppAccessibilityParameters.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/ConfigurationProfiles/ClientTruth.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/ConfigurationProfiles/PayloadManifest.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/ConfigurationProfiles/MCSettingsEvents.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: com.apple.Verizon_LTE_US.e4a7e9e0-da0e-11eb-bee9-f45c89abb0d9
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: io.nextdns.9789d8.profile
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/ConfigurationProfiles/MCProfileEvents.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/ConfigurationProfiles/UserSettings.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/ConfigurationProfiles/phone/HoldingTankManifest.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+⚠️  MDM Profile: Library/ConfigurationProfiles/CloudConfigurationDetails.plist
+   Threat Level: ThreatLevel.CRITICAL
+   Indicators:
+     • Unsigned profile
+     • No organization specified
+     • MDM profile without verified organization
+
+
+============================================================
+Analysis Complete
+============================================================
