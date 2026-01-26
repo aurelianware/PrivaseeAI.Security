@@ -11,9 +11,10 @@ from privaseeai_security import __version__
 from privaseeai_security.config import Config
 from privaseeai_security.logger import setup_logger, get_logger
 from privaseeai_security.file_watcher import FileWatcher
-from privaseeai_security.monitors.vpn_integrity import VPNIntegrityMonitor
+from privaseeai_security.monitors.vpn_integrity import VPNIntegrityMonitor, ThreatDetection
 from privaseeai_security.monitors.api_abuse import APIAbuseMonitor
-from privaseeai_security.alerting.telegram import TelegramAlerter, ThreatDetection, ThreatLevel
+from privaseeai_security.alerting.telegram import TelegramAlerter
+from privaseeai_security.crypto.cert_validator import ThreatLevel
 
 
 def health_check() -> bool:
