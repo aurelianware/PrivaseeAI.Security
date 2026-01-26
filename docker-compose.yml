@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # TimescaleDB - PostgreSQL with time-series extension
   timescaledb:
@@ -30,10 +28,7 @@ services:
     image: redis:7-alpine
     container_name: privaseeai-redis
     restart: unless-stopped
-    command: >
-      redis-server
-      --appendonly yes
-      --requirepass ${REDIS_PASSWORD:-}
+    command: redis-server --appendonly yes
     volumes:
       - redis-data:/data
     ports:

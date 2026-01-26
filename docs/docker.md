@@ -25,7 +25,7 @@ This guide covers running PrivaseeAI.Security using Docker and Docker Compose fo
   - [Install Docker Desktop on Windows](https://docs.docker.com/desktop/install/windows-install/)
 
 - **Docker Compose**: Version 2.0.0 or higher (included with Docker Desktop)
-  - Verify installation: `docker-compose --version`
+  - Verify installation: `docker compose --version`
 
 ### System Requirements
 
@@ -47,16 +47,16 @@ cp .env.example .env
 # Edit .env with your preferred settings (optional for development)
 
 # 3. Build the Docker images
-docker-compose build
+docker compose build
 
 # 4. Start all services
-docker-compose up -d
+docker compose up -d
 
 # 5. Check service status
-docker-compose ps
+docker compose ps
 
 # 6. View logs
-docker-compose logs -f
+docker compose logs -f
 ```
 
 Your services should now be running:
@@ -69,27 +69,27 @@ Your services should now be running:
 ### Build All Services
 
 ```bash
-# Build all services defined in docker-compose.yml
-docker-compose build
+# Build all services defined in docker compose.yml
+docker compose build
 
 # Build with no cache (clean build)
-docker-compose build --no-cache
+docker compose build --no-cache
 
 # Build specific service only
-docker-compose build app
+docker compose build app
 ```
 
 ### Build Options
 
 ```bash
 # Pull latest base images before building
-docker-compose build --pull
+docker compose build --pull
 
 # Build in parallel (faster)
-docker-compose build --parallel
+docker compose build --parallel
 
 # Build with progress output
-docker-compose build --progress=plain
+docker compose build --progress=plain
 ```
 
 ## Running Services
@@ -98,20 +98,20 @@ docker-compose build --progress=plain
 
 ```bash
 # Start in detached mode (background)
-docker-compose up -d
+docker compose up -d
 
 # Start with logs visible
-docker-compose up
+docker compose up
 
 # Start specific services only
-docker-compose up -d timescaledb redis
+docker compose up -d timescaledb redis
 ```
 
 ### Start with pgAdmin (Optional)
 
 ```bash
 # Start all services including pgAdmin
-docker-compose --profile admin up -d
+docker compose --profile admin up -d
 
 # Access pgAdmin at http://localhost:5050
 # Default credentials: admin@privaseeai.local / admin
@@ -130,43 +130,43 @@ Services start in the correct order automatically:
 
 ```bash
 # Stop all services (preserves data)
-docker-compose down
+docker compose down
 
 # Stop and remove volumes (deletes all data)
-docker-compose down -v
+docker compose down -v
 
 # Stop specific service
-docker-compose stop app
+docker compose stop app
 ```
 
 ### Restart Services
 
 ```bash
 # Restart all services
-docker-compose restart
+docker compose restart
 
 # Restart specific service
-docker-compose restart app
+docker compose restart app
 
 # Restart with rebuild
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 ### View Service Status
 
 ```bash
 # List running containers
-docker-compose ps
+docker compose ps
 
 # View detailed service info
-docker-compose ps -a
+docker compose ps -a
 
 # View service logs
-docker-compose logs -f
+docker compose logs -f
 
 # View logs for specific service
-docker-compose logs -f app
-docker-compose logs -f timescaledb
+docker compose logs -f app
+docker compose logs -f timescaledb
 ```
 
 ## Accessing Services
@@ -187,7 +187,7 @@ docker-compose logs -f timescaledb
 psql -h localhost -p 5432 -U privaseeai -d privaseeai_security
 
 # Using Docker exec
-docker-compose exec timescaledb psql -U privaseeai -d privaseeai_security
+docker compose exec timescaledb psql -U privaseeai -d privaseeai_security
 
 # Using pgAdmin (start with --profile admin)
 # Navigate to http://localhost:5050
@@ -201,10 +201,10 @@ docker-compose exec timescaledb psql -U privaseeai -d privaseeai_security
 redis-cli -h localhost -p 6379
 
 # Using Docker exec
-docker-compose exec redis redis-cli
+docker compose exec redis redis-cli
 
 # Test connection
-docker-compose exec redis redis-cli ping
+docker compose exec redis redis-cli ping
 # Should return: PONG
 ```
 
@@ -212,16 +212,16 @@ docker-compose exec redis redis-cli ping
 
 ```bash
 # Access application container shell
-docker-compose exec app /bin/bash
+docker compose exec app /bin/bash
 
 # Access as root (for debugging)
-docker-compose exec -u root app /bin/bash
+docker compose exec -u root app /bin/bash
 
 # Access database container
-docker-compose exec timescaledb /bin/bash
+docker compose exec timescaledb /bin/bash
 
 # Access Redis container
-docker-compose exec redis /bin/sh
+docker compose exec redis /bin/sh
 ```
 
 ## Database Management
@@ -239,19 +239,19 @@ The database is automatically initialized on first startup using `scripts/init_d
 
 ```bash
 # Run SQL script
-docker-compose exec timescaledb psql -U privaseeai -d privaseeai_security -f /docker-entrypoint-initdb.d/init_db.sql
+docker compose exec timescaledb psql -U privaseeai -d privaseeai_security -f /docker-entrypoint-initdb.d/init_db.sql
 
 # Backup database
-docker-compose exec timescaledb pg_dump -U privaseeai privaseeai_security > backup.sql
+docker compose exec timescaledb pg_dump -U privaseeai privaseeai_security > backup.sql
 
 # Restore database
-cat backup.sql | docker-compose exec -T timescaledb psql -U privaseeai -d privaseeai_security
+cat backup.sql | docker compose exec -T timescaledb psql -U privaseeai -d privaseeai_security
 
 # View database size
-docker-compose exec timescaledb psql -U privaseeai -d privaseeai_security -c "\l+"
+docker compose exec timescaledb psql -U privaseeai -d privaseeai_security -c "\l+"
 
 # View table sizes
-docker-compose exec timescaledb psql -U privaseeai -d privaseeai_security -c "\dt+ security.*"
+docker compose exec timescaledb psql -U privaseeai -d privaseeai_security -c "\dt+ security.*"
 ```
 
 ### Database Migrations
@@ -260,17 +260,17 @@ For future migrations:
 
 ```bash
 # Run migrations inside container
-docker-compose exec app python -m alembic upgrade head
+docker compose exec app python -m alembic upgrade head
 
 # Create new migration
-docker-compose exec app python -m alembic revision -m "description"
+docker compose exec app python -m alembic revision -m "description"
 ```
 
 ## Development Workflow
 
 ### Live Code Reloading
 
-The docker-compose.yml is configured for development with source code mounted as a volume:
+The docker compose.yml is configured for development with source code mounted as a volume:
 
 ```yaml
 volumes:
@@ -281,67 +281,111 @@ This means changes to your local code are immediately reflected in the container
 
 ### Running Tests
 
+**Note**: The production Docker image does not include development dependencies (pytest, linters, etc.) to keep the image size minimal and secure. For testing and development, use one of the following approaches:
+
+**Option 1: Run tests on the host (recommended for development)**
+
 ```bash
-# Run all tests
-docker-compose exec app pytest
+# Install dev dependencies locally
+pip install -r requirements-dev.txt
 
-# Run with coverage
-docker-compose exec app pytest --cov
+# Run tests locally
+pytest
 
-# Run specific test file
-docker-compose exec app pytest tests/unit/test_config.py
-
-# Run with verbose output
-docker-compose exec app pytest -v
-
-# Run and watch for changes (requires pytest-watch)
-docker-compose exec app ptw
+# Or use the Makefile
+make test
+make test-coverage
 ```
+
+**Option 2: Create a development Dockerfile (for isolated testing)**
+
+Create a `Dockerfile.dev` with dev dependencies:
+```dockerfile
+FROM privaseeaisecurity-app:latest
+USER root
+COPY requirements-dev.txt .
+RUN pip install -r requirements-dev.txt
+USER privasee
+```
+
+Then run tests:
+```bash
+# Build dev image
+docker build -f Dockerfile.dev -t privaseeai-dev .
+
+# Run tests in dev container
+docker run --rm privaseeai-dev pytest
+```
+
+**Option 3: Use docker compose with volume mounts for development**
+
+The current setup already mounts source code, so you can:
+```bash
+# Install dependencies in the running container (temporary)
+docker compose exec app pip install pytest pytest-cov
+
+# Run tests
+docker compose exec app pytest
+```
+
+Note: Dependencies installed this way are lost when the container is recreated.
 
 ### Code Quality Checks
 
+**Note**: Like testing tools, code quality tools (linters, formatters) are not included in the production image. Run these on the host:
+
 ```bash
+# Install dev dependencies locally
+pip install -r requirements-dev.txt
+
 # Run linter
-docker-compose exec app flake8 privaseeai_security tests
+make lint
 
 # Format code
-docker-compose exec app black privaseeai_security tests
-
-# Sort imports
-docker-compose exec app isort privaseeai_security tests
+make format
 
 # Type checking
-docker-compose exec app mypy privaseeai_security
+make type-check
+```
+
+Or install them temporarily in the container:
+```bash
+# Install dev tools (temporary)
+docker compose exec app pip install flake8 black isort mypy
+
+# Run checks
+docker compose exec app flake8 privaseeai_security
+docker compose exec app black --check privaseeai_security
 ```
 
 ### Debugging
 
 ```bash
 # View application logs
-docker-compose logs -f app
+docker compose logs -f app
 
 # Follow all logs
-docker-compose logs -f
+docker compose logs -f
 
 # View last 100 lines
-docker-compose logs --tail=100 app
+docker compose logs --tail=100 app
 
 # Enable debug mode in .env
 # Set: LOG_LEVEL=DEBUG
-docker-compose restart app
+docker compose restart app
 ```
 
 ### Interactive Python Shell
 
 ```bash
 # Start Python REPL with application context
-docker-compose exec app python
+docker compose exec app python
 
 # Start IPython shell (if installed)
-docker-compose exec app ipython
+docker compose exec app ipython
 
 # Run Python script
-docker-compose exec app python -m privaseeai_security.module_name
+docker compose exec app python -m privaseeai_security.module_name
 ```
 
 ## Production Deployment
@@ -366,7 +410,7 @@ REDIS_PASSWORD=<strong-random-password>
 PGADMIN_PASSWORD=<strong-random-password>
 ```
 
-2. **Modify docker-compose.yml for production:**
+2. **Modify docker compose.yml for production:**
 
 ```yaml
 # Comment out development volume mounts
@@ -416,7 +460,7 @@ trivy image privaseeai-security-app
 
 ```bash
 # Use BuildKit for faster builds
-DOCKER_BUILDKIT=1 docker-compose build
+DOCKER_BUILDKIT=1 docker compose build
 
 # Multi-stage builds (already implemented in Dockerfile)
 # Reduces final image size by ~60%
@@ -429,7 +473,7 @@ docker system prune -a --volumes
 
 ```bash
 # Configure log rotation
-# Edit docker-compose.yml to add logging config:
+# Edit docker compose.yml to add logging config:
 
 logging:
   driver: "json-file"
@@ -444,7 +488,7 @@ logging:
 # Automated backup script
 #!/bin/bash
 DATE=$(date +%Y%m%d_%H%M%S)
-docker-compose exec -T timescaledb pg_dump -U privaseeai privaseeai_security > "backup_${DATE}.sql"
+docker compose exec -T timescaledb pg_dump -U privaseeai privaseeai_security > "backup_${DATE}.sql"
 gzip "backup_${DATE}.sql"
 
 # Schedule with cron
@@ -459,7 +503,7 @@ gzip "backup_${DATE}.sql"
 
 ```bash
 # Check logs for errors
-docker-compose logs
+docker compose logs
 
 # Check if ports are already in use
 lsof -i :5432  # PostgreSQL
@@ -467,51 +511,51 @@ lsof -i :6379  # Redis
 lsof -i :8000  # Application
 
 # Remove containers and try again
-docker-compose down -v
-docker-compose up -d
+docker compose down -v
+docker compose up -d
 ```
 
 #### Database Connection Errors
 
 ```bash
 # Verify database is healthy
-docker-compose ps timescaledb
+docker compose ps timescaledb
 
 # Check database logs
-docker-compose logs timescaledb
+docker compose logs timescaledb
 
 # Test connection
-docker-compose exec timescaledb psql -U privaseeai -d privaseeai_security -c "SELECT 1;"
+docker compose exec timescaledb psql -U privaseeai -d privaseeai_security -c "SELECT 1;"
 
 # Restart database
-docker-compose restart timescaledb
+docker compose restart timescaledb
 ```
 
 #### Redis Connection Issues
 
 ```bash
 # Verify Redis is running
-docker-compose ps redis
+docker compose ps redis
 
 # Test Redis connection
-docker-compose exec redis redis-cli ping
+docker compose exec redis redis-cli ping
 
 # Check if password is required
-docker-compose exec redis redis-cli -a "$REDIS_PASSWORD" ping
+docker compose exec redis redis-cli -a "$REDIS_PASSWORD" ping
 ```
 
 #### Application Won't Start
 
 ```bash
 # Check application logs
-docker-compose logs app
+docker compose logs app
 
 # Verify dependencies are healthy
-docker-compose ps
+docker compose ps
 
 # Rebuild application image
-docker-compose build --no-cache app
-docker-compose up -d app
+docker compose build --no-cache app
+docker compose up -d app
 ```
 
 #### Out of Disk Space
@@ -538,7 +582,7 @@ ls -la src/privaseeai_security
 sudo chown -R $USER:$USER src/
 
 # Run as root for debugging
-docker-compose exec -u root app /bin/bash
+docker compose exec -u root app /bin/bash
 ```
 
 ### Performance Issues
@@ -552,7 +596,7 @@ docker stats
 # Increase CPU and Memory allocation
 
 # Check for container restarts
-docker-compose ps
+docker compose ps
 # Look for "Restarting" status
 ```
 
@@ -560,13 +604,13 @@ docker-compose ps
 
 ```bash
 # Manually run health check command
-docker-compose exec app python -c "import sys; sys.exit(0)"
+docker compose exec app python -c "import sys; sys.exit(0)"
 
 # Disable health check temporarily (debugging)
-# Comment out healthcheck section in docker-compose.yml
+# Comment out healthcheck section in docker compose.yml
 
 # Increase health check timeout
-# Modify healthcheck in docker-compose.yml
+# Modify healthcheck in docker compose.yml
 ```
 
 ### Network Issues
@@ -576,13 +620,13 @@ docker-compose exec app python -c "import sys; sys.exit(0)"
 docker network inspect privaseeai_privaseeai-network
 
 # Recreate network
-docker-compose down
+docker compose down
 docker network prune
-docker-compose up -d
+docker compose up -d
 
 # Test connectivity between containers
-docker-compose exec app ping timescaledb
-docker-compose exec app ping redis
+docker compose exec app ping timescaledb
+docker compose exec app ping redis
 ```
 
 ### Getting Help
@@ -590,7 +634,7 @@ docker-compose exec app ping redis
 If you encounter issues not covered here:
 
 1. Check the [GitHub Issues](https://github.com/aurelianware/PrivaseeAI.Security/issues)
-2. Review Docker logs: `docker-compose logs`
+2. Review Docker logs: `docker compose logs`
 3. Check Docker daemon logs: `journalctl -u docker` (Linux)
 4. Create a new issue with:
    - Error messages and logs
@@ -602,35 +646,35 @@ If you encounter issues not covered here:
 
 ```bash
 # Build and start
-docker-compose up -d --build
+docker compose up -d --build
 
 # View logs
-docker-compose logs -f [service]
+docker compose logs -f [service]
 
 # Execute command in container
-docker-compose exec [service] [command]
+docker compose exec [service] [command]
 
 # Stop all services
-docker-compose down
+docker compose down
 
 # Remove all data
-docker-compose down -v
+docker compose down -v
 
 # Clean everything
-docker-compose down -v --remove-orphans
+docker compose down -v --remove-orphans
 docker system prune -a --volumes
 
 # Inspect service
-docker-compose exec [service] /bin/bash
+docker compose exec [service] /bin/bash
 
 # Check service health
-docker-compose ps
+docker compose ps
 
 # Rebuild specific service
-docker-compose up -d --build [service]
+docker compose up -d --build [service]
 
 # Scale service (if supported)
-docker-compose up -d --scale app=3
+docker compose up -d --scale app=3
 ```
 
 ## Additional Resources

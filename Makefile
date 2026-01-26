@@ -85,29 +85,29 @@ clean:
 
 .PHONY: docker-build
 docker-build:
-	docker-compose build
+	docker compose build
 
 .PHONY: docker-up
 docker-up:
-	docker-compose up -d
+	docker compose up -d
 
 .PHONY: docker-down
 docker-down:
-	docker-compose down
+	docker compose down
 
 .PHONY: docker-logs
 docker-logs:
-	docker-compose logs -f
+	docker compose logs -f
 
 .PHONY: docker-shell
 docker-shell:
-	docker-compose exec app /bin/bash
+	docker compose exec app /bin/bash
 
 .PHONY: docker-test
 docker-test:
-	docker-compose exec app pytest
+	docker compose exec app pytest
 
 .PHONY: docker-clean
 docker-clean:
-	docker-compose down -v --remove-orphans
+	docker compose down -v --remove-orphans
 	docker system prune -f

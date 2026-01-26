@@ -2,6 +2,10 @@
 """Health check script for Docker healthcheck."""
 
 import sys
+import os
+
+# Add the app directory to Python path to find the module
+sys.path.insert(0, '/app')
 
 # Import the health_check function from the main module
 try:
