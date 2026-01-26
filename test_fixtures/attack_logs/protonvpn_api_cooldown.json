@@ -1,0 +1,69 @@
+{
+  "timestamp": "2026-01-26T04:35:38.824Z",
+  "level": "INFO",
+  "component": "LOCAL_AGENT:LOG",
+  "message": "LocalAgent: waiting for message..."
+}
+{
+  "timestamp": "2026-01-26T04:35:38.824Z",
+  "level": "INFO",
+  "component": "LOCAL_AGENT:STATE_CHANGE",
+  "message": "Local agent shared library state reported as changed to Connected"
+}
+{
+  "timestamp": "2026-01-26T04:35:38.824Z",
+  "level": "INFO",
+  "component": "LOCAL_AGENT:STATE_CHANGE",
+  "message": "Received statistics",
+  "data": {
+    "netShield": {
+      "malwareBlocked": null,
+      "adsBlocked": null,
+      "trackersBlocked": null,
+      "bytesSaved": 0
+    }
+  }
+}
+{
+  "timestamp": "2026-01-26T04:35:39.551Z",
+  "level": "ERROR",
+  "component": "API",
+  "message": "User location request failed",
+  "error": "cooldown(2026-01-26 05:24:44 +0000)"
+}
+{
+  "timestamp": "2026-01-26T04:35:39.655Z",
+  "level": "INFO",
+  "component": "LOCAL_AGENT:LOG",
+  "message": "LocalAgent received",
+  "data": {
+    "status": {
+      "state": "connected",
+      "features": {
+        "netshield-level": 0,
+        "split-tcp": true,
+        "bouncing": "5",
+        "randomized-nat": true,
+        "port-forwarding": false,
+        "jail": false,
+        "safe-mode": false
+      },
+      "restrictions": [],
+      "features-statistics": {
+        "netshield-level": {}
+      }
+    }
+  }
+}
+{
+  "timestamp": "2026-01-26T04:35:40.826Z",
+  "level": "DEBUG",
+  "component": "SECURE_STORE",
+  "message": "Comparing vpn credentials to detect possible plan change",
+  "data": {
+    "oldTier": "2",
+    "wasDelinquent": "false",
+    "isDelinquent": "false",
+    "newTier": "2"
+  }
+}

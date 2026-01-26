@@ -79,3 +79,4 @@ temp/
 *.a
 *.dylib
 *.dll
+.venv/

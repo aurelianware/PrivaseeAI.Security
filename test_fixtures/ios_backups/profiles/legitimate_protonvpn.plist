@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>PayloadType</key>
+            <string>com.apple.vpn.managed</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>PayloadIdentifier</key>
+            <string>ch.protonvpn.ios.profile</string>
+            <key>PayloadUUID</key>
+            <string>ABCDEF01-2345-6789-ABCD-EF0123456789</string>
+            <key>PayloadDisplayName</key>
+            <string>ProtonVPN</string>
+            <key>PayloadDescription</key>
+            <string>ProtonVPN IKEv2 configuration</string>
+            <key>UserDefinedName</key>
+            <string>ProtonVPN</string>
+            <key>VPNType</key>
+            <string>IKEv2</string>
+            <key>IKEv2</key>
+            <dict>
+                <key>RemoteAddress</key>
+                <string>185.159.158.192</string>
+                <key>LocalIdentifier</key>
+                <string>user@protonmail.com</string>
+                <key>RemoteIdentifier</key>
+                <string>vpn.protonvpn.com</string>
+                <key>AuthenticationMethod</key>
+                <string>Certificate</string>
+                <key>PayloadCertificateUUID</key>
+                <string>6a1e93785520dade</string>
+                <key>OnDemandEnabled</key>
+                <integer>0</integer>
+                <key>DisconnectOnIdle</key>
+                <integer>0</integer>
+            </dict>
+        </dict>
+    </array>
+    <key>PayloadDisplayName</key>
+    <string>ProtonVPN Configuration</string>
+    <key>PayloadIdentifier</key>
+    <string>ch.protonvpn.ios</string>
+    <key>PayloadOrganization</key>
+    <string>Proton AG</string>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>FEDCBA98-7654-3210-FEDC-BA9876543210</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+</dict>
+</plist>
