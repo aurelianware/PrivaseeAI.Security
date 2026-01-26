@@ -209,8 +209,8 @@ class TestProfileExtraction:
         extractor = DeviceInfoExtractor("/tmp")
         indicators = extractor._detect_suspicious_indicators(profile)
         
-        assert "Unsigned profile" in indicators
-        assert "No organization specified" in indicators
+        # Updated to match new indicator messages
+        assert "Unsigned VPN profile from unknown organization" in indicators
     
     def test_validate_profile_signature(self, backup_with_profiles):
         """Test validation of profile digital signatures."""
@@ -277,7 +277,8 @@ class TestProfileExtraction:
         
         indicators = extractor._detect_suspicious_indicators(suspicious_profile)
         
-        assert any("Suspicious name" in ind for ind in indicators)
+        # Updated to match new indicator format
+        assert any("Suspicious VPN name" in ind for ind in indicators)
     
     def test_mdm_profile_without_organization(self):
         """Test detection of MDM profile without organization."""
@@ -294,5 +295,7 @@ class TestProfileExtraction:
         mdm_profile.suspicious_indicators = indicators  # Assign indicators to profile
         threat_level = extractor._assess_threat_level(mdm_profile)
         
-        assert "MDM profile without verified organization" in indicators
-        assert threat_level == ThreatLevel.HIGH
+        # Updated to match new indicator messages
+        assert "MDM profile from unknown organization (signed)" in indicators
+        # Threat level is LOW for signed MDM from unknown org (not HIGH)
+        assert threat_level == ThreatLevel.LOW

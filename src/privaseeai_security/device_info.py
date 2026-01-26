@@ -88,6 +88,40 @@ class DeviceInfoExtractor:
     Supports parsing Info.plist, Status.plist, Manifest.db (SQLite),
     and extracting security profiles, installed apps, and network configurations.
     """
+    
+    # Apple system paths that should not trigger alerts
+    APPLE_SYSTEM_PATHS = {
+        'Library/ConfigurationProfiles/',
+        'Library/UserConfigurationProfiles/',
+        'Library/Managed Preferences/',
+        'SystemConfiguration/',
+    }
+    
+    # Known legitimate organizations (can be expanded)
+    # Note: Carriers (Verizon, AT&T, T-Mobile) intentionally NOT whitelisted
+    # due to potential insider threat concerns
+    KNOWN_LEGITIMATE_ORGS = {
+        'Apple Inc.',
+        'Apple',
+        'NextDNS Inc',
+        'NextDNS',
+    }
+    
+    # Legitimate service identifiers (even if unsigned/no org)
+    # Note: VPN profiles (networkextension) intentionally NOT whitelisted
+    # to ensure all VPN configurations are reviewed
+    KNOWN_LEGITIMATE_SERVICES = {
+        'io.nextdns',  # NextDNS DNS privacy service
+        'com.apple.managedconfiguration',  # Apple system config
+    }
+    
+    # Suspicious VPN server patterns
+    SUSPICIOUS_VPN_SERVERS = {
+        'localhost',
+        '127.0.0.1',
+        '0.0.0.0',
+        '::1',
+    }
 
     def __init__(self, backup_path: str):
         """Initialize device info extractor.
@@ -495,49 +529,157 @@ class DeviceInfoExtractor:
         return dns_servers
     
     def _detect_suspicious_indicators(self, profile: ProfileInfo) -> List[str]:
-        """Detect suspicious attributes in a profile."""
+        """Detect suspicious attributes in a profile.
+        
+        Uses whitelisting to reduce false positives from Apple system files.
+        """
         indicators = []
         
-        if not profile.is_signed:
-            indicators.append("Unsigned profile")
+        # Check if this is an Apple system file (whitelist)
+        if self._is_apple_system_file(profile.profile_id):
+            # System files are expected, not suspicious
+            return []
         
-        if not profile.organization:
-            indicators.append("No organization specified")
+        # Check if this is a known legitimate service
+        if self._is_known_service(profile.profile_id):
+            return []
         
+        # Check if from known legitimate organization
+        is_known_org = profile.organization in self.KNOWN_LEGITIMATE_ORGS if profile.organization else False
+        
+        # VPN-specific checks
         if profile.profile_type == "VPN":
-            # Additional VPN-specific checks would go here
+            # Check for localhost/suspicious servers (CRITICAL)
+            if self._has_localhost_server(profile):
+                indicators.append("VPN server points to localhost (CRITICAL)")
+            
+            # Check for suspicious names
             if profile.display_name and any(kw in profile.display_name.lower() 
                                            for kw in ["test", "debug", "local", "proxy"]):
-                indicators.append(f"Suspicious name: {profile.display_name}")
+                indicators.append(f"Suspicious VPN name: {profile.display_name}")
+            
+            # Unsigned VPN from unknown org is concerning
+            if not profile.is_signed and not is_known_org:
+                indicators.append("Unsigned VPN profile from unknown organization")
+            elif not profile.organization:
+                indicators.append("VPN profile with no organization")
         
-        if profile.profile_type == "MDM":
-            # MDM profiles should have organization
-            if not profile.organization:
-                indicators.append("MDM profile without verified organization")
+        # MDM-specific checks
+        elif profile.profile_type == "MDM":
+            # MDM without organization is more suspicious if also unsigned
+            if not profile.is_signed and not profile.organization:
+                indicators.append("Unsigned MDM profile with no organization")
+            elif not profile.organization and not is_known_org:
+                # MDM from unknown org is less critical if signed
+                if profile.is_signed:
+                    indicators.append("MDM profile from unknown organization (signed)")
         
         return indicators
     
     def _assess_threat_level(self, profile: ProfileInfo) -> ThreatLevel:
-        """Assess threat level based on suspicious indicators."""
+        """Assess threat level based on suspicious indicators.
+        
+        Uses confidence-based scoring:
+        - CRITICAL: Localhost VPN servers, multiple high-risk indicators
+        - HIGH: Unsigned VPN from unknown org, suspicious names
+        - MEDIUM: Single concerning indicator (unsigned, no org)
+        - LOW: Minor concerns (signed but unknown org)
+        - NONE: Clean or whitelisted
+        """
         if not profile.suspicious_indicators:
             return ThreatLevel.NONE
         
-        num_indicators = len(profile.suspicious_indicators)
+        indicators_str = str(profile.suspicious_indicators)
         
-        # Critical: Multiple suspicious indicators
-        if num_indicators >= 3:
+        # CRITICAL: Localhost VPN server (definite attack)
+        if "localhost (CRITICAL)" in indicators_str:
             return ThreatLevel.CRITICAL
         
-        # High: Unsigned MDM or suspicious VPN name
-        if "MDM profile without" in str(profile.suspicious_indicators):
+        # CRITICAL: Multiple high-risk indicators
+        if "Unsigned VPN profile from unknown" in indicators_str:
+            return ThreatLevel.CRITICAL
+        
+        if "Unsigned MDM profile with no organization" in indicators_str:
+            return ThreatLevel.CRITICAL
+        
+        # HIGH: Suspicious VPN configuration
+        if "Suspicious VPN name" in indicators_str:
             return ThreatLevel.HIGH
         
-        if "Suspicious name" in str(profile.suspicious_indicators):
-            return ThreatLevel.HIGH
-        
-        # Medium: 2 indicators
-        if num_indicators == 2:
+        # MEDIUM: Single concerning indicator
+        if "VPN profile with no organization" in indicators_str:
             return ThreatLevel.MEDIUM
         
-        # Low: 1 indicator
-        return ThreatLevel.LOW
+        # LOW: Minor concerns (signed but unknown org)
+        if "unknown organization (signed)" in indicators_str:
+            return ThreatLevel.LOW
+        
+        # Default to LOW for any other single indicator
+        if len(profile.suspicious_indicators) == 1:
+            return ThreatLevel.LOW
+        
+        # Multiple indicators without specific patterns
+        return ThreatLevel.MEDIUM
+    
+    def _is_apple_system_file(self, profile_id: str) -> bool:
+        """Check if profile ID matches known Apple system paths.
+        
+        Args:
+            profile_id: Profile identifier or path
+            
+        Returns:
+            True if this is a known Apple system file
+        """
+        if not profile_id:
+            return False
+        
+        # Check against known Apple system paths
+        for system_path in self.APPLE_SYSTEM_PATHS:
+            if system_path in profile_id:
+                return True
+        
+        # Check for 
+    
+    def _is_known_service(self, profile_id: str) -> bool:
+        """Check if profile ID is from a known legitimate service.
+        
+        Args:
+            profile_id: Profile identifier or path
+            
+        Returns:
+            True if this is a known legitimate service
+        """
+        if not profile_id:
+            return False
+        
+        # Check against known legitimate services
+        for service in self.KNOWN_LEGITIMATE_SERVICES:
+            if service in profile_id:
+                return True
+        
+        return False
+    
+    def _has_localhost_server(self, profile: ProfileInfo) -> bool:
+        """Check if VPN profile uses localhost or suspicious servers.
+        
+        Args:
+            profile: ProfileInfo object to check
+            
+        Returns:
+            True if profile contains localhost or suspicious server references
+        """
+        if profile.profile_type != "VPN":
+            return False
+        
+        # Check profile ID and display name for localhost patterns
+        check_strings = [
+            profile.profile_id.lower() if profile.profile_id else "",
+            profile.display_name.lower() if profile.display_name else "",
+        ]
+        
+        for check_str in check_strings:
+            for suspicious_server in self.SUSPICIOUS_VPN_SERVERS:
+                if suspicious_server in check_str:
+                    return True
+        
+        return False
