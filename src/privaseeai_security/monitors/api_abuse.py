@@ -15,15 +15,7 @@ import json
 
 from ..config import Config
 from ..logger import get_logger
-
-
-class ThreatLevel(Enum):
-    """Threat severity levels."""
-    NONE = "none"
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    CRITICAL = "critical"
+from ..crypto.cert_validator import ThreatLevel
 
 
 @dataclass

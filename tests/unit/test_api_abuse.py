@@ -4,10 +4,10 @@ import pytest
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
+from src.privaseeai_security.crypto.cert_validator import ThreatLevel
 from src.privaseeai_security.monitors.api_abuse import (
     APIAbuseMonitor,
     APIThreatDetection,
-    ThreatLevel,
     APIRequest
 )
 
