@@ -37,6 +37,14 @@ install:
 install-dev:
 	pip install -r requirements-dev.txt
 
+.PHONY: setup-venv
+setup-venv:
+	@echo "Creating virtualenv in .venv and installing dev dependencies"
+	python3 -m venv .venv
+	. .venv/bin/activate && python -m pip install --upgrade pip
+	. .venv/bin/activate && python -m pip install -r requirements-dev.txt
+
+
 .PHONY: test
 test:
 	pytest

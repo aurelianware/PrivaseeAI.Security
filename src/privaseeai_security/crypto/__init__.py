@@ -1,4 +1,10 @@
-"""Cryptographic utilities for PrivaseeAI Security."""
+"""Cryptographic utilities for PrivaseeAI Security.
+
+This package exposes the same public API that previously lived in
+`src/privaseeai_security/crypto.py`. Moving it into a package allows
+submodules, such as `cert_validator`, to live under
+`privaseeai_security.crypto` without name conflicts.
+"""
 
 import base64
 import hashlib
@@ -112,3 +118,6 @@ class Crypto:
         """
         computed_hash = Crypto.hash_data(data, algorithm)
         return secrets.compare_digest(computed_hash, hash_value)
+
+
+__all__ = ["Crypto", "CryptoError"]

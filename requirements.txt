@@ -2,3 +2,6 @@
 
 # Note: This is a minimal set for the testing infrastructure phase
 # Additional dependencies will be added in future phases as features are implemented
+
+# Cryptography for certificate validation
+cryptography>=41.0.0

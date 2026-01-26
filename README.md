@@ -162,6 +162,23 @@ monitor.start()
 monitor.add_device(device_id="your-device-id")
 ```
 
+### Running Tests (Development)
+
+If `pytest` is not available on your system, use the provided Make target to create a virtual environment and install dev dependencies:
+
+```bash
+make setup-venv
+source .venv/bin/activate
+make test-unit
+```
+
+Or install pytest directly:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest tests/unit/test_cert_validator.py -v
+```
+
 ## 🔧 Technology Stack
 
 ### Backend & Core
