@@ -1,7 +1,69 @@
-# Core dependencies for PrivaseeAI Security
+# PrivaseeAI.Security - Production Dependencies
+# Prompt 7.1: Complete requirements file for iOS security monitoring
 
-# Note: This is a minimal set for the testing infrastructure phase
-# Additional dependencies will be added in future phases as features are implemented
+# ============================================================
+# Core Framework
+# ============================================================
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+python-dotenv>=1.0.0
 
-# Cryptography for certificate validation
+# ============================================================
+# iOS Device Communication
+# ============================================================
+pymobiledevice3>=3.0.0
+# Note: libimobiledevice is a system package
+#       Install with: brew install libimobiledevice (macOS)
+
+# ============================================================
+# Security & Cryptography
+# ============================================================
 cryptography>=41.0.0
+pyOpenSSL>=23.3.0
+pycryptodome>=3.19.0
+
+# ============================================================
+# Network Analysis
+# ============================================================
+scapy>=2.5.0
+dnspython>=2.4.0
+
+# ============================================================
+# Database & Caching
+# ============================================================
+sqlalchemy>=2.0.23
+asyncpg>=0.29.0
+redis>=5.0.1
+
+# ============================================================
+# Background Tasks & Job Queue
+# ============================================================
+celery>=5.3.4
+flower>=2.0.1
+
+# ============================================================
+# Monitoring & Metrics
+# ============================================================
+prometheus-client>=0.19.0
+structlog>=23.2.0
+
+# ============================================================
+# Alerting & Notifications
+# ============================================================
+python-telegram-bot>=20.7
+sendgrid>=6.11.0
+
+# ============================================================
+# Utilities & Parsing
+# ============================================================
+PyYAML>=6.0.1
+python-dateutil>=2.8.2
+
+# ============================================================
+# Standard Library (no install needed)
+# ============================================================
+# plistlib - iOS backup plist parsing
+# sqlite3 - Manifest.db querying
+# pathlib - Path handling
+# logging - Structured logging
