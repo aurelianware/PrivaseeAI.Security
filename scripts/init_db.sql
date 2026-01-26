@@ -154,8 +154,7 @@ END;
 $$ language 'plpgsql';
 
 -- Trigger for devices table
-DROP TRIGGER IF EXISTS update_devices_updated_at ON devices;
-CREATE TRIGGER update_devices_updated_at
+CREATE OR REPLACE TRIGGER update_devices_updated_at
     BEFORE UPDATE ON devices
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();

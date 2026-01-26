@@ -90,6 +90,8 @@ services:
       - privaseeai-network
 
   # pgAdmin - Database management tool (optional)
+  # Note: This configuration is for development only. For production,
+  # enable server mode and master password for better security.
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: privaseeai-pgadmin
@@ -97,8 +99,8 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@privaseeai.local}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+      PGADMIN_CONFIG_SERVER_MODE: 'False'  # Development only - set to 'True' for production
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'  # Development only - set to 'True' for production
     volumes:
       - pgadmin-data:/var/lib/pgadmin
     ports:
