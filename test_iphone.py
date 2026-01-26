@@ -116,9 +116,10 @@ def analyze_logs(log_file, verbose=False):
                     if verbose or threat.threat_level.value != "NONE":
                         threats_found.append(('VPN', threat))
             
-            # Analyze with API monitor
+            # Analyze with API monitor (VPN apps only, not iOS system)
             if any(keyword in line.lower() for keyword in 
-                   ['api', 'http', 'location', 'cooldown', 'rate limit']):
+                   ['protonvpn', 'vpn']) and any(api_kw in line.lower() for api_kw in 
+                   ['api', 'cooldown', 'rate limit', 'error', 'location request']):
                 # Extract app identifier if possible
                 app_id = "unknown.app"
                 if "protonvpn" in line.lower():
