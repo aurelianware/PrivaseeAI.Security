@@ -19,6 +19,15 @@ help:
 	@echo "  make install           - Install dependencies"
 	@echo "  make install-dev       - Install development dependencies"
 	@echo "  make clean             - Clean build artifacts"
+	@echo ""
+	@echo "Docker:"
+	@echo "  make docker-build      - Build Docker images"
+	@echo "  make docker-up         - Start Docker services"
+	@echo "  make docker-down       - Stop Docker services"
+	@echo "  make docker-logs       - View Docker logs"
+	@echo "  make docker-shell      - Open shell in app container"
+	@echo "  make docker-test       - Run tests in Docker"
+	@echo "  make docker-clean      - Clean Docker resources"
 
 .PHONY: install
 install:
@@ -69,3 +78,36 @@ clean:
 	find . -type f -name '*.pyc' -delete
 	find . -type d -name '*.egg-info' -exec rm -rf {} + 2>/dev/null || true
 	rm -rf build dist .coverage htmlcov .pytest_cache .mypy_cache
+
+# =====================================
+# Docker Targets
+# =====================================
+
+.PHONY: docker-build
+docker-build:
+	docker-compose build
+
+.PHONY: docker-up
+docker-up:
+	docker-compose up -d
+
+.PHONY: docker-down
+docker-down:
+	docker-compose down
+
+.PHONY: docker-logs
+docker-logs:
+	docker-compose logs -f
+
+.PHONY: docker-shell
+docker-shell:
+	docker-compose exec app /bin/bash
+
+.PHONY: docker-test
+docker-test:
+	docker-compose exec app pytest
+
+.PHONY: docker-clean
+docker-clean:
+	docker-compose down -v --remove-orphans
+	docker system prune -f

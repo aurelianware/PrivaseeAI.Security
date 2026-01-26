@@ -1,0 +1,132 @@
+version: '3.8'
+
+services:
+  # TimescaleDB - PostgreSQL with time-series extension
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15
+    container_name: privaseeai-timescaledb
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-privaseeai_security}
+      POSTGRES_USER: ${DATABASE_USER:-privaseeai}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-changeme}
+      POSTGRES_INITDB_ARGS: "-A md5"
+    volumes:
+      - timescaledb-data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql:ro
+    ports:
+      - "${DATABASE_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-privaseeai} -d ${DATABASE_NAME:-privaseeai_security}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - privaseeai-network
+
+  # Redis - Cache and message broker
+  redis:
+    image: redis:7-alpine
+    container_name: privaseeai-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD:-}
+    volumes:
+      - redis-data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - privaseeai-network
+
+  # PrivaseeAI Security Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: privaseeai-security-app
+    restart: unless-stopped
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Database Configuration
+      DATABASE_HOST: timescaledb
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-privaseeai_security}
+      DATABASE_USER: ${DATABASE_USER:-privaseeai}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-changeme}
+      
+      # Redis Configuration
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      
+      # Application Configuration
+      APP_ENV: ${APP_ENV:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      PYTHONUNBUFFERED: 1
+    volumes:
+      # Mount source code for development (comment out for production)
+      - ./src/privaseeai_security:/app/privaseeai_security
+      # Mount logs directory
+      - app-logs:/app/logs
+      # Mount data directory
+      - app-data:/app/data
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "/app/scripts/healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - privaseeai-network
+
+  # pgAdmin - Database management tool (optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: privaseeai-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@privaseeai.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    depends_on:
+      - timescaledb
+    networks:
+      - privaseeai-network
+    profiles:
+      - admin
+
+volumes:
+  timescaledb-data:
+    driver: local
+  redis-data:
+    driver: local
+  app-logs:
+    driver: local
+  app-data:
+    driver: local
+  pgadmin-data:
+    driver: local
+
+networks:
+  privaseeai-network:
+    driver: bridge
