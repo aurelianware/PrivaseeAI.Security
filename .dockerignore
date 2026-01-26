@@ -1,0 +1,91 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# IDE configs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test files and coverage reports
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+.tox/
+.nox/
+
+# Documentation (except README)
+docs/
+*.md
+!README.md
+
+# CI/CD configs
+.github/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.example
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+.eggs/
+*.egg
+MANIFEST
+wheels/
+pip-wheel-metadata/
+
+# Log files
+*.log
+logs/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Testing
+.pytest_cache/
+
+# Project planning and assessment documents
+COMPREHENSIVE_ASSESSMENT.md
+TESTING_SUMMARY.md
+privaseeAI_iOS_Threat_Detection_Spec.md
