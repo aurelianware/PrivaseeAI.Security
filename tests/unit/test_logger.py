@@ -1,6 +1,5 @@
 """Unit tests for logging module."""
 
-import pytest
 import json
 import logging
 import tempfile

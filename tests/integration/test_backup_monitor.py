@@ -3,7 +3,6 @@
 import pytest
 import tempfile
 from pathlib import Path
-import time
 
 from privaseeai_security.backup_monitor import BackupMonitor, BackupMonitorError
 from privaseeai_security.config import Config

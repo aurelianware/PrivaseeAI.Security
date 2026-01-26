@@ -5,7 +5,6 @@ from pathlib import Path
 import tempfile
 
 from privaseeai_security.config import Config, ConfigError
-from tests.fixtures.sample_data import get_mock_config
 
 
 class TestConfig:

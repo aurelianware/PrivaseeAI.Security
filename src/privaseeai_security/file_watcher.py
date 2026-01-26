@@ -1,8 +1,7 @@
 """File system watcher for monitoring iOS backups."""
 
-import time
 from pathlib import Path
-from typing import Callable, List, Optional, Set
+from typing import Callable, List, Set
 
 
 class FileWatcherError(Exception):

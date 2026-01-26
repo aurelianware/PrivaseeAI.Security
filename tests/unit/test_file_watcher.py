@@ -1,11 +1,9 @@
 """Unit tests for file watcher module."""
 
-import pytest
 import tempfile
-import time
 from pathlib import Path
 
-from privaseeai_security.file_watcher import FileWatcher, FileWatcherError
+from privaseeai_security.file_watcher import FileWatcher
 
 
 class TestFileWatcher:

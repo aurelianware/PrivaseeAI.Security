@@ -1,13 +1,9 @@
 """Unit tests for device information module."""
 
-import pytest
-
 from privaseeai_security.device_info import (
     DeviceInfo,
     DeviceInfoExtractor,
-    DeviceInfoError,
 )
-from tests.fixtures.sample_data import get_sample_device_info
 
 
 class TestDeviceInfo:

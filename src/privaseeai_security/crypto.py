@@ -3,7 +3,6 @@
 import base64
 import hashlib
 import secrets
-from typing import Tuple
 
 
 class CryptoError(Exception):
@@ -73,8 +72,8 @@ class Crypto:
         if len(encrypted_data) < 13:  # 12 bytes nonce + at least 1 byte data
             raise CryptoError("Encrypted data too short")
         
-        # Stub implementation - extract nonce and decode base64
-        nonce = encrypted_data[:12]
+        # Stub implementation - extract and decode base64
+        # Note: In real implementation, first 12 bytes would be the nonce for AES-GCM
         encrypted = encrypted_data[12:]
         return base64.b64decode(encrypted)
 

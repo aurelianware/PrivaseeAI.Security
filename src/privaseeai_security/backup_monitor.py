@@ -77,8 +77,6 @@ class BackupMonitor:
             perform actual threat analysis.
         """
         self.logger.debug(f"Analyzing file: {file_path}")
-        # Stub implementation - just log
-        pass
 
     def scan_existing_backups(self) -> List[str]:
         """Scan existing backups in the backup directory.
@@ -87,6 +85,9 @@ class BackupMonitor:
             List of backup device IDs found
         """
         backup_dir = self.config.get("backup_directory")
+        if not backup_dir:
+            return []
+        
         backup_path = Path(backup_dir)
         
         if not backup_path.exists():

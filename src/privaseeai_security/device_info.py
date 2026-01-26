@@ -1,7 +1,7 @@
 """Device information extraction for iOS devices."""
 
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 
 class DeviceInfoError(Exception):
@@ -21,7 +21,7 @@ class DeviceInfo:
     capacity: Optional[int] = None
     build_version: Optional[str] = None
 
-    def to_dict(self) -> Dict[str, any]:
+    def to_dict(self) -> Dict[str, Any]:
         """Convert device info to dictionary.
         
         Returns:
@@ -86,7 +86,7 @@ class DeviceInfoExtractor:
             device_info = self.extract_device_info()
             return device_info.device_id
         except Exception as e:
-            raise DeviceInfoError(f"Failed to get device ID: {str(e)}")
+            raise DeviceInfoError(f"Failed to get device ID: {str(e)}") from e
 
     def validate_backup(self) -> bool:
         """Validate iOS backup structure.

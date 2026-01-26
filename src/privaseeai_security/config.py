@@ -1,6 +1,5 @@
 """Configuration management for PrivaseeAI Security."""
 
-import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 

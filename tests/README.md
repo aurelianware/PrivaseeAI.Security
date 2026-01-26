@@ -132,10 +132,12 @@ def test_with_mock_data():
 
 ## Continuous Integration
 
-Tests are automatically run on:
-- Every pull request
-- Every commit to main branch
-- Scheduled nightly builds
+This repository does not include CI workflow configuration files (e.g., GitHub Actions workflows).
+
+When setting up CI for this project, we recommend running the test suite:
+- On every pull request
+- On every commit to the main branch
+- On scheduled nightly builds
 
 ## Contributing
 

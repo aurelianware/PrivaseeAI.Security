@@ -1,7 +1,6 @@
 """Unit tests for cryptographic utilities."""
 
 import pytest
-import hashlib
 
 from privaseeai_security.crypto import Crypto, CryptoError
 
