@@ -96,7 +96,7 @@ class CarrierCompromiseDetector:
         
         self.logger.info("CarrierCompromiseDetector initialized")
     
-    def monitor_esim_profiles(self, backup_path: Optional[Path] = None) -> List[CarrierThreatDetection]:
+    def monitor_esim_profiles(self, backup_path: Optional[Path] = None, compare_across_backups: bool = True) -> List[CarrierThreatDetection]:
         """Monitor eSIM profiles for unauthorized changes or additions.
         
         Detects:
@@ -104,9 +104,11 @@ class CarrierCompromiseDetector:
         - Unsigned or suspicious carrier profiles
         - Profiles that persist across factory resets
         - Unauthorized carrier bundle modifications
+        - Profile modifications across backup snapshots
         
         Args:
             backup_path: Path to iOS backup directory. If None, uses default location.
+            compare_across_backups: If True, analyze multiple backups to detect persistent profiles.
         
         Returns:
             List of CarrierThreatDetection objects for any suspicious profiles found.
@@ -121,59 +123,111 @@ class CarrierCompromiseDetector:
             self.logger.warning(f"iOS backup path does not exist: {backup_path}")
             return threats
         
-        # Find most recent backup
         try:
-            backup_dirs = [d for d in backup_path.iterdir() if d.is_dir()]
+            backup_dirs = sorted([d for d in backup_path.iterdir() if d.is_dir()], 
+                               key=lambda d: d.stat().st_mtime, reverse=True)
             if not backup_dirs:
                 self.logger.warning("No iOS backups found")
                 return threats
             
-            # Get most recent backup (by modification time)
-            latest_backup = max(backup_dirs, key=lambda d: d.stat().st_mtime)
-            self.logger.info(f"Analyzing backup: {latest_backup.name}")
+            # Analyze most recent backup
+            latest_backup = backup_dirs[0]
+            self.logger.info(f"Analyzing latest backup: {latest_backup.name}")
             
-            # Parse carrier profiles from backup
-            esim_profiles = self._extract_esim_profiles(latest_backup)
+            # Parse carrier profiles from latest backup
+            current_esim_profiles = self._extract_esim_profiles(latest_backup)
+            current_profile_ids = {p.profile_id for p in current_esim_profiles}
             
-            for profile in esim_profiles:
-                # Check if profile is new (not in known list)
-                if profile.profile_id not in self.known_esim_profiles:
-                    # Check for suspicious indicators
-                    suspicious_indicators = []
+            # Track profiles across multiple backups if requested
+            persistent_profiles: Set[str] = set()
+            if compare_across_backups and len(backup_dirs) > 1:
+                # Analyze up to 3 previous backups
+                for old_backup in backup_dirs[1:4]:
+                    old_profiles = self._extract_esim_profiles(old_backup)
+                    old_profile_ids = {p.profile_id for p in old_profiles}
                     
-                    if not profile.is_signed:
-                        suspicious_indicators.append("Unsigned eSIM profile")
+                    # Find profiles that exist in both old and new backups
+                    common_profiles = current_profile_ids & old_profile_ids
+                    persistent_profiles.update(common_profiles)
                     
-                    if profile.issuer and "localhost" in profile.issuer.lower():
-                        suspicious_indicators.append(f"Suspicious issuer: {profile.issuer}")
-                    
-                    # Unknown carrier names are suspicious
-                    known_carriers = ["T-Mobile", "AT&T", "Verizon", "Sprint"]
-                    if not any(carrier in profile.carrier_name for carrier in known_carriers):
-                        suspicious_indicators.append(f"Unknown carrier: {profile.carrier_name}")
-                    
-                    if suspicious_indicators:
-                        threat = CarrierThreatDetection(
-                            threat_level=ThreatLevel.CRITICAL,
-                            attack_type="ESIM_MANIPULATION",
-                            indicators=suspicious_indicators,
-                            timestamp=datetime.now(),
-                            details=f"Unauthorized eSIM profile detected: {profile.carrier_name}",
-                            profile_info={
-                                "profile_id": profile.profile_id,
-                                "carrier": profile.carrier_name,
-                                "is_signed": profile.is_signed,
-                                "issuer": profile.issuer
-                            },
-                            recommended_action="Review eSIM profiles in Settings → Cellular. Remove any unauthorized profiles and contact your carrier."
-                        )
-                        threats.append(threat)
-                        self.logger.warning(f"Suspicious eSIM profile detected: {profile.carrier_name}")
-                    else:
-                        # Add to known profiles
-                        self.known_esim_profiles.add(profile.profile_id)
+                    # Check for profiles that survived a factory reset
+                    # (indicated by significant time gap or device info change)
+                    time_gap = latest_backup.stat().st_mtime - old_backup.stat().st_mtime
+                    if time_gap > 7 * 24 * 3600:  # More than 7 days
+                        for profile_id in common_profiles:
+                            if profile_id not in self.known_esim_profiles:
+                                self.logger.warning(f"Profile {profile_id} persisted across {time_gap/86400:.1f} day gap")
+            
+            # Analyze each current profile
+            for profile in current_esim_profiles:
+                suspicious_indicators = []
                 
-                # Update profile history
+                # Check if profile is unsigned
+                if not profile.is_signed:
+                    suspicious_indicators.append("Unsigned eSIM profile")
+                
+                # Check for suspicious issuer
+                if profile.issuer:
+                    suspicious_patterns = ["localhost", "127.0.0.1", "test", "debug"]
+                    if any(pattern in profile.issuer.lower() for pattern in suspicious_patterns):
+                        suspicious_indicators.append(f"Suspicious issuer: {profile.issuer}")
+                
+                # Check against known carriers (expanded list)
+                known_carriers = [
+                    "T-Mobile", "AT&T", "Verizon", "Sprint", "US Cellular",
+                    "Vodafone", "O2", "EE", "Three", "Orange",
+                    "Rogers", "Bell", "Telus", "Fido"
+                ]
+                carrier_match = any(carrier.lower() in profile.carrier_name.lower() 
+                                  for carrier in known_carriers)
+                if not carrier_match and profile.carrier_name.lower() not in ["unknown", "no service"]:
+                    suspicious_indicators.append(f"Unknown carrier: {profile.carrier_name}")
+                
+                # Check if profile persists across backups (potential rootkit behavior)
+                if profile.profile_id in persistent_profiles and profile.profile_id not in self.known_esim_profiles:
+                    suspicious_indicators.append("Profile persists across multiple backups")
+                
+                # Check for profiles appearing in history but with modifications
+                if profile.profile_id in self.esim_profile_history:
+                    old_profile = self.esim_profile_history[profile.profile_id]
+                    if old_profile.carrier_name != profile.carrier_name:
+                        suspicious_indicators.append(
+                            f"Carrier name changed: {old_profile.carrier_name} → {profile.carrier_name}"
+                        )
+                    if old_profile.is_signed != profile.is_signed:
+                        suspicious_indicators.append("Signature status changed")
+                
+                # Generate threat if suspicious indicators found
+                if suspicious_indicators:
+                    threat_level = ThreatLevel.CRITICAL if any([
+                        "Unsigned" in str(suspicious_indicators),
+                        "localhost" in str(suspicious_indicators).lower(),
+                        "persists across" in str(suspicious_indicators).lower()
+                    ]) else ThreatLevel.HIGH
+                    
+                    threat = CarrierThreatDetection(
+                        threat_level=threat_level,
+                        attack_type="ESIM_MANIPULATION",
+                        indicators=suspicious_indicators,
+                        timestamp=datetime.now(),
+                        details=f"Suspicious eSIM profile: {profile.carrier_name} (ID: {profile.profile_id[:8]}...)",
+                        profile_info={
+                            "profile_id": profile.profile_id,
+                            "carrier": profile.carrier_name,
+                            "is_signed": profile.is_signed,
+                            "issuer": profile.issuer,
+                            "install_date": profile.install_date.isoformat() if profile.install_date else None,
+                            "is_active": profile.is_active
+                        },
+                        recommended_action="Review eSIM profiles in Settings → Cellular. Remove any unauthorized profiles and contact your carrier immediately."
+                    )
+                    threats.append(threat)
+                    self.logger.warning(f"Suspicious eSIM profile detected: {profile.carrier_name} - {suspicious_indicators}")
+                else:
+                    # Add to known good profiles
+                    self.known_esim_profiles.add(profile.profile_id)
+                
+                # Update profile history for differential analysis
                 self.esim_profile_history[profile.profile_id] = profile
         
         except Exception as e:
@@ -181,15 +235,23 @@ class CarrierCompromiseDetector:
         
         return threats
     
-    def detect_localhost_routing(self, backup_path: Optional[Path] = None) -> List[CarrierThreatDetection]:
+    def detect_localhost_routing(self, backup_path: Optional[Path] = None, check_tun_tap: bool = True) -> List[CarrierThreatDetection]:
         """Detect fake VPN profiles routing traffic to localhost.
         
         This is a key indicator of the specific carrier-level attack where
         VPN profiles are created with ServerAddress = "127.0.0.1" to intercept
         all network traffic.
         
+        Detection includes:
+        - VPN profiles pointing to localhost/private IPs
+        - Routes directing traffic to localhost
+        - Suspicious TUN/TAP interface configurations
+        - VPN profiles with no remote endpoint
+        - Profiles created outside user installation (MDM/system level)
+        
         Args:
             backup_path: Path to iOS backup directory. If None, uses default location.
+            check_tun_tap: If True, also check for suspicious TUN/TAP configurations.
         
         Returns:
             List of CarrierThreatDetection objects for any localhost-routing profiles.
@@ -210,54 +272,92 @@ class CarrierCompromiseDetector:
                 return threats
             
             latest_backup = max(backup_dirs, key=lambda d: d.stat().st_mtime)
+            self.logger.info(f"Analyzing VPN profiles in backup: {latest_backup.name}")
             
-            # Extract VPN profiles
+            # Extract VPN profiles from multiple sources
             vpn_profiles = self._extract_vpn_profiles(latest_backup)
+            mdm_profiles = self._extract_mdm_vpn_profiles(latest_backup)
             
-            for profile in vpn_profiles:
+            # Analyze all profiles (user-installed and MDM)
+            all_profiles = vpn_profiles + mdm_profiles
+            
+            for profile in all_profiles:
                 localhost_indicators = []
+                is_mdm = profile in mdm_profiles
                 
-                # Check for localhost routing
+                # CRITICAL: Check for localhost routing (the documented attack)
                 if profile.server_address in ["127.0.0.1", "::1", "localhost"]:
                     localhost_indicators.append(f"VPN server points to localhost: {profile.server_address}")
                 
                 # Check for suspicious IP ranges (RFC 1918 private addresses)
-                if profile.server_address.startswith(("10.", "172.16.", "192.168.")):
+                # Note: Some corporate VPNs legitimately use these, but still flag for review
+                if self._is_private_ip(profile.server_address):
                     localhost_indicators.append(f"VPN server uses private IP: {profile.server_address}")
                 
-                # Check for missing organization (unsigned profiles)
+                # Check for empty/null server address (VPN with no remote endpoint)
+                if not profile.server_address or profile.server_address in ["", "null", "none"]:
+                    localhost_indicators.append("VPN profile has no remote endpoint")
+                
+                # Check for MDM-installed profiles (created outside user action)
+                if is_mdm and not profile.organization:
+                    localhost_indicators.append("VPN profile installed via MDM with no verified organization")
+                
+                # Check for missing signature (unsigned profiles)
                 if not profile.is_signed:
                     localhost_indicators.append("Unsigned VPN profile")
                 
                 # Check for suspicious profile names
-                suspicious_keywords = ["test", "debug", "local", "proxy", "intercept"]
+                suspicious_keywords = ["test", "debug", "local", "proxy", "intercept", "mitm", "capture"]
                 if any(kw in profile.display_name.lower() for kw in suspicious_keywords):
                     localhost_indicators.append(f"Suspicious profile name: {profile.display_name}")
                 
+                # Check install date (profiles installed at suspicious times)
+                if profile.install_date:
+                    # Flag profiles installed outside normal hours (11pm - 6am)
+                    hour = profile.install_date.hour
+                    if hour >= 23 or hour < 6:
+                        localhost_indicators.append(f"Profile installed at suspicious time: {profile.install_date}")
+                
+                # Generate threat if localhost routing detected
                 if localhost_indicators:
+                    # CRITICAL if localhost/no endpoint, HIGH if private IP only
+                    is_critical = any([
+                        "localhost" in str(localhost_indicators).lower(),
+                        "no remote endpoint" in str(localhost_indicators).lower(),
+                        "MDM" in str(localhost_indicators)
+                    ])
+                    
                     threat = CarrierThreatDetection(
-                        threat_level=ThreatLevel.CRITICAL,
+                        threat_level=ThreatLevel.CRITICAL if is_critical else ThreatLevel.HIGH,
                         attack_type="LOCALHOST_VPN_ROUTING",
                         indicators=localhost_indicators,
                         timestamp=datetime.now(),
-                        details=f"Fake VPN profile routing to localhost: {profile.display_name}",
+                        details=f"{'MDM-installed' if is_mdm else 'User'} VPN profile with suspicious routing: {profile.display_name}",
                         profile_info={
                             "profile_id": profile.profile_id,
                             "name": profile.display_name,
                             "server": profile.server_address,
                             "type": profile.vpn_type,
-                            "is_signed": profile.is_signed
+                            "is_signed": profile.is_signed,
+                            "organization": profile.organization,
+                            "install_date": profile.install_date.isoformat() if profile.install_date else None,
+                            "is_mdm": is_mdm
                         },
-                        recommended_action="CRITICAL: Delete this VPN profile immediately in Settings → General → VPN & Device Management. This profile is intercepting all your network traffic."
+                        recommended_action="CRITICAL: Delete this VPN profile immediately in Settings → General → VPN & Device Management. This profile may be intercepting all your network traffic. If it's an MDM profile, contact your IT administrator."
                     )
                     threats.append(threat)
-                    self.logger.critical(f"Localhost-routing VPN profile detected: {profile.display_name} -> {profile.server_address}")
+                    self.logger.critical(f"Localhost-routing VPN profile detected: {profile.display_name} -> {profile.server_address} (MDM: {is_mdm})")
                 else:
-                    # Add to known profiles
+                    # Add to known good profiles
                     self.known_vpn_profiles.add(profile.profile_id)
                 
                 # Update profile history
                 self.vpn_profile_history[profile.profile_id] = profile
+            
+            # Check TUN/TAP interface configurations if requested
+            if check_tun_tap:
+                tun_tap_threats = self._check_tun_tap_config(latest_backup, len(all_profiles))
+                threats.extend(tun_tap_threats)
         
         except Exception as e:
             self.logger.error(f"Error detecting localhost routing: {e}")
@@ -396,6 +496,159 @@ class CarrierCompromiseDetector:
             self.logger.error("Interface check timed out")
         except Exception as e:
             self.logger.error(f"Error tracking network interfaces: {e}")
+        
+        return threats
+    
+    def _is_private_ip(self, ip_address: str) -> bool:
+        """Check if an IP address is in a private range (RFC 1918).
+        
+        Args:
+            ip_address: IP address string
+        
+        Returns:
+            True if IP is in private range, False otherwise
+        """
+        if not ip_address or ip_address == "unknown":
+            return False
+        
+        # Check for private IPv4 ranges
+        private_ranges = [
+            "10.",           # 10.0.0.0/8
+            "172.16.", "172.17.", "172.18.", "172.19.",  # 172.16.0.0/12
+            "172.20.", "172.21.", "172.22.", "172.23.",
+            "172.24.", "172.25.", "172.26.", "172.27.",
+            "172.28.", "172.29.", "172.30.", "172.31.",
+            "192.168."       # 192.168.0.0/16
+        ]
+        
+        return any(ip_address.startswith(prefix) for prefix in private_ranges)
+    
+    def _extract_mdm_vpn_profiles(self, backup_path: Path) -> List[VPNProfile]:
+        """Extract MDM-installed VPN profiles from iOS backup.
+        
+        MDM profiles are system-installed and may not be visible to users.
+        
+        Args:
+            backup_path: Path to iOS backup directory
+        
+        Returns:
+            List of VPNProfile objects from MDM sources
+        """
+        profiles = []
+        
+        try:
+            # Look for MDM configuration files
+            mdm_files = list(backup_path.glob("**/com.apple.mdm*.plist"))
+            mdm_files.extend(list(backup_path.glob("**/ManagedPreferences*.plist")))
+            
+            for plist_file in mdm_files:
+                try:
+                    with open(plist_file, 'rb') as f:
+                        data = plistlib.load(f)
+                        
+                        # Extract VPN configurations from MDM payloads
+                        if isinstance(data, dict):
+                            payloads = data.get("PayloadContent", [])
+                            if not isinstance(payloads, list):
+                                payloads = [payloads] if payloads else []
+                            
+                            for payload in payloads:
+                                if isinstance(payload, dict):
+                                    payload_type = payload.get("PayloadType", "")
+                                    if "VPN" in payload_type or "com.apple.vpn" in payload_type:
+                                        profile = VPNProfile(
+                                            profile_id=str(payload.get("PayloadIdentifier", f"mdm_{plist_file.name}")),
+                                            display_name=payload.get("PayloadDisplayName", "MDM VPN Profile"),
+                                            server_address=payload.get("RemoteAddress", payload.get("ServerAddress", "unknown")),
+                                            vpn_type=payload.get("VPNType", "MDM"),
+                                            is_signed=bool(payload.get("PayloadCertificateUUID")),
+                                            organization=payload.get("PayloadOrganization")
+                                        )
+                                        profiles.append(profile)
+                
+                except Exception as e:
+                    self.logger.debug(f"Could not parse MDM file {plist_file}: {e}")
+        
+        except Exception as e:
+            self.logger.error(f"Error extracting MDM VPN profiles: {e}")
+        
+        return profiles
+    
+    def _check_tun_tap_config(self, backup_path: Path, expected_vpn_count: int) -> List[CarrierThreatDetection]:
+        """Check TUN/TAP interface configurations for anomalies.
+        
+        Args:
+            backup_path: Path to iOS backup directory
+            expected_vpn_count: Expected number of VPN profiles
+        
+        Returns:
+            List of CarrierThreatDetection objects for TUN/TAP anomalies
+        """
+        threats = []
+        
+        try:
+            # Check network configuration files for TUN/TAP interfaces
+            network_files = list(backup_path.glob("**/NetworkInterfaces*.plist"))
+            network_files.extend(list(backup_path.glob("**/preferences.plist")))
+            
+            tun_tap_count = 0
+            suspicious_configs = []
+            
+            for plist_file in network_files:
+                try:
+                    with open(plist_file, 'rb') as f:
+                        data = plistlib.load(f)
+                        
+                        # Look for TUN/TAP interface configurations
+                        if isinstance(data, dict):
+                            interfaces = data.get("NetworkInterfaces", {})
+                            if isinstance(interfaces, dict):
+                                for iface_name, iface_config in interfaces.items():
+                                    if isinstance(iface_name, str) and any(prefix in iface_name.lower() 
+                                                                           for prefix in ["tun", "tap", "utun"]):
+                                        tun_tap_count += 1
+                                        
+                                        # Check for suspicious configurations
+                                        if isinstance(iface_config, dict):
+                                            # Check for localhost routing in interface config
+                                            routes = iface_config.get("Routes", [])
+                                            for route in routes:
+                                                if isinstance(route, dict):
+                                                    dest = route.get("Destination", "")
+                                                    if "127.0.0.1" in str(dest) or "localhost" in str(dest):
+                                                        suspicious_configs.append(
+                                                            f"Interface {iface_name} has localhost route: {dest}"
+                                                        )
+                
+                except Exception as e:
+                    self.logger.debug(f"Could not parse network file {plist_file}: {e}")
+            
+            # Flag if TUN/TAP count exceeds expected VPN profile count significantly
+            if tun_tap_count > expected_vpn_count + 2:  # Allow 2 extra for system use
+                threat = CarrierThreatDetection(
+                    threat_level=ThreatLevel.MEDIUM,
+                    attack_type="TUN_TAP_ANOMALY",
+                    indicators=[f"Excessive TUN/TAP interfaces: {tun_tap_count} found, {expected_vpn_count} VPN profiles"],
+                    timestamp=datetime.now(),
+                    details=f"Found {tun_tap_count} TUN/TAP interfaces but only {expected_vpn_count} VPN profiles",
+                    recommended_action="Review VPN profiles and network settings. Extra TUN/TAP interfaces may indicate hidden VPN configurations."
+                )
+                threats.append(threat)
+            
+            # Add threats for suspicious configurations
+            if suspicious_configs:
+                threat = CarrierThreatDetection(
+                    threat_level=ThreatLevel.HIGH,
+                    attack_type="TUN_TAP_LOCALHOST_ROUTING",
+                    indicators=suspicious_configs,
+                    timestamp=datetime.now(),
+                    details="TUN/TAP interfaces configured with localhost routing",
+                    recommended_action="CRITICAL: Network interfaces are routing traffic to localhost. This may intercept all network traffic."
+                )
+                threats.append(threat)
+        
+        except Exception as e:
+            self.logger.error(f"Error checking TUN/TAP config: {e}")
         
         return threats
     
