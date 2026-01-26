@@ -111,10 +111,11 @@ docker compose ps
 docker compose logs -f
 ```
 
-Your services will be available at:
-- Application: http://localhost:8000
+Your infrastructure services will be available at:
 - TimescaleDB: localhost:5432
 - Redis: localhost:6379
+
+> **Note**: The application runs as a background monitoring service and does not currently expose an HTTP API. A web interface will be added in future releases.
 
 For detailed Docker usage, see [Docker Documentation](docs/docker.md).
 

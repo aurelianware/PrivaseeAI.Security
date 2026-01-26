@@ -27,6 +27,7 @@ venv.bak/
 .DS_Store
 
 # Test files and coverage reports
+tests/
 .pytest_cache/
 .coverage
 htmlcov/
@@ -83,9 +84,6 @@ dmypy.json
 
 # Testing
 .pytest_cache/
-
-# Development dependencies file
-requirements-dev.txt
 
 # Project planning and assessment documents
 COMPREHENSIVE_ASSESSMENT.md

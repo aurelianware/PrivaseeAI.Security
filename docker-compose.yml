@@ -1,14 +1,14 @@
 services:
   # TimescaleDB - PostgreSQL with time-series extension
   timescaledb:
-    image: timescale/timescaledb:latest-pg15
+    image: timescale/timescaledb:2.17.2-pg15
     container_name: privaseeai-timescaledb
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${DATABASE_NAME:-privaseeai_security}
       POSTGRES_USER: ${DATABASE_USER:-privaseeai}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-changeme}
-      POSTGRES_INITDB_ARGS: "-A md5"
+      POSTGRES_INITDB_ARGS: "-A scram-sha-256"
     volumes:
       - timescaledb-data:/var/lib/postgresql/data
       - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql:ro
@@ -57,15 +57,14 @@ services:
     environment:
       # Database Configuration
       DATABASE_HOST: timescaledb
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_PORT: 5432
       DATABASE_NAME: ${DATABASE_NAME:-privaseeai_security}
       DATABASE_USER: ${DATABASE_USER:-privaseeai}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-changeme}
       
       # Redis Configuration
       REDIS_HOST: redis
-      REDIS_PORT: ${REDIS_PORT:-6379}
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_PORT: 6379
       
       # Application Configuration
       APP_ENV: ${APP_ENV:-development}
@@ -78,8 +77,6 @@ services:
       - app-logs:/app/logs
       # Mount data directory
       - app-data:/app/data
-    ports:
-      - "${APP_PORT:-8000}:8000"
     healthcheck:
       test: ["CMD", "python", "/app/scripts/healthcheck.py"]
       interval: 30s
@@ -93,7 +90,7 @@ services:
   # Note: This configuration is for development only. For production,
   # enable server mode and master password for better security.
   pgadmin:
-    image: dpage/pgadmin4:latest
+    image: dpage/pgadmin4:8.14
     container_name: privaseeai-pgadmin
     restart: unless-stopped
     environment:

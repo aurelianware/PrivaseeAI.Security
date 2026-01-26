@@ -164,10 +164,13 @@ CREATE OR REPLACE TRIGGER update_devices_updated_at
 -- =====================================
 -- Add any seed data here if needed
 
--- Grant permissions
-GRANT ALL PRIVILEGES ON SCHEMA security TO privaseeai;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA security TO privaseeai;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA security TO privaseeai;
+-- Grant permissions to the current user (supports custom POSTGRES_USER / DATABASE_USER)
+DO $$
+BEGIN
+    EXECUTE format('GRANT ALL PRIVILEGES ON SCHEMA security TO %I', current_user);
+    EXECUTE format('GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA security TO %I', current_user);
+    EXECUTE format('GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA security TO %I', current_user);
+END $$;
 
 -- Completion message
 DO $$

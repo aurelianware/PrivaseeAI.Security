@@ -6,7 +6,6 @@ and uses /app as the base path, matching the WORKDIR in the Dockerfile.
 """
 
 import sys
-import os
 
 # Add the app directory to Python path to find the module
 # This path is specific to the Docker container environment

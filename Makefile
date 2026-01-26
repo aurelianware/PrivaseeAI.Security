@@ -105,7 +105,7 @@ docker-shell:
 
 .PHONY: docker-test
 docker-test:
-	docker compose exec app pytest
+	docker compose exec app sh -c "pip install -q -r requirements-dev.txt && pytest"
 
 .PHONY: docker-clean
 docker-clean:

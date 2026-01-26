@@ -60,9 +60,9 @@ docker compose logs -f
 ```
 
 Your services should now be running:
-- Application: http://localhost:8000
 - TimescaleDB: localhost:5432
 - Redis: localhost:6379
+- Application: Background monitoring service (no HTTP interface yet)
 
 ## Building Images
 
@@ -175,10 +175,12 @@ docker compose logs -f timescaledb
 
 | Service | URL | Default Port | Credentials |
 |---------|-----|--------------|-------------|
-| Application | http://localhost:8000 | 8000 | N/A |
+| Application | Background service | N/A | N/A |
 | TimescaleDB | localhost:5432 | 5432 | See .env file |
 | Redis | localhost:6379 | 6379 | See .env file |
 | pgAdmin | http://localhost:5050 | 5050 | admin@privaseeai.local / admin |
+
+> **Note**: The application currently runs as a background monitoring service and does not expose an HTTP API. Future releases will add a web interface.
 
 ### Connect to Database
 
