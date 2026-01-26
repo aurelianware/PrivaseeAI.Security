@@ -85,7 +85,40 @@ For detailed architecture documentation, see:
 - iOS device with backup capability
 - libimobiledevice and dependencies
 
+**OR** use Docker (recommended for quick setup):
+- Docker 20.10+
+- Docker Compose v2.0+
+
 ### Installation
+
+#### Option 1: Using Docker (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/aurelianware/PrivaseeAI.Security.git
+cd PrivaseeAI.Security
+
+# Copy and configure environment variables (optional for development)
+cp .env.example .env
+
+# Start all services with Docker Compose
+docker compose up -d
+
+# Check service status
+docker compose ps
+
+# View logs
+docker compose logs -f
+```
+
+Your services will be available at:
+- Application: http://localhost:8000
+- TimescaleDB: localhost:5432
+- Redis: localhost:6379
+
+For detailed Docker usage, see [Docker Documentation](docs/docker.md).
+
+#### Option 2: Manual Installation
 
 ```bash
 # Clone the repository
@@ -157,6 +190,7 @@ monitor.add_device(device_id="your-device-id")
 
 ## 📚 Documentation
 
+- [Docker Setup Guide](docs/docker.md) - Complete guide for running with Docker
 - [Contributing Guidelines](CONTRIBUTING.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [Security Policy](SECURITY.md)
