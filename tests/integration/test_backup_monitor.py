@@ -106,11 +106,25 @@ class TestBackupMonitorIntegration:
             config = Config()
             config.set("backup_directory", tmpdir)
             
-            # Create mock backup directories
+            # Create mock backup directories with required iOS backup files
             device_dir1 = Path(tmpdir) / "device1"
             device_dir2 = Path(tmpdir) / "device2"
             device_dir1.mkdir()
             device_dir2.mkdir()
+            
+            # Add Info.plist to each backup directory
+            import plistlib
+            for device_dir in [device_dir1, device_dir2]:
+                info_data = {
+                    "Device Name": f"Test Device {device_dir.name}",
+                    "Product Version": "17.0",
+                    "Unique Identifier": device_dir.name
+                }
+                with open(device_dir / "Info.plist", 'wb') as f:
+                    plistlib.dump(info_data, f)
+                # Create Manifest.plist
+                with open(device_dir / "Manifest.plist", 'wb') as f:
+                    plistlib.dump({"IsEncrypted": False}, f)
             
             monitor = BackupMonitor(config=config)
             backup_ids = monitor.scan_existing_backups()
@@ -128,9 +142,21 @@ class TestBackupMonitorIntegration:
             test_file = Path(tmpdir) / "test.txt"
             test_file.write_text("test content")
             
-            # Create one valid directory
+            # Create one valid backup directory with required files
+            import plistlib
             device_dir = Path(tmpdir) / "device1"
             device_dir.mkdir()
+            
+            # Add Info.plist and Manifest.plist
+            info_data = {
+                "Device Name": "Test Device 1",
+                "Product Version": "17.0",
+                "Unique Identifier": "device1"
+            }
+            with open(device_dir / "Info.plist", 'wb') as f:
+                plistlib.dump(info_data, f)
+            with open(device_dir / "Manifest.plist", 'wb') as f:
+                plistlib.dump({"IsEncrypted": False}, f)
             
             monitor = BackupMonitor(config=config)
             backup_ids = monitor.scan_existing_backups()
@@ -148,9 +174,21 @@ class TestBackupMonitorIntegration:
             
             monitor = BackupMonitor(config=config)
             
-            # Create initial backup
+            # Create initial backup with required iOS backup files
+            import plistlib
             device_dir = Path(tmpdir) / "test-device-001"
             device_dir.mkdir()
+            
+            # Add Info.plist and Manifest.plist
+            info_data = {
+                "Device Name": "Test Device",
+                "Product Version": "17.0",
+                "Unique Identifier": "test-device-001"
+            }
+            with open(device_dir / "Info.plist", 'wb') as f:
+                plistlib.dump(info_data, f)
+            with open(device_dir / "Manifest.plist", 'wb') as f:
+                plistlib.dump({"IsEncrypted": False}, f)
             
             # Start monitoring
             monitor.start()
@@ -189,9 +227,21 @@ class TestBackupMonitorIntegration:
             config = Config()
             config.set("backup_directory", tmpdir)
             
-            # Create device backup directory
+            # Create device backup directory with required iOS backup files
+            import plistlib
             device_dir = Path(tmpdir) / "test-device-backup"
             device_dir.mkdir()
+            
+            # Add Info.plist and Manifest.plist
+            info_data = {
+                "Device Name": "Test Device",
+                "Product Version": "17.0",
+                "Unique Identifier": "test-device-backup"
+            }
+            with open(device_dir / "Info.plist", 'wb') as f:
+                plistlib.dump(info_data, f)
+            with open(device_dir / "Manifest.plist", 'wb') as f:
+                plistlib.dump({"IsEncrypted": False}, f)
             
             # Test device info extraction
             extractor = DeviceInfoExtractor(str(device_dir))

@@ -1,9 +1,20 @@
 """Unit tests for device information module."""
 
+import pytest
+from pathlib import Path
+import tempfile
+import shutil
+import plistlib
+import sqlite3
+
 from privaseeai_security.device_info import (
     DeviceInfo,
     DeviceInfoExtractor,
+    DeviceInfoError,
+    ProfileInfo,
+    AppInfo
 )
+from privaseeai_security.crypto.cert_validator import ThreatLevel
 
 
 class TestDeviceInfo:
@@ -78,7 +89,7 @@ class TestDeviceInfoExtractor:
     def test_extractor_initialization(self):
         """Test DeviceInfoExtractor initialization."""
         extractor = DeviceInfoExtractor("/path/to/backup")
-        assert extractor.backup_path == "/path/to/backup"
+        assert str(extractor.backup_path) == "/path/to/backup"
 
     def test_extract_device_info(self):
         """Test extracting device information."""
@@ -122,8 +133,8 @@ class TestDeviceInfoExtractor:
         is_valid = extractor.validate_backup()
         
         assert isinstance(is_valid, bool)
-        # Stub implementation always returns True
-        assert is_valid is True
+        # Non-existent backup should return False
+        assert is_valid is False
 
     def test_validate_backup_returns_boolean(self):
         """Test that validate_backup returns boolean."""
@@ -142,7 +153,7 @@ class TestDeviceInfoExtractor:
         
         for path in paths:
             extractor = DeviceInfoExtractor(path)
-            assert extractor.backup_path == path
+            assert str(extractor.backup_path) == path
 
     def test_extracted_info_has_all_required_fields(self):
         """Test that extracted device info has all required fields."""
