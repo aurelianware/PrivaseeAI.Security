@@ -105,7 +105,9 @@ docker-shell:
 
 .PHONY: docker-test
 docker-test:
-	docker compose exec app sh -c "pip install -q -r requirements-dev.txt && pytest"
+	@echo "Tests should be run on the host machine (production image excludes tests):"
+	@echo "  make test              - Run all tests"
+	@echo "  make test-coverage     - Run tests with coverage"
 
 .PHONY: docker-clean
 docker-clean:
