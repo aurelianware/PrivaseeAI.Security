@@ -20,6 +20,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+          cache-dependency-path: '**/requirements*.txt'
       
       - name: Install dependencies
         run: |
@@ -30,7 +31,7 @@ jobs:
       - name: Run flake8
         run: |
           flake8 src tests --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 src tests --count --max-complexity=10 --max-line-length=127 --statistics
+          flake8 src tests --count --max-complexity=10 --max-line-length=100 --statistics
       
       - name: Check code formatting with black
         run: |

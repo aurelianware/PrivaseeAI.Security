@@ -24,6 +24,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
+          cache-dependency-path: '**/requirements*.txt'
       
       - name: Install dependencies
         run: |
@@ -31,18 +32,6 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
           pip install -e .
-      
-      - name: Run linters
-        run: |
-          echo "Running code quality checks..."
-          flake8 src tests --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 src tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-          black --check src tests || true
-          isort --check-only src tests || true
-      
-      - name: Run type checking
-        run: |
-          mypy src || true
       
       - name: Run tests with coverage
         run: |
