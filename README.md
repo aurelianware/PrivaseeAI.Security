@@ -3,6 +3,8 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/Security-Report%20Vulnerabilities-red.svg)](SECURITY.md)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Test Suite](https://github.com/aurelianware/PrivaseeAI.Security/actions/workflows/test.yml/badge.svg)](https://github.com/aurelianware/PrivaseeAI.Security/actions/workflows/test.yml)
+[![Code Quality](https://github.com/aurelianware/PrivaseeAI.Security/actions/workflows/code-quality.yml/badge.svg)](https://github.com/aurelianware/PrivaseeAI.Security/actions/workflows/code-quality.yml)
 
 **Continuous iOS Threat Detection & Monitoring System**
 
