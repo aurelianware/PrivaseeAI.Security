@@ -35,7 +35,7 @@ jobs:
       
       - name: Run tests with coverage
         run: |
-          pytest --cov=src/privaseeai_security --cov-report=xml --cov-report=term --cov-report=html --junitxml=test-results.xml
+          pytest --junitxml=test-results-${{ matrix.python-version }}.xml
       
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
@@ -52,7 +52,7 @@ jobs:
         if: always()
         with:
           files: |
-            test-results.xml
+            test-results-${{ matrix.python-version }}.xml
           check_name: Test Results (Python ${{ matrix.python-version }})
           comment_mode: off
       
@@ -69,7 +69,7 @@ jobs:
         if: always()
         with:
           name: test-results-${{ matrix.python-version }}
-          path: test-results.xml
+          path: test-results-${{ matrix.python-version }}.xml
           retention-days: 30
       
       - name: Comment coverage on PR
