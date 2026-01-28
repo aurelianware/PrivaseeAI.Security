@@ -57,6 +57,7 @@ dmypy.json
 
 # Logs
 *.log
+!test_fixtures/**/*.log
 logs/
 
 # Environment variables

@@ -582,14 +582,22 @@ class TestBackupComparison:
         
         # Create 3 backup snapshots with different timestamps
         backups = []
+        import time
+        import os
+        base_time = time.time()
+        
         for i in range(3):
             backup_dir = backup_root / f"device-snapshot-{i}"
             backup_dir.mkdir()
-            backups.append(backup_dir)
             
-            # Set different modification times
-            import time
-            time.sleep(0.1)  # Ensure different timestamps
+            # Set modification time explicitly (older backups have older times)
+            # backup-0: base_time - 2 days
+            # backup-1: base_time - 1 day  
+            # backup-2: base_time (most recent)
+            mtime = base_time - (2 - i) * 86400  # 86400 seconds = 1 day
+            os.utime(backup_dir, (mtime, mtime))
+            
+            backups.append(backup_dir)
         
         yield backup_root, backups
         shutil.rmtree(temp_dir)

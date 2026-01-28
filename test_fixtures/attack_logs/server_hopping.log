@@ -1,0 +1,22 @@
+2026-01-26T04:24:55.233748Z | INFO | PROTOCOL | DNS64: mapped 185.159.158.192 to itself.
+2026-01-26T04:24:55.234138Z | INFO | PROTOCOL | Attaching to interface
+2026-01-26T04:24:55.955599Z | INFO | PROTOCOL | peer(houx…jOF0) (1) - Received handshake response
+2026-01-26T04:24:55.955630Z | INFO | PROTOCOL | WireGuardKitGo state change Connecting --> Connected
+2026-01-26T04:25:06.628659Z | INFO | PROTOCOL | Stopping tunnel. Reason: userInitiated (1)
+2026-01-26T04:25:06.629047Z | INFO | PROTOCOL | DEBUG | USER_CERT | Refresh manager stopped! | 
+2026-01-26T04:25:06.630248Z | INFO | PROTOCOL | StateManager: end loop
+2026-01-26T04:25:08.35764Z | INFO | PROTOCOL | DNS64: mapped 62.169.136.127 to itself.
+2026-01-26T04:25:08.36332Z | INFO | PROTOCOL | Attaching to interface
+2026-01-26T04:25:08.654603Z | INFO | PROTOCOL | peer(dH0M…Rohk) (1) - Received handshake response
+2026-01-26T04:27:09.51431Z | INFO | PROTOCOL | Kill Switch configuration changed.
+2026-01-26T04:27:09.373385Z | INFO | PROTOCOL | Stopping tunnel. Reason: userInitiated (1)
+2026-01-26T04:27:09.375346Z | INFO | PROTOCOL | StateManager: end loop
+2026-01-26T04:27:10.743498Z | INFO | PROTOCOL | DNS64: mapped 79.135.104.47 to itself.
+2026-01-26T04:27:10.743912Z | INFO | PROTOCOL | Attaching to interface
+2026-01-26T04:27:11.337291Z | INFO | PROTOCOL | WireGuardKitGo state change Connecting --> Connected
+2026-01-26T04:27:20.132296Z | INFO | PROTOCOL | Stopping tunnel. Reason: userInitiated (1)
+2026-01-26T04:27:20.134655Z | INFO | PROTOCOL | WireGuardKitGo state change Connected --> Disabled
+2026-01-26T04:27:21.627674Z | INFO | PROTOCOL | DNS64: mapped 185.159.156.121 to itself.
+2026-01-26T04:27:21.628080Z | INFO | PROTOCOL | Attaching to interface
+2026-01-26T04:27:22.492908Z | INFO | PROTOCOL | peer(fDSD…BEG0) (1) - Received handshake response
+2026-01-26T04:27:22.492908Z | INFO | PROTOCOL | WireGuardKitGo state change Connecting --> Connected

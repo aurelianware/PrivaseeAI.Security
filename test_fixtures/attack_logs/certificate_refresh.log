@@ -1,0 +1,7 @@
+2026-01-26T04:27:11.116732Z | INFO | PROTOCOL | INFO  | USER_CERT | Stored features do not satisfy required features | {"reason":"unsatisfiedFeatures([netshield])"}
+2026-01-26T04:27:11.116774Z | INFO | PROTOCOL | INFO  | USER_CERT | Features have been updated (or haven't been stored), refreshing. | 
+2026-01-26T04:27:11.118533Z | INFO | PROTOCOL | INFO  |  | Using extension's API session. | 
+2026-01-26T04:27:11.118562Z | INFO | PROTOCOL | INFO  |  | Certificate will be refreshed using `renew: true`. | 
+2026-01-26T04:27:12.380371Z | INFO | PROTOCOL | DEBUG | USER_CERT | Certificate with features saved | {"certificate":"VpnCertificateWithFeatures(certificate: VPNCertificate(certificateFingerprint: '6a1e93785520dade', validUntil: '2026-01-27 04:27:11 +0000', refreshTime: '2026-01-26 22:27:11 +0000'), features: Optional(Domain.VPNConnectionFeatures(netshield: Domain.NetShieldType.off, vpnAccelerator: true, bouncing: nil, natType: Domain.NATType.strictNAT, safeMode: nil, portForwarding: Optional(false))))"}
+2026-01-26T04:29:32.58371Z | INFO | PROTOCOL | INFO  | USER_CERT | Certificate seems up to date! Will need to refresh in 17:57:38 | 
+2026-01-26T04:29:32.58691Z | INFO | PROTOCOL | INFO  | USER_CERT | Background refresh of certificate completed successfully. |

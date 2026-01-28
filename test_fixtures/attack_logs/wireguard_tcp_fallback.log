@@ -1,0 +1,25 @@
+2026-01-26T04:24:55.98330Z | INFO | PROTOCOL | flushLogsToFile written to file /private/var/mobile/Containers/Shared/AppGroup/298C11A0-4743-4B3B-9904-7C821F676A4D/WireGuard.log 
+2026-01-26T04:24:55.98447Z | INFO | PROTOCOL | INFO  |  | Loading config from keychain by reference | 
+2026-01-26T04:24:55.101656Z | INFO | PROTOCOL | INFO  |  | Using configuration format v1. | 
+2026-01-26T04:24:55.103672Z | INFO | PROTOCOL | New socketType value: tcp
+2026-01-26T04:24:55.233748Z | INFO | PROTOCOL | DNS64: mapped 185.159.158.192 to itself.
+2026-01-26T04:24:55.234138Z | INFO | PROTOCOL | Attaching to interface
+2026-01-26T04:24:55.234340Z | INFO | PROTOCOL | UAPI: Updating private key
+2026-01-26T04:24:55.234517Z | INFO | PROTOCOL | UAPI: Removing all peers
+2026-01-26T04:24:55.234795Z | INFO | PROTOCOL | peer(houx…jOF0) (1) - UAPI: Created
+2026-01-26T04:24:55.234833Z | INFO | PROTOCOL | peer(houx…jOF0) (1) - UAPI: Updating endpoint
+2026-01-26T04:24:55.234980Z | INFO | PROTOCOL | peer(houx…jOF0) (1) - UAPI: Updating persistent keepalive interval
+2026-01-26T04:24:55.235008Z | INFO | PROTOCOL | peer(houx…jOF0) (1) - UAPI: Removing all allowedips
+2026-01-26T04:24:55.235047Z | INFO | PROTOCOL | peer(houx…jOF0) (1) - UAPI: Adding allowedip
+2026-01-26T04:24:55.235071Z | INFO | PROTOCOL | TCP/TLS: Close
+2026-01-26T04:24:55.235144Z | INFO | PROTOCOL | TCP/TLS: Open 0
+2026-01-26T04:24:55.235176Z | INFO | PROTOCOL | UDP bind has been updated
+2026-01-26T04:24:55.235218Z | INFO | PROTOCOL | peer(houx…jOF0) (1) - Starting
+2026-01-26T04:24:55.235260Z | INFO | PROTOCOL | peer(houx…jOF0) (1) - Sending keepalive packet
+2026-01-26T04:24:55.235328Z | INFO | PROTOCOL | peer(houx…jOF0) (1) - Sending handshake initiation
+2026-01-26T04:24:55.564263Z | INFO | PROTOCOL | TCP dial result: <nil>
+2026-01-26T04:24:55.564732Z | INFO | PROTOCOL | Interface state was Down, requested Up, now Up
+2026-01-26T04:24:55.564904Z | INFO | PROTOCOL | Device started
+2026-01-26T04:24:55.564995Z | INFO | PROTOCOL | Tunnel interface is utun4
+2026-01-26T04:24:55.955599Z | INFO | PROTOCOL | peer(houx…jOF0) (1) - Received handshake response
+2026-01-26T04:24:55.955630Z | INFO | PROTOCOL | WireGuardKitGo state change Connecting --> Connected
