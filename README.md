@@ -6,98 +6,152 @@
 [![Test Suite](https://github.com/aurelianware/PrivaseeAI.Security/actions/workflows/test.yml/badge.svg)](https://github.com/aurelianware/PrivaseeAI.Security/actions/workflows/test.yml)
 [![Code Quality](https://github.com/aurelianware/PrivaseeAI.Security/actions/workflows/code-quality.yml/badge.svg)](https://github.com/aurelianware/PrivaseeAI.Security/actions/workflows/code-quality.yml)
 
-**Continuous iOS Threat Detection & Monitoring System**
+**Real-Time iOS Threat Detection & Monitoring System**
 
-PrivaseeAI.Security is an advanced, privacy-preserving iOS threat detection and monitoring system that provides real-time security analysis through multi-layer behavioral monitoring, continuous backup analysis, and integration with physical security systems.
+PrivaseeAI.Security is a privacy-preserving iOS threat detection system that provides continuous security monitoring through VPN integrity checks, backup analysis, and behavioral pattern detection. All analysis happens locally on your machine, ensuring complete privacy and data sovereignty.
 
 ## 🎯 Overview
 
-Unlike traditional periodic backup-based spyware scans, PrivaseeAI.Security provides continuous, real-time threat detection for iOS devices through intelligent monitoring and AI-powered behavioral analysis. All analysis happens locally or in user-controlled environments, ensuring complete privacy and data sovereignty.
+PrivaseeAI.Security monitors your iOS device for sophisticated attacks including VPN manipulation, carrier compromise, and API abuse. Unlike traditional periodic scans, it provides continuous real-time monitoring with instant Telegram alerts when threats are detected.
 
-## ✨ Key Features
+## ✨ Current Features (MVP v0.1.0)
 
-### Continuous Real-Time Monitoring
-- **Live Threat Detection**: Continuous monitoring instead of manual, periodic scans
-- **Incremental Backup Analysis**: Real-time analysis of iOS backups as they're created
-- **Network Traffic Monitoring**: Detect suspicious communication patterns and data exfiltration
-- **USB & Connection Tracking**: Monitor device connections and data transfers
+### 🛡️ Real-Time Threat Detection
+- **VPN Integrity Monitoring**: Detects TCP fallback, forced reconnections, and server hopping
+- **API Abuse Detection**: Identifies rate limiting and location tracking attempts
+- **Carrier Compromise Detection**: Scans iOS backups for suspicious profiles and configurations
+- **Certificate Validation**: Verifies VPN certificates against known-good fingerprints
 
-### AI-Powered Behavioral Analysis
-- **Anomaly Detection**: Machine learning models identify unusual device behavior
-- **Pattern Recognition**: AI-powered analysis of application behavior and data access
-- **Threat Intelligence Integration**: STIX/TAXII integration for up-to-date threat data
-- **Predictive Analytics**: Proactive threat identification before damage occurs
+### 🚀 Continuous Monitoring
+- **Concurrent Multi-Monitor System**: All monitors run simultaneously using asyncio
+- **Incremental Backup Analysis**: Automatically scans new iOS backups as they're created
+- **Live VPN Log Monitoring**: Real-time analysis of WireGuard and ProtonVPN logs
+- **Threat Aggregation**: Deduplicates and prioritizes threats from all sources
 
-### Multi-Layer Defense
-- **Device-Level Monitoring**: Deep inspection of iOS backups, logs, and databases
-- **Network Analysis**: Traffic pattern analysis and anomaly detection
-- **Physical Security Integration**: Thermal drone surveillance integration (optional)
-- **Forensic Data Collection**: Comprehensive evidence gathering for incident response
+### 📱 Alert System
+- **Telegram Integration**: Instant alerts for CRITICAL and HIGH severity threats
+- **Detailed Threat Reports**: Complete context including indicators and timestamps
+- **Configurable Thresholds**: Customize what triggers alerts
 
-### Privacy-Preserving Design
-- **Local Analysis**: All processing happens on your infrastructure
-- **Encrypted Storage**: End-to-end encryption for sensitive data
-- **No Cloud Dependencies**: Fully self-hosted deployment model
-- **Data Sovereignty**: Complete control over your security data
+### 🔧 Easy to Use
+- **Simple CLI**: `privasee start`, `privasee scan`, `privasee config`
+- **Auto-Configuration**: Automatically detects iOS backup locations
+- **YAML Configuration**: Easy to customize and manage
+- **Comprehensive Logging**: Full audit trail of all detections
 
-## 🏗️ Architecture Overview
+### 🔒 Privacy-First Design
+- **100% Local Processing**: All analysis happens on your machine
+- **No Cloud Dependencies**: Fully self-hosted, no external services required
+- **Encrypted Backups Supported**: Works with both encrypted and unencrypted iOS backups
+- **Data Sovereignty**: You control all your security data
 
-PrivaseeAI.Security uses a modular architecture with distinct components for monitoring, analysis, and response:
+## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     privaseeAI Platform                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
-│  │   iOS Agent  │  │   Network    │  │   Physical   │          │
-│  │  Monitoring  │  │   Analysis   │  │   Security   │          │
-│  │   Module     │  │    Module    │  │    Module    │          │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘          │
-│         │                  │                  │                   │
-│         └──────────────────┴──────────────────┘                  │
-│                            │                                      │
-│                   ┌────────▼────────┐                            │
-│                   │   AI/ML Engine  │                            │
-│                   │  Threat Fusion  │                            │
-│                   └────────┬────────┘                            │
-│                            │                                      │
-│         ┌──────────────────┴──────────────────┐                 │
-│         │                                      │                 │
-│  ┌──────▼───────┐                    ┌────────▼────────┐        │
-│  │   Alert &    │                    │   Forensics &   │        │
-│  │   Response   │                    │   Reporting     │        │
-│  │   Engine     │                    │     Engine      │        │
-│  └──────────────┘                    └─────────────────┘        │
-│                                                                   │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│              PrivaseeAI Security CLI                     │
+├─────────────────────────────────────────────────────────┤
+│                                                           │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │         Threat Orchestrator (asyncio)             │  │
+│  └────┬─────────────┬──────────────┬─────────────┬──┘  │
+│       │             │              │             │      │
+│  ┌────▼──────┐ ┌───▼────────┐ ┌──▼─────────┐ ┌─▼────┐ │
+│  │    VPN    │ │    API     │ │  Carrier   │ │Backup│ │
+│  │ Integrity │ │   Abuse    │ │Compromise  │ │ Mon  │ │
+│  │  Monitor  │ │  Monitor   │ │  Detector  │ │itor  │ │
+│  └────┬──────┘ └────┬───────┘ └──┬─────────┘ └─┬────┘ │
+│       │             │             │              │      │
+│       └─────────────┴─────────────┴──────────────┘      │
+│                            │                             │
+│                   ┌────────▼────────┐                   │
+│                   │ Threat Aggregator│                   │
+│                   │  & Deduplication │                   │
+│                   └────────┬────────┘                   │
+│                            │                             │
+│                   ┌────────▼────────┐                   │
+│                   │     Telegram     │                   │
+│                   │     Alerter      │                   │
+│                   └──────────────────┘                   │
+│                                                           │
+└─────────────────────────────────────────────────────────┘
 ```
 
-For detailed architecture documentation, see:
-- [Technical Specification](privaseeAI_iOS_Threat_Detection_Spec.md)
-- [Architecture Documentation](docs/ARCHITECTURE.md)
+For detailed documentation, see:
+- [Orchestrator Guide](ORCHESTRATOR_GUIDE.md) - How to use the CLI
+- [iOS Testing Guide](iOS_DEVICE_TESTING_GUIDE.md) - Live device monitoring setup
+- [Technical Specification](privaseeAI_iOS_Threat_Detection_Spec.md) - Attack patterns and detection logic
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Python 3.11 or higher
-- PostgreSQL 14+ with TimescaleDB extension
-- Redis 6+
-- iOS device with backup capability
-- libimobiledevice and dependencies
-
-**OR** use Docker (recommended for quick setup):
-- Docker 20.10+
-- Docker Compose v2.0+
+- **Python 3.11+** (required)
+- **macOS** with iOS device backup capability
+- **Telegram Bot** (optional, for alerts)
 
 ### Installation
-
-#### Option 1: Using Docker (Recommended)
 
 ```bash
 # Clone the repository
 git clone https://github.com/aurelianware/PrivaseeAI.Security.git
+cd PrivaseeAI.Security
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install CLI tool
+pip install -e .
+
+# Verify installation
+privasee --version
+```
+
+### Basic Usage
+
+```bash
+# Check configuration and system status
+privasee config
+
+# Run a one-time security scan
+privasee scan
+
+# Start continuous monitoring (Ctrl+C to stop)
+privasee start
+
+# Start with custom interval (seconds)
+privasee start --interval 120
+
+# Start without Telegram alerts
+privasee start --no-telegram
+```
+
+### Configure Telegram Alerts (Optional)
+
+```bash
+# 1. Create bot with @BotFather on Telegram
+# 2. Get your bot token
+# 3. Message your bot, then get chat ID from:
+curl https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates
+
+# 4. Add to your shell config (~/.zshrc or ~/.bashrc):
+export TELEGRAM_BOT_TOKEN="your_bot_token_here"
+export TELEGRAM_CHAT_ID="your_chat_id_here"
+
+# 5. Reload and verify
+source ~/.zshrc
+privasee config  # Should show "Telegram Configured: ✅ Yes"
+```
+
+### What Gets Monitored
+
+**Automatic:**
+- iOS backups in `~/Library/Application Support/MobileSync/Backup`
+- VPN logs (if configured)
+- Suspicious patterns and configurations
+
+**Manual Setup (for live monitoring):**
+- See [iOS Device Testing Guide](iOS_DEVICE_TESTING_GUIDE.md) for live VPN log monitoring
 cd PrivaseeAI.Security
 
 # Copy and configure environment variables (optional for development)
@@ -146,78 +200,99 @@ cp .env.example .env
 # (Coming in future releases)
 ```
 
-### Basic Usage
-
-> **Note**: Installation and usage instructions will be expanded as the project develops through its implementation phases. See [ROADMAP.md](ROADMAP.md) for development timeline.
-
-```python
-# Example usage (placeholder for future implementation)
-from privaseeai_security import ThreatMonitor
-
-# Initialize the monitoring system
-monitor = ThreatMonitor(config_path=".env")
-
-# Start continuous monitoring
-monitor.start()
-
-# Monitor specific device
-monitor.add_device(device_id="your-device-id")
-```
-
-### Running Tests (Development)
-
-If `pytest` is not available on your system, use the provided Make target to create a virtual environment and install dev dependencies:
+### Basic Usage## 🔍 Example Output
 
 ```bash
-make setup-venv
-source .venv/bin/activate
-make test-unit
+$ privasee scan
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ PrivaseeAI Security Scan       ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+🔍 Scanning iOS backups...
+📁 Found backup: 00008030-001234567890001E
+
+Threats Detected:
+┏━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━┓
+┃ Severity  ┃ Type       ┃ Count   ┃
+┡━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━┩
+│ CRITICAL  │ VPN_MITM   │ 0       │
+│ HIGH      │ CARRIER    │ 2       │
+│ MEDIUM    │ API_ABUSE  │ 1       │
+└───────────┴────────────┴─────────┘
+
+✅ Scan complete
 ```
 
-Or install pytest directly:
-
 ```bash
-python -m pip install -r requirements-dev.txt
-python -m pytest tests/unit/test_cert_validator.py -v
+$ privasee start
+
+🚀 Starting PrivaseeAI Security Orchestrator
+Running initial backup scan...
+Initial scan complete: 2 carrier threats found
+
+✅ Monitoring started successfully
+Press Ctrl+C to stop
+
+[2026-01-28 15:30:45] 🔴 CRITICAL: TRANSPORT_MANIPULATION detected
+[2026-01-28 15:30:45] 📱 Telegram alert sent
 ```
 
 ## 🔧 Technology Stack
 
-### Backend & Core
-- **Python 3.11+**: Core analysis engine and orchestration
-- **FastAPI**: High-performance REST API framework
-- **PostgreSQL + TimescaleDB**: Time-series forensic data storage
-- **Redis**: Real-time event streaming and caching
-- **Celery**: Background task processing and job queue
+### Core
+- **Python 3.11+**: Main implementation language
+- **asyncio**: Concurrent monitor execution
+- **click**: CLI framework
+- **rich**: Terminal UI and formatting
+- **PyYAML**: Configuration management
 
-### iOS Integration
-- **libimobiledevice**: Direct iOS device communication
-- **pymobiledevice3**: iOS 17+ support and modern API
-- **SQLCipher**: Encrypted database analysis
-- **Custom USB monitoring daemon**: Connection tracking
+### iOS Integration  
+- **libimobiledevice**: iOS device communication (optional, for live logs)
+- **plistlib**: iOS backup plist parsing
 
-### AI/ML Components
-- **PyTorch**: Neural network models for behavioral analysis
-- **scikit-learn**: Anomaly detection and classification
-- **Transformers**: Natural language processing for log analysis
-- **Qdrant**: Vector database for threat intelligence
+### Security
+- **cryptography**: Certificate validation and encryption
+- **python-telegram-bot**: Alert notifications
 
-### Security & Monitoring
-- **OpenSSL**: Encryption and certificate management
-- **python-stix2**: STIX/TAXII threat intelligence integration
-- **Prometheus**: Metrics collection and monitoring
-- **Grafana**: Visualization and dashboards
+### Testing
+- **pytest**: Test framework (192 tests, 71% coverage)
+- **pytest-asyncio**: Async test support
+- **pytest-cov**: Coverage reporting
+
+## 🗺️ Roadmap
+
+### Planned Features (Future Releases)
+
+**Enhanced Detection:**
+- ML-based anomaly detection for behavioral patterns
+- STIX/TAXII threat intelligence integration
+- Network traffic analysis and packet inspection
+- USB connection tracking and monitoring
+
+**Infrastructure:**
+- PostgreSQL + TimescaleDB for historical data
+- FastAPI REST API for remote monitoring
+- Redis for real-time event streaming
+- Prometheus/Grafana dashboards
+
+**Advanced Analysis:**
+- PyTorch models for pattern recognition
+- Vector database for threat correlation
+- Forensic evidence collection and reporting
+- Multi-device fleet management
+
+See [ROADMAP.md](ROADMAP.md) for detailed timeline and priorities.
 
 ## 📚 Documentation
 
-- [Docker Setup Guide](docs/docker.md) - Complete guide for running with Docker
-- [Contributing Guidelines](CONTRIBUTING.md)
-- [Code of Conduct](CODE_OF_CONDUCT.md)
-- [Security Policy](SECURITY.md)
-- [Architecture Documentation](docs/ARCHITECTURE.md)
-- [Technical Specification](privaseeAI_iOS_Threat_Detection_Spec.md)
-- [Roadmap](ROADMAP.md)
-- [Changelog](CHANGELOG.md)
+- **[Orchestrator Guide](ORCHESTRATOR_GUIDE.md)** - Complete CLI usage and configuration
+- **[iOS Device Testing Guide](iOS_DEVICE_TESTING_GUIDE.md)** - Live VPN log monitoring setup
+- **[Quick Start Guide](QUICK_START.md)** - Week-by-week implementation guide
+- **[Technical Specification](privaseeAI_iOS_Threat_Detection_Spec.md)** - Attack patterns and detection rules
+- **[Contributing Guidelines](CONTRIBUTING.md)** - How to contribute
+- **[Security Policy](SECURITY.md)** - Vulnerability reporting
+- **[Roadmap](ROADMAP.md)** - Future plans and timeline
 
 ## 🤝 Contributing
 
@@ -258,8 +333,8 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## 🙏 Acknowledgments
 
-This project builds upon the foundation of privacy-focused security tools and threat detection research. We're grateful to the open-source security community for their contributions to iOS security analysis tools and techniques.
+This project builds upon the foundation of privacy-focused security tools and threat detection research. Special thanks to the open-source community for tools like libimobiledevice and the iOS security research community.
 
 ---
 
-**Status**: Under active development. See [ROADMAP.md](ROADMAP.md) for current project status and planned features.
+**Status**: MVP v0.1.0 - Functional and ready for testing. See [Roadmap](#-roadmap) for planned enhancements.
