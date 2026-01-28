@@ -60,6 +60,37 @@ dmypy.json
 !test_fixtures/**/*.log
 logs/
 
+# Old test/utility scripts (archive only)
+test_iphone.py
+test_iphone_backup.py
+test_imazing_backup.py
+test_carrier_scan.py
+test_logic_verification.py
+test_threat_reduction.py
+analyze_encrypted.py
+check_backup.py
+find_backup.py
+scan_all_backups.py
+scan_vpn_logs.py
+vpn_monitor_daemon.py
+vpn_monitor_control.sh
+com.privaseeai.vpnmonitor.plist
+
+# Report files
+backup_scan_report_*.txt
+threat_report_*.txt
+test_output.log
+
+# macOS system files
+Application Logs.log
+WireGuard*.log
+
+# Outdated documentation (keep in git history)
+VPN_MONITOR_README.md
+MVP_ORCHESTRATOR_COMPLETE.md
+COMPREHENSIVE_ASSESSMENT.md
+install_mvp.sh
+
 # Environment variables
 .env
 .env.local

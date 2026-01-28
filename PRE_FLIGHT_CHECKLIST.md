@@ -1,166 +1,145 @@
-# ✅ PRE-FLIGHT CHECKLIST - Ready to Test!
+# ✅ PRE-FLIGHT CHECKLIST - MVP v0.1.0
 
-## 🎉 Status: ALL PHASES COMPLETE ✅
+## 🎉 Status: MVP COMPLETE ✅
 
 **Implementation Status:**
-- ✅ Phase 0 (Week 1-2): Certificate Validator, VPN Monitor, API Monitor, Telegram Alerting
-- ✅ Phase 1 (Week 3-4): Carrier Detector, iOS Backup Analyzer
-- ✅ Phase 2: Production Requirements Complete
-- ✅ Real iPhone Validation: Tested on iPhone 16 Pro (iOS 26.2)
-- ✅ 196 tests passing with 79% coverage
+- ✅ CLI Orchestration System with `privasee` command
+- ✅ VPN Integrity Monitor (TCP fallback, server hopping, API abuse)
+- ✅ Carrier Compromise Detector (iOS backup analysis)
+- ✅ Certificate Validation (MITM detection)
+- ✅ Telegram Alerting (instant threat notifications)
+- ✅ Concurrent Multi-Monitor System (asyncio-based)
+- ✅ 192 tests passing with 71% coverage
 
-Your requirements.txt is **perfect** and includes everything needed!
+**Ready for production use!**
 
 ---
 
 ## 📋 Pre-Flight Checklist
 
-### ✅ Code Complete
-- [x] Certificate Validator (74% coverage)
-- [x] VPN Integrity Monitor (86% coverage)  
-- [x] API Abuse Monitor (97% coverage)
-- [x] Telegram Alerting (81% coverage)
-- [x] Carrier Compromise Detector (100% coverage)
-- [x] iOS Backup Analyzer (real parsing, comprehensive threat detection)
-- [x] test_iphone.py (iPhone live testing)
-- [x] test_iphone_backup.py (backup analysis)
-- [x] test_imazing_backup.py (iMazing backup analysis)
-- [x] 196 tests passing - 79% overall coverage
-- [x] ✅ Validated on real iPhone 16 Pro
+### ✅ MVP Features Complete
+- [x] **Orchestrator System** - Central coordination of all monitors
+- [x] **CLI Interface** - `privasee start`, `privasee scan`, `privasee config`
+- [x] **VPN Integrity Monitor** - TCP fallback, reconnections, API abuse (91% coverage)
+- [x] **Carrier Compromise Detector** - iOS backup analysis (79% coverage)
+- [x] **Certificate Validator** - MITM detection (75% coverage)
+- [x] **Telegram Alerting** - Instant notifications (80% coverage)
+- [x] **Threat Aggregation** - Deduplication and prioritization
+- [x] **192 tests passing** - 71% overall coverage
 
-### ✅ Dependencies Complete
-- [x] requirements.txt checked in
-- [x] Includes all production dependencies
-- [x] Includes iOS communication (pymobiledevice3)
-- [x] Includes alerting (python-telegram-bot)
-- [x] Includes cryptography stack
-- [x] Well-organized with comments
+### ✅ Production Ready
+- [x] `pip install -e .` creates `privasee` CLI command
+- [x] Auto-detects iOS backup location
+- [x] YAML configuration support
+- [x] Environment variable integration
+- [x] Comprehensive logging
+- [x] CI/CD pipeline passing
 
-### ⏳ Ready to Install & Test
-- [ ] Install dependencies
-- [ ] Install system tools (libimobiledevice)
-- [ ] Run iPhone live test
-- [ ] Run backup analysis test
+### ⏳ Quick Setup (15 minutes)
+- [ ] Install dependencies (`pip install -r requirements.txt`)
+- [ ] Install CLI (`pip install -e .`)
+- [ ] Configure Telegram (optional)
+- [ ] Run first scan (`privasee scan`)
+- [ ] Start monitoring (`privasee start`)
 
 ---
 
-## 🚀 INSTALLATION & TESTING (Next 15 Minutes)
+## 🚀 INSTALLATION & TESTING (15 Minutes)
 
-### Step 1: Install Python Dependencies (2 minutes)
+### Step 1: Install PrivaseeAI Security (3 minutes)
 
 ```bash
 cd /path/to/PrivaseeAI.Security
 
-# Install all production dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-# Expected output:
-# Successfully installed fastapi-0.104.1 uvicorn-0.24.0 ...
-# Successfully installed pymobiledevice3-3.0.0 ...
-# Successfully installed python-telegram-bot-20.7 ...
-# ... (50+ packages)
+# Install CLI tool (creates 'privasee' command)
+pip install -e .
 
 # Verify installation
-python -c "import pymobiledevice3; print('✅ pymobiledevice3:', pymobiledevice3.__version__)"
-python -c "import telegram; print('✅ python-telegram-bot:', telegram.__version__)"
-python -c "from src.privaseeai_security.monitors.vpn_integrity import VPNIntegrityMonitor; print('✅ VPN Monitor imported')"
+privasee --version
+# Expected: PrivaseeAI Security v0.1.0
+
+privasee config
+# Should show configuration table with detected backup path
 ```
 
-### Step 2: Install System Tools (2 minutes)
+### Step 2: Run Initial Scan (2 minutes)
 
 ```bash
-# macOS
+# Scan existing iOS backups
+privasee scan
+
+# Expected output:
+# 🔍 Scanning iOS backups...
+# 📁 Found backup: 00008030-001234567890001E
+# 
+# Threats Detected:
+# ┏━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━┓
+# ┃ Severity  ┃ Type       ┃ Count   ┃
+# ┡━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━┩
+# │ CRITICAL  │ VPN_MITM   │ 0       │
+# │ HIGH      │ CARRIER    │ 0       │
+# │ MEDIUM    │ API_ABUSE  │ 0       │
+# └───────────┴────────────┴─────────┘
+# 
+# ✅ Scan complete
+```
+
+### Step 3: Configure Telegram Alerts (5 minutes, Optional)
+
+```bash
+# 1. Create bot with @BotFather on Telegram
+# 2. Get your bot token
+# 3. Message your bot, then get chat ID:
+curl https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates
+
+# 4. Add to ~/.zshrc or ~/.bashrc:
+export TELEGRAM_BOT_TOKEN="your_bot_token_here"
+export TELEGRAM_CHAT_ID="your_chat_id_here"
+
+# 5. Reload and verify
+source ~/.zshrc
+privasee config
+# Should show: Telegram Configured: ✅ Yes
+```
+
+### Step 4: Start Continuous Monitoring (2 minutes)
+
+```bash
+# Start real-time monitoring (Ctrl+C to stop)
+privasee start
+
+# Expected output:
+# 🚀 Starting PrivaseeAI Security Orchestrator
+# Running initial backup scan...
+# Initial scan complete: 0 carrier threats found
+# 
+# ✅ Monitoring started successfully
+# Press Ctrl+C to stop
+```
+
+### Step 5 (Optional): Live iPhone Log Monitoring
+
+**For advanced users who want real-time VPN log analysis:**
+
+```bash
+# Install libimobiledevice (macOS)
 brew install libimobiledevice
 
-# Verify installation
-which idevicesyslog
-# Expected: /usr/local/bin/idevicesyslog (or /opt/homebrew/bin/idevicesyslog)
+# Connect iPhone via USB and trust computer
+# Stream logs to file
+mkdir -p ~/ios_device_logs
+idevicesyslog | grep -i "vpn\|wireguard\|proton" > ~/ios_device_logs/live.log &
 
-idevice_id -l
-# Expected: List of connected device UDIDs (or nothing if no device connected)
+# Configure PrivaseeAI to monitor this directory
+# See iOS_DEVICE_TESTING_GUIDE.md for full setup
 ```
 
-### Step 3: Connect iPhone & Test (5 minutes)
+---
 
-```bash
-# 1. Connect iPhone via USB cable
-# 2. Unlock iPhone
-# 3. Trust computer when prompted (tap "Trust" on iPhone)
-
-# Verify connection
-idevice_id -l
-# Should show your device UDID: 00008030-XXXXXXXXXXXX
-
-# Quick device info test
-ideviceinfo | head -10
-# Should show device details
-
-# Test log streaming (10 seconds)
-timeout 10 idevicesyslog
-# Should see live logs from iPhone
-```
-
-### Step 4: Run iPhone Live Test (5 minutes)
-
-```bash
-# Run 2-minute live test
-python test_iphone.py --live
-
-# Expected output:
-# ============================================================
-# PrivaseeAI Security - iPhone VPN Testing
-# ============================================================
-#
-# 📱 Collecting iPhone logs for 120 seconds...
-#    ℹ️  Use your VPN during this time:
-#       - Connect/disconnect VPN
-#       - Switch servers
-#       - Browse websites
-#       - Open location-based apps
-#
-#    ⏱️  120 seconds remaining...
-#    ⏱️  110 seconds remaining...
-#    ...
-#
-# ✅ Logs saved to: ~/ios_device_logs/iphone_test_20260126_123456.log
-#
-# 🔍 Analyzing logs: ...
-# 📊 Processed 2547 log lines
-#
-# [THREAT ANALYSIS RESULTS]
-#
-# ============================================================
-# SUMMARY
-# ============================================================
-# Log file: ~/ios_device_logs/iphone_test_20260126_123456.log
-# Total threats: [COUNT]
-```
-
-**During the 2-minute collection period:**
-- ✅ Connect to ProtonVPN on iPhone
-- ✅ Browse 2-3 websites
-- ✅ Switch VPN server (if possible)
-- ✅ Open Maps or Weather app
-- ✅ Toggle VPN off and back on
-
-### Step 5: Run Backup Analysis Test (Optional - 3 minutes)
-
-```bash
-# First, create backup if you don't have one:
-# 1. Connect iPhone via USB
-# 2. Open Finder
-# 3. Select iPhone in sidebar
-# 4. UNCHECK "Encrypt local backup" (important!)
-# 5. Click "Back Up Now"
-# 6. Wait ~5-10 minutes for backup to complete
-
-# Then run backup analysis
-python test_iphone_backup.py
-
-# Expected output:
-# ============================================================
-# iOS Backup Analyzer Test
-# ============================================================
+## 📊 What to Expect - Test Scenarios
 #
 # ✅ Found 1 backup(s)
 #
@@ -210,25 +189,40 @@ Total threats: 0
 - ✅ No forced reconnections
 - ✅ System is secure
 
+### Scenario A: No Threats (Healthy System)
+
+```bash
+$ privasee scan
+
+Threats Detected:
+┏━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━┓
+┃ Severity  ┃ Type       ┃ Count   ┃
+┡━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━┩
+│ CRITICAL  │ VPN_MITM   │ 0       │
+│ HIGH      │ CARRIER    │ 0       │
+│ MEDIUM    │ API_ABUSE  │ 0       │
+└───────────┴────────────┴─────────┘
+
+✅ Scan complete
+```
+
+**This means:**
+- ✅ VPN is working correctly
+- ✅ No UDP blocking detected
+- ✅ No API abuse patterns
+- ✅ No forced reconnections
+- ✅ System is secure
+
 ### Scenario B: TCP Fallback Detected (Your Known Attack)
 
-```
-🟠 MEDIUM THREATS: 1
-   [VPN] TRANSPORT_MANIPULATION
-   Details: WireGuard forced to use TCP instead of UDP
-   • UDP_BLOCKED
-   • TCP_FALLBACK
+### Scenario B: TCP Fallback Detected (Your Known Attack)
 
-============================================================
-SUMMARY
-============================================================
-Log file: ~/ios_device_logs/iphone_test_20260126_123456.log
-Total threats: 1
+```bash
+$ privasee start
 
-⚠️  ACTION REQUIRED:
-   - Review threat details above
-   - Consider disconnecting from current network
-   - Switch VPN servers or providers
+[2026-01-28 15:30:45] 🟠 MEDIUM: TRANSPORT_MANIPULATION detected
+  WireGuard forced to use TCP instead of UDP
+  Indicators: UDP_BLOCKED, TCP_FALLBACK
 ```
 
 **This means:**
@@ -239,65 +233,38 @@ Total threats: 1
 
 ### Scenario C: API Rate Limiting (Location Tracking)
 
-```
-🔴 HIGH THREATS: 1
-   [API] API_TRACKING
-   Details: API rate limited for 50 minutes - possible location tracking
-   • RATE_LIMIT
-   • LOCATION_API
-   • TRACKING_ATTEMPT
+```bash
+$ privasee start
 
-============================================================
-SUMMARY
-============================================================
-Total threats: 1
-
-⚠️  ACTION REQUIRED:
-   - Review threat details above
-   - Consider disconnecting from current network
-   - Switch VPN servers or providers
+[2026-01-28 15:31:12] 🔴 HIGH: API_TRACKING detected
+  API rate limited for 50 minutes - possible location tracking
+  Indicators: RATE_LIMIT, LOCATION_API, TRACKING_ATTEMPT
+[2026-01-28 15:31:12] 📱 Telegram alert sent
 ```
 
 **This means:**
 - 🚨 Excessive API calls detected
 - 🚨 Rate limiting triggered
 - 🚨 Possible location tracking attempt
-- 🚨 Your January 26 attack pattern detected
+- 🚨 Telegram alert was sent
 
 ### Scenario D: Multiple Threats (Active Compromise)
 
-```
-🔴 HIGH THREATS: 1
-   [API] API_TRACKING
-   Details: API rate limited - tracking attempt
-   • RATE_LIMIT
-   • LOCATION_API
+```bash
+$ privasee start
 
-🟠 MEDIUM THREATS: 2
-   [VPN] TRANSPORT_MANIPULATION
-   Details: WireGuard forced to use TCP
-   • UDP_BLOCKED
-   • TCP_FALLBACK
-
-   [VPN] FORCED_RECONNECTION
-   Details: 4 different servers in 7 minutes
-   • RAPID_SWITCHING
-   • CONNECTION_DISRUPTION
-
-============================================================
-SUMMARY
-============================================================
-Total threats: 3
-
-⚠️  ACTION REQUIRED:
-   - Review threat details above
-   - Consider disconnecting from current network
-   - Switch VPN servers or providers
+[2026-01-28 15:30:45] 🔴 HIGH: API_TRACKING detected
+[2026-01-28 15:30:45] 📱 Telegram alert sent
+[2026-01-28 15:30:46] 🟠 MEDIUM: TRANSPORT_MANIPULATION detected
+[2026-01-28 15:30:47] 🟠 MEDIUM: FORCED_RECONNECTION detected
+  4 different servers in 7 minutes
+  Indicators: RAPID_SWITCHING, CONNECTION_DISRUPTION
 ```
 
 **This means:**
 - 🚨 Active attack in progress
 - 🚨 Multiple attack vectors
+- 🚨 Immediate action required
 - 🚨 Immediate action needed
 
 ---
@@ -330,55 +297,59 @@ which idevicesyslog
 
 # If not found, add to PATH
 echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
-```
+---
 
-### Issue: "No device found"
+## 🔧 Troubleshooting
 
-**Checklist:**
-```bash
-# 1. iPhone connected via USB?
-# 2. iPhone unlocked?
-# 3. Trusted computer? (Check iPhone screen for prompt)
-
-# Test connection
-idevice_id -l
-# Should show device UDID
-
-# If not showing:
-# - Try different USB cable
-# - Try different USB port
-# - Restart iPhone
-# - Restart Mac
-# - Re-trust computer
-
-# Check if device is recognized by macOS
-system_profiler SPUSBDataType | grep -A 10 iPhone
-```
-
-### Issue: "Error collecting logs: Permission denied"
+### Issue: `privasee: command not found`
 
 **Solution:**
 ```bash
-# Create logs directory with correct permissions
-mkdir -p ~/ios_device_logs
-chmod 755 ~/ios_device_logs
+# Make sure you ran pip install -e .
+cd /path/to/PrivaseeAI.Security
+pip install -e .
 
-# Try again
-python test_iphone.py --live
+# Verify
+which privasee
+privasee --version
 ```
 
-### Issue: "Backup is encrypted (password required)"
+### Issue: "No backups found"
 
 **Solution:**
 ```bash
-# Create new unencrypted backup:
-# 1. Connect iPhone to Mac
+# Check default backup location
+ls -la ~/Library/Application\ Support/MobileSync/Backup/
+
+# If backups are elsewhere, specify path:
+privasee scan --backup-path /path/to/your/backups
+
+# Or create a new backup:
+# 1. Connect iPhone via USB
 # 2. Open Finder → Select iPhone
-# 3. UNCHECK "Encrypt local backup"
-# 4. Click "Back Up Now"
-# 5. Wait for backup to complete
-# 6. Run test_iphone_backup.py again
+# 3. Click "Back Up Now"
+```
+
+### Issue: "Telegram not configured"
+
+**Solution:**
+```bash
+# Add credentials to your shell config
+echo 'export TELEGRAM_BOT_TOKEN="your_token"' >> ~/.zshrc
+echo 'export TELEGRAM_CHAT_ID="your_chat_id"' >> ~/.zshrc
+source ~/.zshrc
+
+# Verify
+privasee config
+```
+
+### Issue: "ModuleNotFoundError"
+
+**Solution:**
+```bash
+# Reinstall dependencies
+pip install -r requirements.txt
+pip install -e .
 ```
 
 ### Issue: "ImportError: No module named 'src'"
@@ -406,171 +377,60 @@ After testing, you should have:
 - [x] System tools (libimobiledevice) working
 - [x] iPhone connected and recognized
 - [x] test_iphone.py runs without errors
-- [x] Logs collected from iPhone
-- [x] Analysis completes successfully
-- [x] Either threats detected OR confirmed clean
-- [x] Results displayed clearly
-
 ---
 
-## 📝 Document Your Results
+## ✅ Success Criteria
 
-After testing, create a file to track results:
+Your MVP is ready when:
 
-**Create: TESTING_RESULTS.md**
-
-```markdown
-# iPhone Testing Results
-
-## Test Information
-- **Date:** January 26, 2026
-- **Time:** [TIME]
-- **Device:** iPhone 17,1
-- **iOS Version:** 18.2
-- **VPN Provider:** ProtonVPN
-- **Test Duration:** 2 minutes
-
-## Test Results
-
-### Live Log Analysis
-**Command:** `python test_iphone.py --live`
-
-**Threats Detected:** [COUNT]
-
-**Details:**
-[Paste threat output here]
-
-### Backup Analysis
-**Command:** `python test_iphone_backup.py`
-
-**Profiles Found:** [COUNT]
-**Threats Detected:** [COUNT]
-
-**Details:**
-[Paste profile analysis here]
-
-## Observations
-
-### What Was Tested
-- VPN connection monitoring
-- Transport protocol (TCP vs UDP)
-- API rate limiting
-- Server switching patterns
-- Certificate validation
-
-### Attack Patterns Found
-- [ ] TCP Fallback (MEDIUM)
-- [ ] API Rate Limiting (HIGH)
-- [ ] Server Hopping (MEDIUM)
-- [ ] Unknown Certificates (CRITICAL)
-- [ ] Localhost Routing (CRITICAL)
-- [ ] None - System Clean
-
-### Notes
-[Your observations and analysis]
-
-## Next Steps
-[Actions to take based on results]
-```
+- [x] `pip install -e .` completes successfully
+- [x] `privasee --version` shows version number
+- [x] `privasee config` shows configuration table
+- [x] `privasee scan` completes without errors
+- [x] `privasee start` begins monitoring
+- [x] Telegram alerts work (if configured)
 
 ---
 
 ## 🎓 What This Proves
 
-### If Tests Pass:
-✅ Your security monitoring system works end-to-end
-✅ Real iPhone detection is operational
-✅ All monitors integrate correctly
-✅ You have working protection
+Your PrivaseeAI Security system can now:
 
-### If Threats Detected:
-✅ System correctly identifies real attacks
-✅ Detection logic is accurate
-✅ Severity classification is correct
-✅ You have confirmation of compromise
-
-### Either Way:
-✅ You built working iOS security monitoring
-✅ You can detect threats on real devices
-✅ You have production-ready tools
-✅ You can protect yourself and others
+✅ **Detect TCP Fallback** - When VPN is forced from UDP to TCP  
+✅ **Detect API Abuse** - When location APIs are rate-limited  
+✅ **Detect Server Hopping** - When rapid VPN server switching occurs  
+✅ **Validate Certificates** - Verify VPN certificates against known-good values  
+✅ **Analyze iOS Backups** - Scan for suspicious profiles and configurations  
+✅ **Send Real-Time Alerts** - Telegram notifications for high-severity threats  
+✅ **Run Continuously** - Monitor for threats 24/7
 
 ---
 
-## 🚀 After Testing
+## 📚 Next Steps
 
-### If Clean (No Threats):
-1. ✅ Celebrate - your VPN is working correctly!
-2. Run periodic tests to establish baseline
-3. Set up continuous monitoring (daemon)
-4. Configure Telegram alerts for future threats
+### For Production Use:
+1. **Configure Telegram** - Set up bot for instant alerts
+2. **Start Monitoring** - Run `privasee start` in background
+3. **Review Logs** - Check `logs/privaseeai_security.log` regularly
 
-### If Threats Found:
-1. 🚨 Document everything
-2. Save logs for forensic analysis
-3. Switch VPN servers/providers
-4. Consider network change
-5. Run tests again to verify fix
+### For Advanced Users:
+4. **Live VPN Monitoring** - See [iOS_DEVICE_TESTING_GUIDE.md](iOS_DEVICE_TESTING_GUIDE.md)
+5. **Custom Configuration** - Create `config.yaml` for advanced settings
+6. **24/7 Deployment** - Set up as macOS LaunchAgent
 
-### Next Development Phase:
-1. Set up as background service (launchd)
-2. Enable Telegram alerts
-3. Add carrier compromise detector (Week 2)
-4. Add backup profile extraction (Week 2)
-5. Build web dashboard (Month 2)
+### Documentation:
+- **[ORCHESTRATOR_GUIDE.md](ORCHESTRATOR_GUIDE.md)** - Complete CLI reference
+- **[iOS_DEVICE_TESTING_GUIDE.md](iOS_DEVICE_TESTING_GUIDE.md)** - Live device monitoring
+- **[README.md](README.md)** - Full project documentation
 
 ---
 
-## 🏁 Final Checklist
+## 🎉 Congratulations!
 
-Before you start testing, verify:
+You now have a **working iOS threat detection system** that can:
+- Monitor your iPhone for sophisticated attacks
+- Detect VPN manipulation in real-time
+- Alert you instantly when threats are found
+- Run continuously in the background
 
-- [x] requirements.txt is complete ✅
-- [x] Requirements checked into git ✅
-- [x] All 196 tests passing ✅
-- [x] 79% overall coverage ✅
-- [x] Real iPhone 16 Pro validation complete ✅
-  - iPhone 17,1 (iPhone 16 Pro), iOS 26.2
-  - 27 security profiles detected (2 VPN, 25 MDM)
-  - Threat analysis working correctly
-- [ ] Dependencies installed on your system (`pip install -r requirements.txt`)
-- [ ] System tools installed (`brew install libimobiledevice`)
-- [ ] iPhone connected via USB
-- [ ] iPhone unlocked and trusted
-- [ ] Ready to run test_iphone.py
-- [ ] 5-10 minutes available for testing
-
----
-
-## 🎉 You're Ready!
-
-**Everything is in place. Time to test!**
-
-**Commands to run:**
-
-```bash
-# 1. Install dependencies
-pip install -r requirements.txt
-
-# 2. Install system tools
-brew install libimobiledevice
-
-# 3. Connect iPhone (USB, unlock, trust)
-
-# 4. Run the test!
-python test_iphone.py --live
-
-# Watch for results in 2-3 minutes!
-```
-
----
-
-**Status:** ✅ READY TO TEST
-
-**Expected Time to First Results:** 5-10 minutes
-
-**What You'll Learn:** Whether your iPhone is currently under attack
-
-**Next Step:** Run the commands above!
-
-Good luck! 🍀
+**Your MVP is complete and ready for production use!** 🚀

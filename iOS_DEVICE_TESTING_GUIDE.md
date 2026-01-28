@@ -196,41 +196,14 @@ EOF
 
 #### Manual Analysis (Quick Test)
 
-```python
-# Create test script: test_ios_backup.py
-from pathlib import Path
-from src.privaseeai_security.device_info import DeviceInfoExtractor
+Use the PrivaseeAI CLI to analyze existing backups:
 
-# Point to your device backup
-backup_dir = Path.home() / "Library/Application Support/MobileSync/Backup"
-
-# Find most recent backup
-backups = list(backup_dir.glob("*/"))
-if backups:
-    latest_backup = max(backups, key=lambda p: p.stat().st_mtime)
-    print(f"Analyzing backup: {latest_backup.name}")
-    
-    extractor = DeviceInfoExtractor(str(latest_backup))
-    
-    # Extract device info
-    if extractor.validate_backup():
-        device_id = extractor.get_device_id()
-        print(f"Device ID: {device_id}")
-        
-        # Look for VPN/MDM profiles (requires enhanced device_info.py)
-        # This functionality will be in Week 2-3 enhancements
-        print("\n⚠️  Profile extraction requires Carrier Compromise Detector")
-        print("    (Week 2-3 enhancement - not yet implemented)")
-    else:
-        print("❌ Invalid or encrypted backup")
-        print("    For encrypted backups, password required")
-else:
-    print("❌ No backups found")
-```
-
-Run it:
 ```bash
-python test_ios_backup.py
+# Scan all iOS backups
+privasee scan
+
+# Or specify a custom backup path
+privasee scan --backup-path ~/Library/Application\ Support/iMazing/Backups
 ```
 
 #### Automated Monitoring

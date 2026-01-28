@@ -1,8 +1,317 @@
-# PrivaseeAI.Security - User Guide for Everyone
+# PrivaseeAI.Security - User Guide
 
-**Protect your iPhone from spyware - no tech skills required**
+**Protect your iPhone from VPN manipulation and spyware**
 
-This guide helps you set up 24/7 monitoring for your iPhone to detect spyware, suspicious VPNs, and other threats. Written for non-technical users.
+This guide helps you set up PrivaseeAI Security to monitor your iPhone for threats like VPN manipulation, carrier compromise, and API abuse.
+
+---
+
+## 📱 What This Does
+
+PrivaseeAI Security continuously monitors your iPhone for:
+
+- **VPN Manipulation** - Detects when your VPN is forced to use less secure protocols (TCP fallback)
+- **Server Hopping** - Identifies suspicious rapid VPN server switching
+- **API Abuse** - Catches rate limiting that could indicate location tracking attempts
+- **Carrier Compromise** - Scans iOS backups for suspicious profiles and configurations
+- **Certificate Issues** - Validates VPN certificates to prevent man-in-the-middle attacks
+
+You'll get **instant Telegram alerts** when threats are detected.
+
+---
+
+## ✅ Before You Start
+
+### What You Need
+
+1. **macOS Computer** (macOS 10.15 or newer)
+2. **Python 3.11+** installed
+3. **iPhone** with backups enabled (any iOS version)
+4. **Telegram Account** (optional, for alerts)
+5. **10-15 minutes** for setup
+
+### What You DON'T Need
+
+- ❌ Programming experience
+- ❌ Cloud services or subscriptions
+- ❌ To modify your iPhone (no jailbreaking)
+- ❌ iPhone connected via USB (unless doing live monitoring)
+
+Everything runs locally on your Mac - complete privacy.
+
+---
+
+## 🚀 Quick Setup
+
+### Step 1: Install PrivaseeAI Security (3 minutes)
+
+Open Terminal and run:
+
+```bash
+# Clone the repository
+git clone https://github.com/aurelianware/PrivaseeAI.Security.git
+cd PrivaseeAI.Security
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install the CLI tool
+pip install -e .
+
+# Verify installation
+privasee --version
+```
+
+You should see: `PrivaseeAI Security v0.1.0`
+
+---
+
+### Step 2: Configure Telegram Alerts (5 minutes - Optional)
+
+**Create a Telegram Bot:**
+
+1. Open Telegram and search for `@BotFather`
+2. Send `/newbot` and follow the prompts
+3. Copy your bot token (looks like `1234567890:ABCdef...`)
+
+**Get Your Chat ID:**
+
+1. Send a message to your new bot
+2. Visit this URL in your browser (replace `<YOUR_TOKEN>`):
+   ```
+   https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates
+   ```
+3. Find your `chat_id` in the response (a number)
+
+**Add Credentials:**
+
+Add these lines to your `~/.zshrc` or `~/.bashrc`:
+
+```bash
+export TELEGRAM_BOT_TOKEN="your_bot_token_here"
+export TELEGRAM_CHAT_ID="your_chat_id_here"
+```
+
+Then reload:
+```bash
+source ~/.zshrc
+```
+
+**Verify:**
+```bash
+privasee config
+```
+
+Should show: `Telegram Configured: ✅ Yes`
+
+---
+
+### Step 3: Run Your First Scan (1 minute)
+
+```bash
+privasee scan
+```
+
+This scans your existing iOS backups for threats. You should see a table showing threat counts by severity.
+
+---
+
+## 📖 Using PrivaseeAI Security
+
+### Check Configuration
+
+```bash
+privasee config
+```
+
+Shows:
+- Backup path location
+- Whether Telegram is configured
+- Current settings
+
+### Run a One-Time Scan
+
+```bash
+privasee scan
+```
+
+Analyzes all iOS backups and shows results immediately.
+
+### Start Continuous Monitoring
+
+```bash
+privasee start
+```
+
+Runs continuously, monitoring for threats every 60 seconds. Press Ctrl+C to stop.
+
+**With custom interval:**
+```bash
+privasee start --interval 120  # Check every 2 minutes
+```
+
+**Without Telegram alerts:**
+```bash
+privasee start --no-telegram
+```
+
+**Custom backup path:**
+```bash
+privasee start --backup-path ~/Library/Application\ Support/iMazing/Backups
+```
+
+---
+
+## 🔔 Understanding Alerts
+
+### Threat Severity Levels
+
+- **🔴 CRITICAL** - Immediate action required (e.g., MITM attack detected)
+- **🟠 HIGH** - Serious threat (e.g., API tracking attempt)
+- **🟡 MEDIUM** - Suspicious activity (e.g., TCP fallback)
+- **🟢 LOW** - Minor anomaly
+
+### Common Threats
+
+**TRANSPORT_MANIPULATION (MEDIUM)**
+- Your VPN is forced to use TCP instead of UDP
+- Usually means UDP is being blocked
+- Action: Switch networks or VPN servers
+
+**API_TRACKING (HIGH)**
+- Excessive API calls detected
+- Possible location tracking attempt
+- Action: Check your VPN provider, review running apps
+
+**FORCED_RECONNECTION (MEDIUM)**
+- Rapid VPN server switching detected
+- Could indicate network interference
+- Action: Monitor and switch networks if persistent
+
+**CARRIER_COMPROMISE (varies)**
+- Suspicious profiles found in iOS backup
+- Could be malware or MDM profiles
+- Action: Review installed profiles on iPhone (Settings → General → VPN & Device Management)
+
+---
+
+## 🔧 Troubleshooting
+
+### "privasee: command not found"
+
+```bash
+# Make sure you installed with pip install -e .
+cd /path/to/PrivaseeAI.Security
+pip install -e .
+```
+
+### "No backups found"
+
+Check your backup location:
+```bash
+ls -la ~/Library/Application\ Support/MobileSync/Backup/
+```
+
+If backups are elsewhere:
+```bash
+privasee scan --backup-path /path/to/your/backups
+```
+
+### "Telegram not configured"
+
+Add credentials to shell config:
+```bash
+echo 'export TELEGRAM_BOT_TOKEN="your_token"' >> ~/.zshrc
+echo 'export TELEGRAM_CHAT_ID="your_chat_id"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+### No Threats Found
+
+This is good! It means:
+- Your VPN is working properly
+- No suspicious profiles detected
+- Your connection is secure
+
+Run periodic scans to maintain security.
+
+---
+
+## 🔒 Privacy & Security
+
+**Where is my data?**
+- All processing happens on your Mac
+- No data is sent to external servers
+- Telegram alerts only contain threat summaries (no personal data)
+
+**What data is collected?**
+- iOS backup metadata (device ID, backup dates)
+- VPN log patterns (if monitoring live logs)
+- Threat detection results
+
+**Can I disable Telegram?**
+- Yes! Just don't set the environment variables
+- Or use `--no-telegram` flag when starting
+
+---
+
+## 📚 Advanced Usage
+
+### Monitor Live VPN Logs
+
+For advanced users who want real-time VPN monitoring:
+
+See [iOS_DEVICE_TESTING_GUIDE.md](iOS_DEVICE_TESTING_GUIDE.md) for complete setup instructions.
+
+### Custom Configuration
+
+Create `config.yaml` in the project directory:
+
+```yaml
+log_level: DEBUG
+monitor_interval: 30
+telegram_enabled: true
+alert_throttle_minutes: 15
+```
+
+See [config.yaml.example](config.yaml.example) for all options.
+
+### Run as Background Service
+
+For 24/7 monitoring, see [ORCHESTRATOR_GUIDE.md](ORCHESTRATOR_GUIDE.md) for LaunchAgent setup instructions.
+
+---
+
+## 🆘 Getting Help
+
+- **Documentation**: [ORCHESTRATOR_GUIDE.md](ORCHESTRATOR_GUIDE.md) - Complete CLI reference
+- **Issues**: [GitHub Issues](https://github.com/aurelianware/PrivaseeAI.Security/issues)
+- **Security Concerns**: See [SECURITY.md](SECURITY.md)
+
+---
+
+## ✅ Quick Reference
+
+```bash
+# Check status
+privasee config
+
+# Scan once
+privasee scan
+
+# Monitor continuously
+privasee start
+
+# Monitor with custom settings
+privasee start --interval 120 --no-telegram
+
+# Stop monitoring
+# Press Ctrl+C
+```
+
+---
+
+**You're now protected!** PrivaseeAI Security is monitoring your iPhone for threats. Run `privasee scan` regularly or use `privasee start` for continuous protection.
 
 ---
 
