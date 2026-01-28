@@ -1,0 +1,52 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    name: Lint and Format Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: '**/requirements*.txt'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -e .
+      
+      - name: Run flake8
+        continue-on-error: true
+        run: |
+          flake8 src tests --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 src tests --count --max-complexity=10 --max-line-length=100 --statistics
+      
+      - name: Check code formatting with black
+        continue-on-error: true
+        run: |
+          black --check src tests
+      
+      - name: Check import sorting with isort
+        continue-on-error: true
+        run: |
+          isort --check-only src tests
+      
+      - name: Run mypy type checking
+        continue-on-error: true
+        run: |
+          mypy src
