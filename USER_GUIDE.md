@@ -57,7 +57,7 @@ Telegram will send you security alerts.
    - Choose a username: `mysecurity_bot` (must end with `_bot`)
    - BotFather will give you a **token** - copy this! It looks like:
      ```
-     8433178793:AAH6vtK28rmE0JwRfCOvK8Ux6Q2kbkP_hCw
+     1234567890:ABCdefGHIjklMNOpqrsTUVwxyz1234567890
      ```
 
 3. **Start chatting with your bot**:
@@ -67,12 +67,12 @@ Telegram will send you security alerts.
 
 4. **Get your Chat ID**:
    - In Telegram, search for `@userinfobot` and start a chat
-   - It will show you your **Chat ID** (a number like `8492117930`)
+   - It will show you your **Chat ID** (a number like `1234567890`)
    - Write this down too!
 
 **Save these two numbers somewhere safe - you'll need them shortly:**
-- ✅ Bot Token: `8433178793:AAH...` (long)
-- ✅ Chat ID: `8492117930` (shorter number)
+- ✅ Bot Token: `1234567890:ABCdef...` (long string)
+- ✅ Chat ID: `1234567890` (numeric ID)
 
 ---
 
@@ -142,8 +142,8 @@ Now we'll add your Telegram bot details so alerts can reach you.
 
 2. **Type these two lines** (replace with YOUR values from Step 1):
    ```
-   TELEGRAM_BOT_TOKEN=8433178793:AAH6vtK28rmE0JwRfCOvK8Ux6Q2kbkP_hCw
-   TELEGRAM_CHAT_ID=8492117930
+   TELEGRAM_BOT_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz1234567890
+   TELEGRAM_CHAT_ID=1234567890
    ```
    
    ⚠️ **Important**: Use YOUR actual token and chat ID, not these examples!
