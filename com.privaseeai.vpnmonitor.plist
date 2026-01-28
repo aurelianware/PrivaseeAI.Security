@@ -15,6 +15,10 @@
         <string>/Users/karkusdog/git/PrivaseeAI.Security</string>
         <string>--scan-interval</string>
         <string>10</string>
+        <string>--telegram-token</string>
+        <string>8433178793:AAHmLSQ_vX9alSEjkMY5l4JJXGAxPAiRDbc</string>
+        <string>--telegram-chat-id</string>
+        <string>8492117930</string>
     </array>
     
     <key>WorkingDirectory</key>
