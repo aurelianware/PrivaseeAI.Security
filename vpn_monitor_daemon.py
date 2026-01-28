@@ -63,6 +63,10 @@ class VPNMonitorDaemon:
         self.log_files: dict[Path, int] = {}
         self.last_scan = datetime.now()
         
+        # iPhone monitoring
+        self.monitor_iphone = True
+        self.last_iphone_log_time = datetime.now()
+        
         # Set up signal handlers for graceful shutdown
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
@@ -219,16 +223,59 @@ PrivaseeAI Security Monitor
         except Exception as e:
             logger.error(f"Failed to send Telegram message: {e}")
     
+    def _check_iphone_logs(self) -> List:
+        """Check for VPN-related logs on connected iPhone.
+        
+        Returns:
+            List of threats detected in iPhone logs
+        """
+        threats = []
+        
+        try:
+            import subprocess
+            
+            # Check if iPhone is connected
+            result = subprocess.run(
+                ['python3', '-m', 'pymobiledevice3', 'usbmux', 'list'],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            
+            if result.returncode != 0 or not result.stdout.strip():
+                return threats
+            
+            # Get recent syslog entries (last 30 seconds)
+            syslog_result = subprocess.run(
+                ['python3', '-m', 'pymobiledevice3', 'syslog', 'live', '--filter', 'VPN'],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if syslog_result.returncode == 0 and syslog_result.stdout:
+                log_lines = syslog_result.stdout.strip().split('\n')
+                threats = self._analyze_log_lines(log_lines, Path("iPhone-Live"))
+                
+                if threats:
+                    logger.info(f"Detected {len(threats)} threats in iPhone logs")
+            
+        except Exception as e:
+            logger.debug(f"iPhone log check failed: {e}")
+        
+        return threats
+    
     def _scan_once(self):
         """Perform one scan of all log files."""
         log_files = self._find_log_files()
         
         if not log_files:
             logger.debug("No log files found")
-            return
+            # Still check iPhone even if no Mac log files
         
         total_threats = 0
         
+        # Scan Mac log files
         for log_file in log_files:
             # Read new lines
             new_lines = self._read_new_lines(log_file)
@@ -246,6 +293,15 @@ PrivaseeAI Security Monitor
                 if threat.threat_level in [ThreatLevel.HIGH, ThreatLevel.CRITICAL]:
                     self._send_alert(threat, log_file)
                     total_threats += 1
+        
+        # Check iPhone logs if enabled (every 30 seconds to avoid spam)
+        if self.monitor_iphone and (datetime.now() - self.last_iphone_log_time).seconds >= 30:
+            iphone_threats = self._check_iphone_logs()
+            for threat in iphone_threats:
+                if threat.threat_level in [ThreatLevel.HIGH, ThreatLevel.CRITICAL]:
+                    self._send_alert(threat, Path("iPhone-Connected"))
+                    total_threats += 1
+            self.last_iphone_log_time = datetime.now()
         
         if total_threats > 0:
             logger.info(f"Scan complete: {total_threats} threats detected")
