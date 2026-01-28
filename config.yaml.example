@@ -1,0 +1,42 @@
+# PrivaseeAI Security Configuration
+# This is the default configuration file for PrivaseeAI Security
+
+# Logging Configuration
+log_level: INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+log_format: json  # json or text
+
+# Paths
+backup_directory: ~/Library/Application Support/MobileSync/Backup
+# For iMazing backups, use:
+# backup_directory: ~/Library/Application Support/iMazing/Backups
+
+# Monitoring Settings
+monitor_interval: 30  # seconds between monitor checks
+scan_on_startup: true  # run full backup scan when starting
+watch_interval: 5  # seconds for file watching
+
+# Encryption
+encryption_enabled: true
+encryption_algorithm: AES-256-GCM
+max_file_size: 104857600  # 100 MB
+
+# Telegram Alerting
+# Get your bot token from @BotFather on Telegram
+# Get your chat ID from https://api.telegram.org/bot<TOKEN>/getUpdates
+telegram_enabled: true
+telegram_bot_token: ""  # Set via TELEGRAM_BOT_TOKEN environment variable
+telegram_chat_id: ""  # Set via TELEGRAM_CHAT_ID environment variable
+alert_throttle_minutes: 15  # minimum time between similar alerts
+
+# Alert Settings
+# Which threat levels trigger alerts?
+alert_on_levels:
+  - CRITICAL
+  - HIGH
+# Uncomment to also alert on medium threats:
+# - MEDIUM
+
+# Advanced Settings
+# max_concurrent_monitors: 10
+# threat_database_path: ~/.local/share/privaseeai/threats.db
+# retention_days: 90

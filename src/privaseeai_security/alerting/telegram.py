@@ -285,3 +285,16 @@ class TelegramAlerter:
         }
         
         return severity_order.get(threat_level, 0) >= severity_order.get(min_severity, 3)
+    
+    def send_carrier_threat_alert(self, threat) -> bool:
+        """Send carrier-specific threat alert.
+        
+        Convenience method for carrier compromise detections.
+        
+        Args:
+            threat: CarrierThreatDetection object
+            
+        Returns:
+            True if alert was sent
+        """
+        return self.send_threat_alert(threat)

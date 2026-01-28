@@ -26,6 +26,9 @@ Homepage = "https://github.com/aurelianware/PrivaseeAI.Security"
 Repository = "https://github.com/aurelianware/PrivaseeAI.Security"
 Issues = "https://github.com/aurelianware/PrivaseeAI.Security/issues"
 
+[project.scripts]
+privasee = "privaseeai_security.cli:main"
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["tests"]
