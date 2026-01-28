@@ -3,6 +3,7 @@
 import sys
 
 from privaseeai_security.cli import main as cli_main
+from privaseeai_security.config import Config
 from privaseeai_security import __version__
 
 
@@ -14,7 +15,6 @@ def health_check() -> bool:
         bool: True if health check passes, False otherwise
     """
     try:
-        from privaseeai_security.config import Config
         config = Config()
         config.validate()
         return True
