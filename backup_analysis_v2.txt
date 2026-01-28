@@ -1,4 +1,0 @@
-============================================================
-iOS Backup Analyzer Test - iMazing
-============================================================
-❌ Backup directory not found: /Volumes/bk/iMazing.Backups
