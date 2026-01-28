@@ -13,6 +13,7 @@ python-dotenv>=1.0.0
 # iOS Device Communication
 # ============================================================
 pymobiledevice3>=3.0.0
+iOSbackup>=0.9.925
 # Note: libimobiledevice is a system package
 #       Install with: brew install libimobiledevice (macOS)
 

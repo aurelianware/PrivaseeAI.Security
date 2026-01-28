@@ -6,6 +6,14 @@ from pathlib import Path
 import plistlib
 import sqlite3
 import logging
+import tempfile
+import shutil
+
+try:
+    from iOSbackup import iOSbackup
+    HAS_IOSBACKUP = True
+except ImportError:
+    HAS_IOSBACKUP = False
 
 from .crypto.cert_validator import ThreatLevel
 
@@ -123,14 +131,17 @@ class DeviceInfoExtractor:
         '::1',
     }
 
-    def __init__(self, backup_path: str):
+    def __init__(self, backup_path: str, password: Optional[str] = None):
         """Initialize device info extractor.
         
         Args:
             backup_path: Path to iOS backup directory
+            password: Optional password for encrypted backups
         """
         self.backup_path = Path(backup_path)
+        self.password = password
         self.logger = logging.getLogger(__name__)
+        self._decrypted_manifest_path = None
         
     def extract_device_info(self) -> DeviceInfo:
         """Extract device information from backup.
@@ -222,10 +233,10 @@ class DeviceInfoExtractor:
         apps = []
         
         try:
-            manifest_db = self.backup_path / "Manifest.db"
+            manifest_db = self._get_manifest_db_path()
             
-            if not manifest_db.exists():
-                self.logger.warning(f"Manifest.db not found at {manifest_db}")
+            if not manifest_db or not manifest_db.exists():
+                self.logger.warning(f"Manifest.db not accessible")
                 return apps
             
             conn = sqlite3.connect(str(manifest_db))
@@ -273,10 +284,10 @@ class DeviceInfoExtractor:
         
         try:
             # Query Manifest.db for VPN-related files
-            manifest_db = self.backup_path / "Manifest.db"
+            manifest_db = self._get_manifest_db_path()
             
-            if not manifest_db.exists():
-                self.logger.warning(f"Manifest.db not found")
+            if not manifest_db or not manifest_db.exists():
+                self.logger.warning(f"Manifest.db not accessible")
                 return profiles
             
             conn = sqlite3.connect(str(manifest_db))
@@ -328,9 +339,9 @@ class DeviceInfoExtractor:
         profiles = []
         
         try:
-            manifest_db = self.backup_path / "Manifest.db"
+            manifest_db = self._get_manifest_db_path()
             
-            if not manifest_db.exists():
+            if not manifest_db or not manifest_db.exists():
                 return profiles
             
             conn = sqlite3.connect(str(manifest_db))
@@ -388,9 +399,9 @@ class DeviceInfoExtractor:
         }
         
         try:
-            manifest_db = self.backup_path / "Manifest.db"
+            manifest_db = self._get_manifest_db_path()
             
-            if not manifest_db.exists():
+            if not manifest_db or not manifest_db.exists():
                 return network_config
             
             conn = sqlite3.connect(str(manifest_db))
@@ -683,3 +694,103 @@ class DeviceInfoExtractor:
                     return True
         
         return False
+    
+    def _get_manifest_db_path(self) -> Optional[Path]:
+        """Get path to Manifest.db, decrypting if necessary.
+        
+        Returns:
+            Path to Manifest.db (decrypted if encrypted), or None if not accessible
+        """
+        manifest_db = self.backup_path / "Manifest.db"
+        
+        if not manifest_db.exists():
+            return None
+        
+        # Check if backup is encrypted
+        if self._is_backup_encrypted():
+            if not self.password:
+                self.logger.warning("Backup is encrypted but no password provided")
+                return None
+            
+            # Return cached decrypted path or decrypt now
+            if self._decrypted_manifest_path and self._decrypted_manifest_path.exists():
+                return self._decrypted_manifest_path
+            
+            return self._decrypt_manifest_db()
+        
+        return manifest_db
+    
+    def _is_backup_encrypted(self) -> bool:
+        """Check if the backup is encrypted.
+        
+        Returns:
+            True if backup is encrypted
+        """
+        try:
+            manifest_plist = self.backup_path / "Manifest.plist"
+            if not manifest_plist.exists():
+                return False
+            
+            with open(manifest_plist, 'rb') as f:
+                manifest = plistlib.load(f)
+            
+            return manifest.get('IsEncrypted', False)
+        except Exception:
+            return False
+    
+    def _decrypt_manifest_db(self) -> Optional[Path]:
+        """Decrypt Manifest.db using the provided password.
+        
+        Uses iOSbackup library for proper iOS backup decryption.
+        
+        Returns:
+            Path to decrypted temporary Manifest.db file, or None if decryption fails
+        """
+        if not self.password:
+            self.logger.error("Password required for encrypted backup")
+            return None
+        
+        if not HAS_IOSBACKUP:
+            self.logger.error("iOSbackup library not installed. Run: pip install iOSbackup")
+            return None
+        
+        try:
+            # Use iOSbackup library to decrypt
+            backup = iOSbackup(udid=self.backup_path.name, 
+                             cleartextpassword=self.password,
+                             backuproot=str(self.backup_path.parent))
+            
+            # Check if decryption worked by trying to access Manifest.db
+            manifest_db_path = self.backup_path / "Manifest.db"
+            
+            if not manifest_db_path.exists():
+                self.logger.error("Manifest.db not found after decryption")
+                return None
+            
+            # The iOSbackup library decrypts in-place, so we can use the original path
+            # But we need to test if it's actually readable
+            try:
+                conn = sqlite3.connect(str(manifest_db_path))
+                cursor = conn.cursor()
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1")
+                cursor.fetchone()
+                conn.close()
+                
+                self.logger.info("Successfully decrypted and verified Manifest.db")
+                return manifest_db_path
+                
+            except sqlite3.DatabaseError as e:
+                self.logger.error(f"Manifest.db still encrypted or corrupted: {e}")
+                return None
+                
+        except Exception as e:
+            self.logger.error(f"Failed to decrypt backup: {e}")
+            return None
+    
+    def __del__(self):
+        """Clean up temporary decrypted files."""
+        if self._decrypted_manifest_path and self._decrypted_manifest_path.exists():
+            try:
+                self._decrypted_manifest_path.unlink()
+            except Exception:
+                pass
