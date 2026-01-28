@@ -25,6 +25,7 @@ This PR successfully implements a comprehensive CI/CD pipeline for the PrivaseeA
 - **Linting**: flake8 with consistent 100-character line length
 - **Formatting**: Black and isort verification
 - **Type Checking**: mypy static analysis
+- **Non-blocking**: Checks provide feedback without failing the workflow (continue-on-error: true)
 - **Security**: Explicit minimal permissions (contents: read)
 - **Performance**: pip caching with dependency tracking
 

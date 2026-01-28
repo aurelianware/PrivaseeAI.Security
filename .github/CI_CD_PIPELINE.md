@@ -43,7 +43,7 @@ This repository uses GitHub Actions for continuous integration and continuous de
 ### In Pull Requests
 
 1. **Status Checks**: All workflow runs appear as status checks in PRs
-2. **Test Results Comment**: Detailed test results are published as PR comments
+2. **Test Results**: Detailed test results are published as PR status checks (not comments)
 3. **Coverage Comment**: Coverage metrics are automatically commented on PRs (Python 3.11 only)
 
 ### In GitHub Actions Tab

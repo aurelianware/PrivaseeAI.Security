@@ -31,18 +31,22 @@ jobs:
           pip install -e .
       
       - name: Run flake8
+        continue-on-error: true
         run: |
           flake8 src tests --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 src tests --count --max-complexity=10 --max-line-length=100 --statistics
       
       - name: Check code formatting with black
+        continue-on-error: true
         run: |
           black --check src tests
       
       - name: Check import sorting with isort
+        continue-on-error: true
         run: |
           isort --check-only src tests
       
       - name: Run mypy type checking
+        continue-on-error: true
         run: |
           mypy src

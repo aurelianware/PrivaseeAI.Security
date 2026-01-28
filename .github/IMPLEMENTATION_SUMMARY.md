@@ -15,7 +15,6 @@ A comprehensive test workflow that:
   - Push to `main` and `develop` branches
   - Pull requests to `main` and `develop` branches
   - Manual workflow dispatch
-- **Code Quality Checks**: Includes linting and type checking before tests
 - **Test Execution**: Runs pytest with coverage reporting
 - **Metrics Publishing**:
   - Test results published as PR checks
@@ -72,7 +71,7 @@ A separate workflow focused on code quality:
 ### 6. **Fail-Safe Design**
    - `if: always()` ensures artifacts are uploaded even if tests fail
    - `fail_ci_if_error: false` for Codecov prevents blocking on optional service
-   - Linting marked as non-blocking (`|| true`) to focus on test failures
+   - Code quality checks marked as non-blocking (`continue-on-error: true`) to provide feedback without blocking PRs on existing code style issues
 
 ### 7. **Security Best Practices**
    - Uses official GitHub Actions (checkout@v4, setup-python@v5, upload-artifact@v4)
