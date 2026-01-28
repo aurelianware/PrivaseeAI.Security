@@ -15,10 +15,6 @@
         <string>/Users/karkusdog/git/PrivaseeAI.Security</string>
         <string>--scan-interval</string>
         <string>10</string>
-        <string>--telegram-token</string>
-        <string>8433178793:AAHmLSQ_vX9alSEjkMY5l4JJXGAxPAiRDbc</string>
-        <string>--telegram-chat-id</string>
-        <string>8492117930</string>
     </array>
     
     <key>WorkingDirectory</key>
@@ -43,6 +39,10 @@
     <dict>
         <key>PATH</key>
         <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>TELEGRAM_BOT_TOKEN</key>
+        <string>YOUR_TOKEN_HERE</string>
+        <key>TELEGRAM_CHAT_ID</key>
+        <string>YOUR_CHAT_ID_HERE</string>
     </dict>
     
     <key>ThrottleInterval</key>
