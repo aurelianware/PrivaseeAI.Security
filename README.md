@@ -74,11 +74,12 @@ Unlike traditional periodic scans, PrivaseeAI.Security provides **continuous rea
 
 **CLI Interface** (319 lines)
 ```bash
-privasee start    # Start continuous monitoring
-privasee scan     # One-time security scan
-privasee status   # Check system health
-privasee config   # View configuration
-privasee alerts   # Show recent threats
+privasee start      # Start continuous monitoring
+privasee scan       # One-time security scan
+privasee status     # Check system health
+privasee config     # View configuration
+privasee alerts     # Show recent threats
+privasee dashboard  # Launch web dashboard (NEW in v0.3.0)
 ```
 
 **Rich console output with tables and color-coded severity indicators**
@@ -196,6 +197,10 @@ privasee config
 
 # View recent alerts
 privasee alerts
+
+# Launch web dashboard
+privasee dashboard
+# Visit http://localhost:8000
 ```
 
 ### Optional: Telegram Alerts

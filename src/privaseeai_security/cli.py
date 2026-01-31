@@ -5,6 +5,7 @@ Provides user-friendly commands for:
 - Checking system status
 - Running on-demand scans
 - Viewing threat history
+- Launching web dashboard
 """
 
 import asyncio
@@ -308,6 +309,66 @@ def _print_threat_summary(summary, verbose: bool = False):
         console.print(f"\n[bold red]Total Threats: {summary.total_threats}[/bold red]")
     else:
         console.print("\n[bold green]✅ No threats detected[/bold green]")
+
+
+@cli.command()
+@click.option(
+    "--host",
+    default="0.0.0.0",
+    help="Host to bind to (default: 0.0.0.0)"
+)
+@click.option(
+    "--port",
+    default=8000,
+    type=int,
+    help="Port to bind to (default: 8000)"
+)
+@click.option(
+    "--reload",
+    is_flag=True,
+    help="Enable auto-reload on code changes (development mode)"
+)
+def dashboard(host: str, port: int, reload: bool):
+    """Start the web dashboard.
+
+    Launches the FastAPI web interface for monitoring threats,
+    managing devices, and controlling monitors through a browser.
+
+    Example:
+        privasee dashboard
+        privasee dashboard --port 3000 --reload
+    """
+    try:
+        import uvicorn
+    except ImportError:
+        console.print("[red]Error: uvicorn not installed.[/red]")
+        console.print("\nInstall dashboard dependencies:")
+        console.print("  pip install fastapi uvicorn jinja2 python-multipart websockets")
+        sys.exit(1)
+
+    console.print(f"[green]Starting PrivaseeAI Security Dashboard...[/green]")
+    console.print(f"\n[bold]Dashboard URL:[/bold] http://localhost:{port}")
+    console.print(f"[bold]API Docs:[/bold] http://localhost:{port}/api/docs")
+    console.print("\nPress Ctrl+C to stop\n")
+
+    # Import and run the dashboard app
+    dashboard_path = Path(__file__).parent.parent.parent / "dashboard" / "api" / "main.py"
+
+    if not dashboard_path.exists():
+        console.print(f"[red]Error: Dashboard not found at {dashboard_path}[/red]")
+        console.print("\nMake sure you have the dashboard/ directory in your repository.")
+        sys.exit(1)
+
+    try:
+        uvicorn.run(
+            "dashboard.api.main:app",
+            host=host,
+            port=port,
+            reload=reload,
+            log_level="info"
+        )
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Dashboard stopped[/yellow]")
 
 
 def main():
