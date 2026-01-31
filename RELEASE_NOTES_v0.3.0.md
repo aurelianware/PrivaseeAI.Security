@@ -22,7 +22,7 @@ Three commercial security apps ($120/year total) completely missed the attack. T
 - **4 Real-Time Monitors** - VPN integrity, API abuse, carrier compromise, certificate validation
 - **196 Tests Passing** - 100% pass rate, validated against real attack logs
 - **Telegram Alerts** - Instant notifications for CRITICAL/HIGH severity threats
-- **CLI Interface** - 5 commands for easy monitoring
+- **CLI Interface** - 6 commands for easy monitoring (including new `privasee dashboard`)
 - **Battle-Tested** - Every rule validated against actual carrier-level attack
 
 ### 🆕 New in v0.3.0
@@ -42,7 +42,7 @@ Three commercial security apps ($120/year total) completely missed the attack. T
 - ✅ **FastAPI REST API** - 15+ endpoints with WebSocket support
 - ✅ **Modern UI** - Tailwind CSS + htmx for real-time updates
 - ✅ **Interactive Dashboard** - Threat management, monitor control, device overview
-- ✅ **Working Prototype** - Run `python dashboard/api/main.py` to see it live
+- ✅ **Easy CLI Access** - Run `privasee dashboard` to launch
 
 #### Marketing & Content
 - ✅ **Video Script** - Professional 6-minute setup tutorial for YouTube
@@ -87,7 +87,7 @@ privasee start
 ```
 
 ### Become a Beta Tester
-Use our [Beta Testing template](.github/ISSUE_TEMPLATE/beta-testing.yml) to sign up!
+**Join our beta testing discussion:** https://github.com/aurelianware/PrivaseeAI.Security/discussions/11
 
 ---
 
@@ -142,18 +142,18 @@ This system detects:
 ## 📖 Documentation
 
 ### Getting Started
-- [README.md](README.md) - Project overview
-- [QUICK_START.md](QUICK_START.md) - 5-minute setup
-- [USER_GUIDE.md](USER_GUIDE.md) - Complete walkthrough (657 lines)
+- [README.md](https://github.com/aurelianware/PrivaseeAI.Security#readme) - Project overview
+- [QUICK_START.md](https://github.com/aurelianware/PrivaseeAI.Security/blob/main/QUICK_START.md) - 5-minute setup
+- [USER_GUIDE.md](https://github.com/aurelianware/PrivaseeAI.Security/blob/main/USER_GUIDE.md) - Complete walkthrough (657 lines)
 
 ### For Developers
-- [DEVELOPER_SETUP.md](DEVELOPER_SETUP.md) - Development environment setup
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
-- [DATABASE_DESIGN.md](database/DATABASE_DESIGN.md) - Phase 4 architecture
+- [DEVELOPER_SETUP.md](https://github.com/aurelianware/PrivaseeAI.Security/blob/main/DEVELOPER_SETUP.md) - Development environment setup
+- [CONTRIBUTING.md](https://github.com/aurelianware/PrivaseeAI.Security/blob/main/CONTRIBUTING.md) - Contribution guidelines
+- [DATABASE_DESIGN.md](https://github.com/aurelianware/PrivaseeAI.Security/blob/main/database/DATABASE_DESIGN.md) - Phase 4 architecture
 
 ### For Beta Testers
-- [iOS_DEVICE_TESTING_GUIDE.md](iOS_DEVICE_TESTING_GUIDE.md) - Live device testing
-- [TESTING_SUMMARY.md](TESTING_SUMMARY.md) - Test infrastructure
+- [iOS_DEVICE_TESTING_GUIDE.md](https://github.com/aurelianware/PrivaseeAI.Security/blob/main/iOS_DEVICE_TESTING_GUIDE.md) - Live device testing
+- [TESTING_SUMMARY.md](https://github.com/aurelianware/PrivaseeAI.Security/blob/main/TESTING_SUMMARY.md) - Test infrastructure
 
 ---
 
@@ -200,7 +200,7 @@ This system detects:
 We're actively seeking:
 
 **🔴 High Priority:**
-- **Beta Testers** - Help validate on different devices (need 25 testers)
+- **Beta Testers** - Help validate on different devices ([Join here](https://github.com/aurelianware/PrivaseeAI.Security/discussions/11))
 - **Python Developers** - Phase 3-5 implementation
 - **UI/UX Designers** - Dashboard improvements
 
@@ -209,7 +209,7 @@ We're actively seeking:
 - **Security Researchers** - New threat detection rules
 
 **Get Started:**
-1. Check [CONTRIBUTING.md](CONTRIBUTING.md)
+1. Check [CONTRIBUTING.md](https://github.com/aurelianware/PrivaseeAI.Security/blob/main/CONTRIBUTING.md)
 2. Look for `good first issue` labels
 3. Join [Discussions](https://github.com/aurelianware/PrivaseeAI.Security/discussions)
 
@@ -231,7 +231,7 @@ If you find this useful, consider:
 - 🏢 Enterprise Sponsor - $100/month
 - 💎 Founding Sponsor - $250+/month
 
-See [SPONSORS.md](SPONSORS.md) for full details and benefits.
+See [SPONSORS.md](https://github.com/aurelianware/PrivaseeAI.Security/blob/main/SPONSORS.md) for full details and benefits.
 
 ---
 
@@ -240,7 +240,7 @@ See [SPONSORS.md](SPONSORS.md) for full details and benefits.
 **Reporting Vulnerabilities:**
 - **DO NOT** open public issues for security vulnerabilities
 - Email: security@aurelianware.com
-- See [SECURITY.md](SECURITY.md) for responsible disclosure
+- See [SECURITY.md](https://github.com/aurelianware/PrivaseeAI.Security/blob/main/SECURITY.md) for responsible disclosure
 
 **Privacy Guarantee:**
 - 100% local processing (no cloud)
@@ -264,7 +264,7 @@ None - this is the initial production release.
 
 - **Manual startup required** - Auto-start via launchd coming in Phase 3 (February)
 - **Single device only** - Multi-device support coming in Phase 4 (March)
-- **No GUI** - Web dashboard database integration coming in Phase 5 (April)
+- **Dashboard needs database** - Database integration coming in Phase 5 (April)
 
 See [GitHub Issues](https://github.com/aurelianware/PrivaseeAI.Security/issues) for full list.
 
@@ -296,7 +296,7 @@ See [GitHub Issues](https://github.com/aurelianware/PrivaseeAI.Security/issues) 
 
 ## ⚖️ License
 
-Apache License 2.0 - See [LICENSE](LICENSE) for details.
+Apache License 2.0 - See [LICENSE](https://github.com/aurelianware/PrivaseeAI.Security/blob/main/LICENSE) for details.
 
 **TL;DR:** Use it, modify it, distribute it commercially or non-commercially - just give attribution.
 
@@ -315,13 +315,15 @@ Apache License 2.0 - See [LICENSE](LICENSE) for details.
 - Phase 3 complete
 - Setup tutorial video recorded
 
+---
+
 **Join us in building better mobile security. Everyone deserves the right to know if they're being attacked.**
 
 ---
 
 **Download:** [Source code (zip)](https://github.com/aurelianware/PrivaseeAI.Security/archive/refs/tags/v0.3.0.zip) | [Source code (tar.gz)](https://github.com/aurelianware/PrivaseeAI.Security/archive/refs/tags/v0.3.0.tar.gz)
 
-**Full Changelog:** https://github.com/aurelianware/PrivaseeAI.Security/compare/v0.2.0...v0.3.0
+**All Changes:** https://github.com/aurelianware/PrivaseeAI.Security/commits/v0.3.0
 
 ---
 
