@@ -25,15 +25,26 @@ pip install -r requirements.txt
 
 ### 2. Run Dashboard
 
+**Recommended (using CLI):**
+```bash
+privasee dashboard
+```
+
+**Alternative methods:**
 ```bash
 # From the dashboard/api directory
 cd dashboard/api
-python main.py
+python3 main.py
+
+# Or use uvicorn directly
+uvicorn dashboard.api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Or use uvicorn directly:
+**CLI Options:**
 ```bash
-uvicorn dashboard.api.main:app --reload --host 0.0.0.0 --port 8000
+privasee dashboard --port 3000     # Custom port
+privasee dashboard --reload         # Development mode (auto-reload)
+privasee dashboard --help           # See all options
 ```
 
 ### 3. Access Dashboard

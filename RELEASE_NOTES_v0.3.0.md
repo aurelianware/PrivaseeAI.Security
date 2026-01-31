@@ -68,9 +68,9 @@ Three commercial security apps ($120/year total) completely missed the attack. T
 
 ### Try the Dashboard
 ```bash
-cd dashboard/api
-python3 main.py
+privasee dashboard
 # Visit http://localhost:8000
+# API Docs: http://localhost:8000/api/docs
 ```
 
 ### Install Pre-commit Hooks
