@@ -1,6 +1,6 @@
 """PrivaseeAI Security - iOS Threat Detection & Monitoring System."""
 
-__version__ = "0.1.0"
+__version__ = "0.3.0"
 __author__ = "AurelianWare"
 __description__ = "Privacy-preserving iOS threat detection and monitoring system"
 

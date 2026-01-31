@@ -1,0 +1,169 @@
+name: Beta Testing Feedback
+description: Share your beta testing experience with PrivaseeAI.Security
+title: "[BETA] "
+labels: ["beta-testing", "feedback"]
+assignees:
+  - aurelianware
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Thank you for beta testing PrivaseeAI.Security!
+
+        Your feedback helps us improve iOS threat detection for everyone. Please provide as much detail as possible.
+
+  - type: input
+    id: device-model
+    attributes:
+      label: Device Model
+      description: Which iPhone are you testing with?
+      placeholder: "e.g., iPhone 15 Pro, iPhone 13, iPhone 12 mini"
+    validations:
+      required: true
+
+  - type: input
+    id: ios-version
+    attributes:
+      label: iOS Version
+      description: What iOS version is running?
+      placeholder: "e.g., iOS 18.2, iOS 17.5.1"
+    validations:
+      required: true
+
+  - type: input
+    id: carrier
+    attributes:
+      label: Carrier
+      description: Which mobile carrier do you use?
+      placeholder: "e.g., Verizon, AT&T, T-Mobile, Vodafone"
+    validations:
+      required: false
+
+  - type: input
+    id: vpn-provider
+    attributes:
+      label: VPN Provider (Optional)
+      description: Which VPN service are you using?
+      placeholder: "e.g., ProtonVPN, NordVPN, Mullvad, None"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: testing-duration
+    attributes:
+      label: Testing Duration
+      description: How long have you been running the monitor?
+      options:
+        - Less than 1 day
+        - 1-3 days
+        - 4-7 days
+        - 1-2 weeks
+        - More than 2 weeks
+    validations:
+      required: true
+
+  - type: textarea
+    id: detection-results
+    attributes:
+      label: Detection Results
+      description: What threats or alerts did the system detect?
+      placeholder: |
+        - List any threats detected (HIGH/MEDIUM/LOW severity)
+        - Were they legitimate threats or false positives?
+        - Copy/paste sanitized alert messages if possible
+    validations:
+      required: true
+
+  - type: textarea
+    id: performance
+    attributes:
+      label: Performance & Stability
+      description: How did the system perform?
+      placeholder: |
+        - CPU/memory usage observations
+        - Any crashes or errors?
+        - Battery impact noticed?
+        - Response time to threats?
+    validations:
+      required: true
+
+  - type: textarea
+    id: false-positives
+    attributes:
+      label: False Positives
+      description: Did you experience any false positive alerts?
+      placeholder: |
+        Describe any alerts that were incorrect:
+        - What was detected?
+        - What was the actual cause?
+        - Severity level?
+    validations:
+      required: false
+
+  - type: textarea
+    id: false-negatives
+    attributes:
+      label: False Negatives (Missed Threats)
+      description: Did you notice any threats that should have been detected but weren't?
+      placeholder: |
+        Describe any threats the system missed:
+        - What should have been detected?
+        - How did you discover it?
+        - Why do you think it was missed?
+    validations:
+      required: false
+
+  - type: textarea
+    id: usability
+    attributes:
+      label: Usability Feedback
+      description: How was your experience using the CLI and setup?
+      placeholder: |
+        - Was setup easy?
+        - Were the commands intuitive?
+        - Was documentation helpful?
+        - What could be improved?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: System Logs (Optional)
+      description: Attach relevant sanitized logs if you encountered issues
+      placeholder: |
+        Paste sanitized logs here (remove personal/sensitive data)
+
+        Or upload log files as attachments below
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: participation
+    attributes:
+      label: Ongoing Participation
+      description: Would you like to continue beta testing?
+      options:
+        - label: I'm willing to test future versions
+        - label: I can provide additional testing on different devices
+        - label: I'd like to contribute code improvements
+        - label: I'm interested in helping with documentation
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Comments
+      description: Anything else you'd like to share?
+      placeholder: Feature suggestions, bug reports, general feedback...
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+
+        **Privacy Note:** Please remove any personal information (phone numbers, email addresses, device IDs) from logs before submitting.
+
+        Thank you for helping make PrivaseeAI.Security better! 🛡️

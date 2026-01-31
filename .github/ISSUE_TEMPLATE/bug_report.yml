@@ -1,0 +1,126 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+assignees:
+  - aurelianware
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug Report
+
+        Thank you for helping improve PrivaseeAI.Security by reporting bugs!
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear description of what the bug is
+      placeholder: What happened that shouldn't have?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened instead?
+      placeholder: Describe the expected outcome
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this bug?
+      placeholder: |
+        1. Run command '...'
+        2. Wait for '...'
+        3. See error '...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Logs
+      description: Paste relevant error messages or logs
+      placeholder: |
+        ```
+        Paste error logs here (sanitize personal data)
+        ```
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: PrivaseeAI.Security Version
+      description: What version are you running?
+      placeholder: "Run: privasee --version"
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python Version
+      description: What Python version?
+      placeholder: "Run: python3 --version"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: What OS and version?
+      placeholder: "e.g., macOS Sonoma 14.3, macOS Ventura 13.6"
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: iPhone Model & iOS Version
+      description: Device being monitored
+      placeholder: "e.g., iPhone 16 Pro on iOS 18.2"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Bug Severity
+      description: How severe is this bug?
+      options:
+        - Critical - System crashes or data loss
+        - High - Feature completely broken
+        - Medium - Feature partially broken
+        - Low - Minor inconvenience
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I've searched existing issues to avoid duplicates
+          required: true
+        - label: I've removed personal/sensitive information from logs
+          required: true
+        - label: I'm using the latest version from main branch
+          required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other relevant information
+      placeholder: Screenshots, workarounds, related issues, etc.
+    validations:
+      required: false

@@ -40,7 +40,7 @@ def _signal_handler(signum, frame):
 
 
 @click.group()
-@click.version_option(version="0.1.0", prog_name="privasee")
+@click.version_option(version="0.3.0", prog_name="privasee")
 def cli():
     """PrivaseeAI Security - iOS Threat Detection & Monitoring.
     

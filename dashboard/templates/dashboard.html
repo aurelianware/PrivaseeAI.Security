@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrivaseeAI Security Dashboard</title>
+
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- htmx for dynamic updates -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        .severity-critical { @apply bg-red-100 border-red-500 text-red-900; }
+        .severity-high { @apply bg-orange-100 border-orange-500 text-orange-900; }
+        .severity-medium { @apply bg-yellow-100 border-yellow-500 text-yellow-900; }
+        .severity-low { @apply bg-blue-100 border-blue-500 text-blue-900; }
+
+        .status-running { @apply bg-green-100 text-green-800; }
+        .status-stopped { @apply bg-gray-100 text-gray-800; }
+        .status-error { @apply bg-red-100 text-red-800; }
+
+        .pulse-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold text-gray-900">🛡️ PrivaseeAI Security</span>
+                    <span class="ml-3 px-2 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded">v0.3.0-alpha</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="connection-status" class="flex items-center text-sm text-gray-600">
+                        <span class="w-2 h-2 bg-green-500 rounded-full pulse-dot mr-2"></span>
+                        Connected
+                    </span>
+                    <button onclick="refreshAll()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                        Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Stats Overview -->
+        <div id="stats-container" hx-get="/api/stats" hx-trigger="load, every 30s" hx-target="#stats-content">
+            <div id="stats-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <!-- Stats cards will be loaded here -->
+                <div class="animate-pulse bg-white p-6 rounded-lg shadow">
+                    <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                    <div class="h-8 bg-gray-200 rounded w-1/2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Threats and Monitors Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Active Threats (2/3 width) -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow">
+                    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-gray-900">Active Threats</h2>
+                        <select id="severity-filter" class="text-sm border-gray-300 rounded" onchange="filterThreats()">
+                            <option value="">All Severities</option>
+                            <option value="CRITICAL">Critical</option>
+                            <option value="HIGH">High</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="LOW">Low</option>
+                        </select>
+                    </div>
+                    <div id="threats-container" hx-get="/api/threats?status=open" hx-trigger="load, every 10s" class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                        <!-- Threats will be loaded here -->
+                        <div class="p-6 text-center text-gray-500">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                            Loading threats...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitor Status (1/3 width) -->
+            <div>
+                <div class="bg-white rounded-lg shadow">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-semibold text-gray-900">Monitor Status</h2>
+                    </div>
+                    <div id="monitors-container" hx-get="/api/monitors" hx-trigger="load, every 15s" class="divide-y divide-gray-200">
+                        <!-- Monitors will be loaded here -->
+                        <div class="p-6 text-center text-gray-500">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                            Loading monitors...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Devices Section -->
+        <div class="mt-6">
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Monitored Devices</h2>
+                </div>
+                <div id="devices-container" hx-get="/api/devices" hx-trigger="load, every 30s" class="divide-y divide-gray-200">
+                    <!-- Devices will be loaded here -->
+                    <div class="p-6 text-center text-gray-500">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                        Loading devices...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- WebSocket Connection -->
+    <script>
+        // WebSocket connection for real-time updates
+        let ws;
+        const connectWebSocket = () => {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
+
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                document.getElementById('connection-status').innerHTML = `
+                    <span class="w-2 h-2 bg-green-500 rounded-full pulse-dot mr-2"></span>
+                    Connected
+                `;
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log('WebSocket message:', data);
+
+                if (data.type === 'threat_update' || data.type === 'monitor_status') {
+                    // Trigger refresh of relevant sections
+                    htmx.trigger('#threats-container', 'load');
+                    htmx.trigger('#monitors-container', 'load');
+                    htmx.trigger('#stats-container', 'load');
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                document.getElementById('connection-status').innerHTML = `
+                    <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                    Error
+                `;
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket closed, reconnecting...');
+                document.getElementById('connection-status').innerHTML = `
+                    <span class="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    Reconnecting...
+                `;
+                setTimeout(connectWebSocket, 3000);
+            };
+        };
+
+        connectWebSocket();
+
+        // Refresh all sections
+        function refreshAll() {
+            htmx.trigger('#stats-container', 'load');
+            htmx.trigger('#threats-container', 'load');
+            htmx.trigger('#monitors-container', 'load');
+            htmx.trigger('#devices-container', 'load');
+        }
+
+        // Filter threats by severity
+        function filterThreats() {
+            const severity = document.getElementById('severity-filter').value;
+            const url = severity ? `/api/threats?status=open&severity=${severity}` : '/api/threats?status=open';
+            htmx.ajax('GET', url, {target:'#threats-container'});
+        }
+
+        // htmx event handlers for rendering data
+        document.body.addEventListener('htmx:afterSwap', (event) => {
+            const target = event.detail.target;
+
+            // Render stats
+            if (target.id === 'stats-content') {
+                renderStats(JSON.parse(event.detail.xhr.response));
+            }
+
+            // Render threats
+            if (target.id === 'threats-container') {
+                const threats = JSON.parse(event.detail.xhr.response);
+                renderThreats(threats, target);
+            }
+
+            // Render monitors
+            if (target.id === 'monitors-container') {
+                const monitors = JSON.parse(event.detail.xhr.response);
+                renderMonitors(monitors, target);
+            }
+
+            // Render devices
+            if (target.id === 'devices-container') {
+                const devices = JSON.parse(event.detail.xhr.response);
+                renderDevices(devices, target);
+            }
+        });
+
+        function renderStats(data) {
+            const container = document.getElementById('stats-content');
+            container.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Total Devices</p>
+                            <p class="text-2xl font-semibold text-gray-900">${data.total_devices}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Monitors Running</p>
+                            <p class="text-2xl font-semibold text-gray-900">${data.monitors_running}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Active Threats</p>
+                            <p class="text-2xl font-semibold text-gray-900">${data.total_threats}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-red-500 rounded-md p-3">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Critical Threats</p>
+                            <p class="text-2xl font-semibold text-gray-900">${data.critical_threats}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderThreats(threats, container) {
+            if (threats.length === 0) {
+                container.innerHTML = '<div class="p-6 text-center text-gray-500">No active threats detected. Your devices are secure!</div>';
+                return;
+            }
+
+            container.innerHTML = threats.map(threat => `
+                <div class="p-4 hover:bg-gray-50 border-l-4 ${getSeverityClass(threat.severity)}">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center mb-2">
+                                <span class="px-2 py-1 text-xs font-semibold rounded ${getSeverityBadgeClass(threat.severity)}">
+                                    ${threat.severity}
+                                </span>
+                                <span class="ml-2 text-sm text-gray-600">${threat.device_name}</span>
+                                <span class="ml-2 text-xs text-gray-400">${new Date(threat.detected_at).toLocaleString()}</span>
+                            </div>
+                            <h3 class="text-sm font-medium text-gray-900 mb-1">${threat.title}</h3>
+                            <p class="text-sm text-gray-600 mb-2">${threat.description}</p>
+                            <div class="flex flex-wrap gap-1">
+                                ${threat.indicators.map(ind => `
+                                    <span class="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">${ind}</span>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <button onclick="updateThreatStatus('${threat.id}', 'resolved')"
+                                class="ml-4 px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700">
+                            Resolve
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderMonitors(monitors, container) {
+            container.innerHTML = monitors.map(monitor => `
+                <div class="p-4 hover:bg-gray-50">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-900">${monitor.monitor_name}</span>
+                        <span class="px-2 py-1 text-xs font-semibold rounded ${getStatusClass(monitor.status)}">
+                            ${monitor.status.toUpperCase()}
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-gray-600 mb-2">
+                        <span>Events: ${monitor.events_processed.toLocaleString()}</span>
+                        <span>Threats: ${monitor.threats_detected}</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="toggleMonitor('${monitor.monitor_name}', ${!monitor.is_running})"
+                                class="flex-1 px-2 py-1 text-xs ${monitor.is_running ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'} rounded transition">
+                            ${monitor.is_running ? 'Stop' : 'Start'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderDevices(devices, container) {
+            container.innerHTML = devices.map(device => `
+                <div class="p-4 hover:bg-gray-50">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-900">${device.device_name}</h3>
+                            <p class="text-sm text-gray-600">${device.device_model} • iOS ${device.ios_version}</p>
+                            <p class="text-xs text-gray-400 mt-1">Last seen: ${new Date(device.last_seen_at).toLocaleString()}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="px-2 py-1 text-xs font-semibold ${device.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'} rounded">
+                                ${device.status.toUpperCase()}
+                            </span>
+                            ${device.threat_count > 0 ? `
+                                <p class="text-xs text-red-600 mt-1">${device.threat_count} threat(s)</p>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getSeverityClass(severity) {
+            const classes = {
+                'CRITICAL': 'border-red-500',
+                'HIGH': 'border-orange-500',
+                'MEDIUM': 'border-yellow-500',
+                'LOW': 'border-blue-500'
+            };
+            return classes[severity] || 'border-gray-500';
+        }
+
+        function getSeverityBadgeClass(severity) {
+            const classes = {
+                'CRITICAL': 'bg-red-100 text-red-800',
+                'HIGH': 'bg-orange-100 text-orange-800',
+                'MEDIUM': 'bg-yellow-100 text-yellow-800',
+                'LOW': 'bg-blue-100 text-blue-800'
+            };
+            return classes[severity] || 'bg-gray-100 text-gray-800';
+        }
+
+        function getStatusClass(status) {
+            const classes = {
+                'running': 'bg-green-100 text-green-800',
+                'stopped': 'bg-gray-100 text-gray-800',
+                'error': 'bg-red-100 text-red-800'
+            };
+            return classes[status] || 'bg-gray-100 text-gray-800';
+        }
+
+        async function updateThreatStatus(threatId, status) {
+            try {
+                const response = await fetch(`/api/threats/${threatId}/status?status=${status}`, {
+                    method: 'PATCH'
+                });
+                if (response.ok) {
+                    refreshAll();
+                }
+            } catch (error) {
+                console.error('Error updating threat status:', error);
+            }
+        }
+
+        async function toggleMonitor(monitorName, shouldStart) {
+            try {
+                const action = shouldStart ? 'start' : 'stop';
+                const response = await fetch(`/api/monitors/${monitorName}/${action}`, {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    htmx.trigger('#monitors-container', 'load');
+                }
+            } catch (error) {
+                console.error('Error toggling monitor:', error);
+            }
+        }
+    </script>
+</body>
+</html>

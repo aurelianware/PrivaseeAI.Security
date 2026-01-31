@@ -1,0 +1,14 @@
+# GitHub Sponsors configuration
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button
+
+github: aurelianware
+# patreon: # your_patreon_username
+# open_collective: # your_open_collective
+# ko_fi: # your_ko_fi_username
+# tidelift: # npm/package-name
+# community_bridge: # your_project_name
+# liberapay: # your_liberapay_username
+# issuehunt: # your_issuehunt_username
+# otechie: # your_otechie_username
+# lfx_crowdfunding: # your_lfx_crowdfunding_project
+# custom: # ['https://www.paypal.me/your_username']

@@ -14,10 +14,13 @@ help:
 	@echo "  make lint              - Run code linters"
 	@echo "  make format            - Format code with black and isort"
 	@echo "  make type-check        - Run mypy type checking"
+	@echo "  make pre-commit        - Run pre-commit hooks on all files"
+	@echo "  make security-check    - Run security vulnerability checks"
 	@echo ""
 	@echo "Setup:"
 	@echo "  make install           - Install dependencies"
 	@echo "  make install-dev       - Install development dependencies"
+	@echo "  make setup-hooks       - Install pre-commit hooks"
 	@echo "  make clean             - Clean build artifacts"
 	@echo ""
 	@echo "Docker:"
@@ -36,6 +39,7 @@ install:
 .PHONY: install-dev
 install-dev:
 	pip install -r requirements-dev.txt
+	pip install pre-commit
 
 .PHONY: setup-venv
 setup-venv:
@@ -79,6 +83,21 @@ format:
 .PHONY: type-check
 type-check:
 	mypy src
+
+.PHONY: setup-hooks
+setup-hooks:
+	pre-commit install
+	pre-commit install --hook-type commit-msg
+	@echo "✅ Pre-commit hooks installed successfully"
+
+.PHONY: pre-commit
+pre-commit:
+	pre-commit run --all-files
+
+.PHONY: security-check
+security-check:
+	bandit -r src/ -ll
+	pip-audit
 
 .PHONY: clean
 clean:

@@ -1,0 +1,152 @@
+# Pre-commit hooks for PrivaseeAI.Security
+# Install: pip install pre-commit
+# Setup: pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^test_fixtures/
+      - id: end-of-file-fixer
+        exclude: ^test_fixtures/
+      - id: check-yaml
+        args: ['--safe']
+      - id: check-json
+        exclude: ^test_fixtures/
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: debug-statements
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+      - id: name-tests-test
+        args: ['--pytest-test-first']
+        exclude: ^tests/fixtures/
+
+  # Python code formatting with Black
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3.11
+        args: ['--line-length=100']
+        exclude: ^test_fixtures/
+
+  # Import sorting with isort
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ['--profile', 'black', '--line-length', '100']
+        exclude: ^test_fixtures/
+
+  # Linting with flake8
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        args: [
+          '--max-line-length=100',
+          '--extend-ignore=E203,E501,W503',  # Black compatibility
+          '--exclude=.git,__pycache__,build,dist,test_fixtures'
+        ]
+        additional_dependencies: [
+          'flake8-docstrings',
+          'flake8-bugbear',
+          'flake8-comprehensions',
+        ]
+
+  # Type checking with mypy
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        args: [
+          '--ignore-missing-imports',
+          '--warn-unused-ignores',
+          '--no-warn-no-return',
+          '--check-untyped-defs'
+        ]
+        additional_dependencies: [
+          'types-PyYAML',
+          'types-python-dateutil',
+          'types-requests',
+        ]
+        exclude: ^(tests/|test_fixtures/)
+
+  # Security checks with bandit
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.6
+    hooks:
+      - id: bandit
+        args: ['-c', 'pyproject.toml']
+        additional_dependencies: ['bandit[toml]']
+        exclude: ^tests/
+
+  # Docstring coverage
+  - repo: https://github.com/econchick/interrogate
+    rev: 1.5.0
+    hooks:
+      - id: interrogate
+        args: [
+          '--verbose',
+          '--fail-under=80',
+          '--ignore-init-module',
+          '--ignore-init-method',
+          '--ignore-magic',
+          '--exclude=tests,test_fixtures'
+        ]
+
+  # YAML linting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.33.0
+    hooks:
+      - id: yamllint
+        args: ['-d', '{extends: default, rules: {line-length: {max: 120}}}']
+
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.38.0
+    hooks:
+      - id: markdownlint
+        args: ['--fix']
+        exclude: ^(CHANGELOG.md|test_fixtures/)
+
+  # Check for secrets/credentials
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: ^(test_fixtures/|\.env\.example)
+
+  # Spell checking (optional - comment out if too strict)
+  # - repo: https://github.com/codespell-project/codespell
+  #   rev: v2.2.6
+  #   hooks:
+  #     - id: codespell
+  #       args: [
+  #         '--ignore-words-list=crate,wil,wit,nd,hass,NotIn',
+  #         '--skip=*.json,*.csv,*.xml,test_fixtures/*'
+  #       ]
+
+# Global exclusions
+exclude: |
+  (?x)^(
+      \.git/|
+      \.venv/|
+      venv/|
+      \.pytest_cache/|
+      __pycache__/|
+      \.mypy_cache/|
+      \.tox/|
+      dist/|
+      build/|
+      \.eggs/|
+      test_fixtures/
+  )
