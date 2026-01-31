@@ -56,11 +56,11 @@ Three commercial security apps ($120/year total) completely missed the attack. T
 |--------|-------|
 | **Total Code** | 9,879 lines of Python |
 | **Production Code** | 4,322 lines |
-| **Test Code** | 3,568 lines |
+| **Test Code** | 3,569 lines |
 | **Tests** | 196 passing (100%) |
 | **Documentation** | 2,000+ lines |
 | **Development Time** | 6 weeks |
-| **Files Created (v0.3.0)** | 14 new infrastructure files |
+| **Files Created (v0.3.0)** | 19 files (14 new + 5 updated) |
 
 ---
 
@@ -69,7 +69,7 @@ Three commercial security apps ($120/year total) completely missed the attack. T
 ### Try the Dashboard
 ```bash
 cd dashboard/api
-python main.py
+python3 main.py
 # Visit http://localhost:8000
 ```
 
