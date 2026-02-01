@@ -37,9 +37,9 @@ jobs:
           pip install -r requirements-dev.txt
           pip install -e .
       
-      - name: Run tests with coverage
+      - name: Run tests with coverage via CLI
         run: |
-          pytest --junitxml=test-results-${{ matrix.python-version }}.xml
+          privasee test-ci --junitxml=test-results-${{ matrix.python-version }}.xml
       
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
