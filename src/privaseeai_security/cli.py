@@ -240,8 +240,9 @@ def alerts(count: int):
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True, allow_extra_args=True))
+@click.option('--cov', is_flag=True, help='Run with coverage and produce coverage.xml')
 @click.argument("pytest_args", nargs=-1, type=click.UNPROCESSED)
-def test(pytest_args):
+def test(cov, pytest_args):
     """Run the test suite using pytest. Additional pytest args are forwarded.
 
     Examples:
@@ -250,7 +251,38 @@ def test(pytest_args):
         privasee test tests/unit/test_config.py::test_load_config
     """
     cmd = [sys.executable, "-m", "pytest"] + list(pytest_args)
+    if cov:
+        cov_args = [
+            "--cov=src/privaseeai_security",
+            "--cov-report=xml:coverage.xml",
+            "--cov-report=term",
+        ]
+        # insert cov args after pytest module
+        cmd = [sys.executable, "-m", "pytest"] + cov_args + list(pytest_args)
     console.print(f"[cyan]Running tests:[/cyan] {' '.join(cmd)}")
+    try:
+        res = subprocess.run(cmd)
+        sys.exit(res.returncode)
+    except KeyboardInterrupt:
+        console.print('\n[yellow]Test run cancelled[/yellow]')
+        sys.exit(1)
+
+
+
+@cli.command(name="test-ci", context_settings=dict(ignore_unknown_options=True, allow_extra_args=True))
+@click.argument("pytest_args", nargs=-1, type=click.UNPROCESSED)
+def test_ci(pytest_args):
+    """Run tests with coverage for CI. Writes `coverage.xml`.
+
+    Additional pytest args are forwarded.
+    """
+    cov_args = [
+        "--cov=src/privaseeai_security",
+        "--cov-report=xml:coverage.xml",
+        "--cov-report=term",
+    ]
+    cmd = [sys.executable, "-m", "pytest"] + cov_args + list(pytest_args)
+    console.print(f"[cyan]Running CI tests with coverage:[/cyan] {' '.join(cmd)}")
     try:
         res = subprocess.run(cmd)
         sys.exit(res.returncode)
