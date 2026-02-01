@@ -1,0 +1,492 @@
+/* PrivaseeAI.Security - Sentinel Theme */
+/* Dark cyberpunk aesthetic for iOS security monitoring */
+
+:root {
+  --bg-black: #000000;
+  --bg-dark: #0a0a0a;
+  --cyan: #00ffff;
+  --green: #00ff88;
+  --red: #ff3366;
+  --orange: #ff8800;
+  --yellow: #ffcc00;
+  --gray: #808080;
+  --text: #e0e0e0;
+  --text-muted: #a0a0a0;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  background-color: var(--bg-black);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* Skip link for accessibility */
+.skip-to-main {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 1em;
+  background-color: var(--bg-dark);
+  color: var(--cyan);
+}
+
+.skip-to-main:focus {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Navigation */
+nav {
+  background: var(--bg-dark);
+  border-bottom: 2px solid var(--cyan);
+  padding: 15px 30px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+nav a {
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.3s ease;
+  padding: 5px 10px;
+}
+
+nav a:hover,
+nav a[aria-current="page"] {
+  color: var(--cyan);
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  padding: 80px 20px;
+  background: linear-gradient(180deg, var(--bg-black) 0%, var(--bg-dark) 100%);
+  border-bottom: 2px solid var(--cyan);
+}
+
+.hero h1 {
+  font-size: 3rem;
+  color: var(--cyan);
+  margin: 20px 0;
+  text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+}
+
+.hero .tagline {
+  font-size: 1.5rem;
+  color: var(--green);
+  margin-bottom: 20px;
+}
+
+.hero .subtitle {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  max-width: 700px;
+  margin: 0 auto 30px;
+}
+
+/* Badges */
+.badges {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+
+.badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.badge-version {
+  background: var(--cyan);
+  color: var(--bg-black);
+}
+
+.badge-tests {
+  background: var(--green);
+  color: var(--bg-black);
+}
+
+.badge-code {
+  background: var(--gray);
+  color: var(--text);
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+/* Sections */
+section {
+  margin: 60px 0;
+}
+
+section h2 {
+  font-size: 2rem;
+  color: var(--cyan);
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--cyan);
+  padding-bottom: 10px;
+}
+
+section h3 {
+  font-size: 1.3rem;
+  color: var(--green);
+  margin: 25px 0 15px;
+}
+
+/* Story Box - The Attack */
+.story-box {
+  background: var(--bg-dark);
+  border: 2px solid var(--red);
+  border-radius: 12px;
+  padding: 40px;
+  margin: 40px 0;
+  position: relative;
+}
+
+.story-box::before {
+  content: "THREAT DETECTED";
+  position: absolute;
+  top: -12px;
+  left: 20px;
+  background: var(--bg-black);
+  color: var(--red);
+  padding: 2px 15px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.story-box h3 {
+  color: var(--red);
+  margin-top: 0;
+}
+
+.story-box .timestamp {
+  color: var(--orange);
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+}
+
+/* Feature Cards */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin: 30px 0;
+}
+
+.feature-card {
+  background: var(--bg-dark);
+  border: 2px solid var(--cyan);
+  border-radius: 12px;
+  padding: 30px;
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  border-color: var(--green);
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+  transform: translateY(-4px);
+}
+
+.feature-card h3 {
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.feature-card .icon {
+  font-size: 1.5rem;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin: 30px 0;
+}
+
+.stat-card {
+  background: var(--bg-dark);
+  border: 2px solid var(--green);
+  border-radius: 8px;
+  padding: 25px;
+  text-align: center;
+}
+
+.stat-card .number {
+  font-size: 2.5rem;
+  color: var(--green);
+  font-weight: bold;
+}
+
+.stat-card .label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+/* Code Blocks */
+pre, code {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+.code-block {
+  background: var(--bg-dark);
+  border: 1px solid var(--gray);
+  border-radius: 8px;
+  padding: 20px;
+  overflow-x: auto;
+  margin: 20px 0;
+}
+
+.code-block code {
+  color: var(--green);
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+
+.code-block .comment {
+  color: var(--gray);
+}
+
+/* Detection List */
+.detection-list {
+  list-style: none;
+  margin: 20px 0;
+}
+
+.detection-list li {
+  padding: 12px 0;
+  padding-left: 35px;
+  position: relative;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detection-list li::before {
+  content: ">";
+  position: absolute;
+  left: 0;
+  color: var(--green);
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+/* Buttons */
+.button {
+  display: inline-block;
+  padding: 15px 30px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  margin: 10px;
+}
+
+.button-primary {
+  background: var(--cyan);
+  color: var(--bg-black);
+  border: 2px solid var(--cyan);
+}
+
+.button-primary:hover {
+  background: transparent;
+  color: var(--cyan);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+}
+
+.button-secondary {
+  background: transparent;
+  color: var(--green);
+  border: 2px solid var(--green);
+}
+
+.button-secondary:hover {
+  background: var(--green);
+  color: var(--bg-black);
+}
+
+.button-sponsor {
+  background: var(--red);
+  color: white;
+  border: 2px solid var(--red);
+}
+
+.button-sponsor:hover {
+  background: transparent;
+  color: var(--red);
+  box-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
+}
+
+/* CTA Section */
+.cta-section {
+  background: var(--bg-dark);
+  border: 2px solid var(--green);
+  border-radius: 12px;
+  padding: 50px;
+  text-align: center;
+  margin: 60px 0;
+}
+
+.cta-section h2 {
+  border: none;
+  padding: 0;
+}
+
+/* Privacy Box */
+.privacy-box {
+  background: var(--bg-dark);
+  border-left: 4px solid var(--green);
+  padding: 30px;
+  margin: 30px 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.privacy-box h3 {
+  margin-top: 0;
+}
+
+/* Sponsor Tiers */
+.sponsor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  margin: 30px 0;
+}
+
+.sponsor-tier {
+  background: var(--bg-dark);
+  border: 2px solid var(--gray);
+  border-radius: 12px;
+  padding: 25px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.sponsor-tier:hover {
+  border-color: var(--cyan);
+}
+
+.sponsor-tier.featured {
+  border-color: var(--green);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+}
+
+.sponsor-tier .price {
+  font-size: 2rem;
+  color: var(--cyan);
+  margin: 10px 0;
+}
+
+.sponsor-tier .name {
+  color: var(--green);
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+/* Footer */
+footer {
+  background: var(--bg-dark);
+  border-top: 2px solid var(--cyan);
+  padding: 40px 20px;
+  text-align: center;
+}
+
+footer a {
+  color: var(--cyan);
+  text-decoration: none;
+}
+
+footer a:hover {
+  color: var(--green);
+}
+
+footer p {
+  margin: 10px 0;
+  color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  .hero .tagline {
+    font-size: 1.2rem;
+  }
+
+  nav ul {
+    gap: 15px;
+  }
+
+  .story-box {
+    padding: 25px;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Circuit Animation (subtle) */
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+}
+
+.circuit-bg {
+  position: relative;
+}
+
+.circuit-bg::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    linear-gradient(90deg, transparent 98%, rgba(0, 255, 255, 0.1) 100%),
+    linear-gradient(0deg, transparent 98%, rgba(0, 255, 255, 0.1) 100%);
+  background-size: 50px 50px;
+  animation: pulse 4s ease-in-out infinite;
+  pointer-events: none;
+}

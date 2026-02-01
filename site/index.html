@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PrivaseeAI.Security - Real-time iOS threat detection and monitoring. Built after a real carrier-level attack. 100% local processing, privacy-first, open source.">
+  <meta name="keywords" content="iOS security, iPhone threat detection, VPN monitoring, carrier attack, privacy, open source, mobile security">
+  <meta name="author" content="Aurelianware">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://privaseeai.com/">
+  <meta property="og:title" content="PrivaseeAI.Security - Real-Time iOS Threat Detection">
+  <meta property="og:description" content="Built after a real carrier-level attack. Detects what $150/year commercial tools missed. 100% local, privacy-first.">
+  <meta property="og:image" content="https://github.com/aurelianware/PrivaseeAI.Security/raw/main/docs/images/privaseeai-og.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://privaseeai.com/">
+  <meta property="twitter:title" content="PrivaseeAI.Security - Real-Time iOS Threat Detection">
+  <meta property="twitter:description" content="Built after a real carrier-level attack. Detects what $150/year commercial tools missed.">
+  <meta property="twitter:image" content="https://github.com/aurelianware/PrivaseeAI.Security/raw/main/docs/images/privaseeai-og.png">
+
+  <title>PrivaseeAI.Security - Real-Time iOS Threat Detection</title>
+
+  <!-- Privacy-friendly analytics by Plausible -->
+  <script async src="https://plausible.io/js/pa-JQNNrBf52mV2BxHPtkLAv.js"></script>
+  <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+
+  <link rel="stylesheet" href="css/sentinel.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+  <nav>
+    <ul>
+      <li><a href="#story">The Story</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#quickstart">Quick Start</a></li>
+      <li><a href="#sponsor">Sponsor</a></li>
+      <li><a href="https://github.com/aurelianware/PrivaseeAI.Security" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+    </ul>
+  </nav>
+
+  <main id="main-content">
+    <!-- Hero Section -->
+    <section class="hero circuit-bg">
+      <div class="badges">
+        <span class="badge badge-version">v0.3.0-alpha</span>
+        <span class="badge badge-tests">196 Tests Passing</span>
+        <span class="badge badge-code">9,879 Lines</span>
+      </div>
+
+      <h1>PrivaseeAI.Security</h1>
+      <p class="tagline">Real-Time iOS Threat Detection</p>
+      <p class="subtitle">
+        Built after a real carrier-level attack. Detects what commercial security apps miss.
+        100% local processing. Privacy-first. Open source.
+      </p>
+
+      <div>
+        <a href="https://github.com/aurelianware/PrivaseeAI.Security" class="button button-primary">View on GitHub</a>
+        <a href="#quickstart" class="button button-secondary">Quick Start</a>
+        <a href="https://github.com/sponsors/aurelianware" class="button button-sponsor">Sponsor</a>
+      </div>
+    </section>
+
+    <div class="container">
+      <!-- The Story -->
+      <section id="story">
+        <h2>The Attack That Started It All</h2>
+
+        <div class="story-box">
+          <h3>January 26, 2026 - 4:24 AM</h3>
+          <p class="timestamp">iPhone 16 Pro | iOS 18.2 | Carrier: [REDACTED]</p>
+
+          <p>
+            I woke up to find my iPhone compromised at the carrier level. Not a phishing scam.
+            Not a malicious app. A sophisticated, targeted attack that manipulated my device
+            through the carrier infrastructure itself.
+          </p>
+
+          <p style="margin-top: 20px; color: var(--orange);">
+            <strong>Three commercial security apps ($150/year total) failed to detect it.</strong>
+          </p>
+
+          <h3 style="margin-top: 30px;">What We Detected</h3>
+          <ul class="detection-list">
+            <li>UDP blocking forcing WireGuard VPN to fallback to TCP</li>
+            <li>API rate limiting (50-minute cooldown) for location tracking</li>
+            <li>Server hopping - 4 VPN servers in 7 minutes</li>
+            <li>Certificate manipulation attempts</li>
+            <li>DNS64 tampering at the carrier level</li>
+          </ul>
+
+          <p style="margin-top: 25px;">
+            I spent the next 6 weeks building PrivaseeAI.Security - a system that <strong>actually works</strong>.
+            Every detection rule is validated against real attack logs from this incident.
+          </p>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <section>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="number">9,879</div>
+            <div class="label">Lines of Python</div>
+          </div>
+          <div class="stat-card">
+            <div class="number">196</div>
+            <div class="label">Tests Passing</div>
+          </div>
+          <div class="stat-card">
+            <div class="number">100%</div>
+            <div class="label">Local Processing</div>
+          </div>
+          <div class="stat-card">
+            <div class="number">0</div>
+            <div class="label">Cloud Dependencies</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features -->
+      <section id="features">
+        <h2>Detection Capabilities</h2>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h3><span class="icon">&#128737;</span> VPN Integrity Monitor</h3>
+            <p>
+              Detects TCP fallback attacks, tracks API rate limiting, identifies server hopping
+              patterns, validates certificates against known-good fingerprints.
+            </p>
+            <p style="color: var(--text-muted); margin-top: 15px; font-size: 0.9rem;">
+              386 lines | 14 integration tests
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <h3><span class="icon">&#128270;</span> API Abuse Monitor</h3>
+            <p>
+              Location tracking detection via API abuse, rate limit identification,
+              burst pattern detection, background activity monitoring.
+            </p>
+            <p style="color: var(--text-muted); margin-top: 15px; font-size: 0.9rem;">
+              397 lines | 19 unit tests
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <h3><span class="icon">&#128225;</span> Carrier Compromise Detector</h3>
+            <p>
+              Localhost routing detection in VPN profiles, eSIM profile monitoring,
+              DNS tampering identification, cross-backup persistence tracking.
+            </p>
+            <p style="color: var(--text-muted); margin-top: 15px; font-size: 0.9rem;">
+              790 lines | 28 unit tests
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <h3><span class="icon">&#128272;</span> Certificate Validator</h3>
+            <p>
+              Known-good fingerprint database (ProtonVPN baseline), certificate chain
+              validation, expiry checking, self-signed detection.
+            </p>
+            <p style="color: var(--text-muted); margin-top: 15px; font-size: 0.9rem;">
+              295 lines | 8 unit tests
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <h3><span class="icon">&#128232;</span> Telegram Alerting</h3>
+            <p>
+              Real-time notifications for CRITICAL/HIGH threats, severity-based filtering,
+              automatic deduplication, alert throttling.
+            </p>
+            <p style="color: var(--text-muted); margin-top: 15px; font-size: 0.9rem;">
+              300 lines | Instant alerts
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <h3><span class="icon">&#128736;</span> Async Orchestrator</h3>
+            <p>
+              Concurrent monitoring with asyncio, multi-monitor coordination,
+              smart threat aggregation, graceful shutdown handling.
+            </p>
+            <p style="color: var(--text-muted); margin-top: 15px; font-size: 0.9rem;">
+              374 lines | Production ready
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Privacy First -->
+      <section>
+        <h2>Privacy-First Architecture</h2>
+
+        <div class="privacy-box">
+          <h3>Your Data Never Leaves Your Machine</h3>
+          <ul class="detection-list">
+            <li><strong>100% Local Processing</strong> - All analysis happens on your Mac</li>
+            <li><strong>No Cloud Dependencies</strong> - Fully self-hosted, no external services</li>
+            <li><strong>Data Sovereignty</strong> - You control all security data</li>
+            <li><strong>Encrypted Backups Supported</strong> - Works with both encrypted and unencrypted iOS backups</li>
+            <li><strong>Open Source</strong> - Full code transparency, audit the security yourself</li>
+            <li><strong>No Telemetry</strong> - Zero tracking, zero analytics on your device</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Quick Start -->
+      <section id="quickstart">
+        <h2>Quick Start</h2>
+
+        <h3>Prerequisites</h3>
+        <ul class="detection-list">
+          <li>Python 3.11+ (required)</li>
+          <li>macOS with iOS device backup capability</li>
+          <li>iPhone with iOS 14+ (tested on iPhone 16 Pro, iOS 18.2)</li>
+        </ul>
+
+        <h3>Installation</h3>
+        <div class="code-block">
+          <code>
+<span class="comment"># Clone the repository</span>
+git clone https://github.com/aurelianware/PrivaseeAI.Security.git
+cd PrivaseeAI.Security
+
+<span class="comment"># Create virtual environment</span>
+python3 -m venv .venv
+source .venv/bin/activate
+
+<span class="comment"># Install dependencies</span>
+pip install -r requirements.txt
+pip install -e .
+
+<span class="comment"># Verify installation</span>
+privasee --help
+          </code>
+        </div>
+
+        <h3>Usage</h3>
+        <div class="code-block">
+          <code>
+<span class="comment"># Start continuous monitoring</span>
+privasee start
+
+<span class="comment"># Run one-time scan</span>
+privasee scan
+
+<span class="comment"># Check system status</span>
+privasee status
+
+<span class="comment"># Launch web dashboard</span>
+privasee dashboard
+          </code>
+        </div>
+      </section>
+
+      <!-- Sponsor Section -->
+      <section id="sponsor">
+        <h2>Support Open Source Security</h2>
+
+        <p style="margin-bottom: 30px;">
+          PrivaseeAI.Security is and will always be <strong>100% free and open source</strong>.
+          Your sponsorship helps fund active development, testing infrastructure, and new threat detection capabilities.
+        </p>
+
+        <div class="sponsor-grid">
+          <div class="sponsor-tier">
+            <div class="name">Coffee Supporter</div>
+            <div class="price">$5<span style="font-size: 1rem; color: var(--text-muted);">/mo</span></div>
+            <p style="color: var(--text-muted);">Help keep the lights on</p>
+          </div>
+
+          <div class="sponsor-tier">
+            <div class="name">Privacy Defender</div>
+            <div class="price">$10<span style="font-size: 1rem; color: var(--text-muted);">/mo</span></div>
+            <p style="color: var(--text-muted);">Support active development</p>
+          </div>
+
+          <div class="sponsor-tier featured">
+            <div class="name">Security Champion</div>
+            <div class="price">$25<span style="font-size: 1rem; color: var(--text-muted);">/mo</span></div>
+            <p style="color: var(--text-muted);">Accelerate new features</p>
+          </div>
+
+          <div class="sponsor-tier">
+            <div class="name">Enterprise Sponsor</div>
+            <div class="price">$100<span style="font-size: 1rem; color: var(--text-muted);">/mo</span></div>
+            <p style="color: var(--text-muted);">For organizations</p>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+          <a href="https://github.com/sponsors/aurelianware" class="button button-sponsor" target="_blank" rel="noopener noreferrer">
+            Become a Sponsor
+          </a>
+          <a href="https://github.com/aurelianware/PrivaseeAI.Security/blob/main/SPONSORS.md" class="button button-secondary" target="_blank" rel="noopener noreferrer">
+            View All Tiers
+          </a>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="cta-section">
+        <h2>Secure Your iPhone Today</h2>
+        <p style="margin-bottom: 30px;">
+          Commercial security apps failed. PrivaseeAI.Security was built to actually detect threats.
+          <br>Open source. Privacy-first. Battle-tested.
+        </p>
+        <div>
+          <a href="https://github.com/aurelianware/PrivaseeAI.Security" class="button button-primary" target="_blank" rel="noopener noreferrer">
+            Clone Repository
+          </a>
+          <a href="https://github.com/aurelianware/PrivaseeAI.Security/stargazers" class="button button-secondary" target="_blank" rel="noopener noreferrer">
+            Star on GitHub
+          </a>
+        </div>
+      </section>
+
+      <!-- Use Cases -->
+      <section>
+        <h2>Who Is This For?</h2>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h3>Individual Users</h3>
+            <ul class="detection-list">
+              <li>Monitor your iPhone for sophisticated attacks</li>
+              <li>Detect VPN manipulation in real-time</li>
+              <li>Identify location tracking attempts</li>
+              <li>Verify iOS backup integrity</li>
+            </ul>
+          </div>
+
+          <div class="feature-card">
+            <h3>Security Professionals</h3>
+            <ul class="detection-list">
+              <li>Forensic analysis of compromised devices</li>
+              <li>Threat research and pattern identification</li>
+              <li>Security auditing for clients</li>
+              <li>Incident response tool</li>
+            </ul>
+          </div>
+
+          <div class="feature-card">
+            <h3>Privacy Advocates</h3>
+            <ul class="detection-list">
+              <li>Verify carrier-level security</li>
+              <li>Monitor for surveillance</li>
+              <li>Detect spyware and tracking</li>
+              <li>Maintain digital privacy</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <p>
+      <strong>PrivaseeAI.Security v0.3.0-alpha</strong><br>
+      Built with shields by privacy advocates, for privacy advocates.
+    </p>
+    <p>
+      Apache 2.0 License | <a href="https://github.com/aurelianware/PrivaseeAI.Security">GitHub</a> |
+      <a href="https://github.com/sponsors/aurelianware">Sponsor</a> |
+      <a href="mailto:security@aurelianware.com">Security Contact</a>
+    </p>
+    <p style="font-size: 0.85rem; margin-top: 15px;">
+      &copy; 2026 Aurelianware. Not affiliated with Apple Inc.
+    </p>
+  </footer>
+</body>
+</html>
