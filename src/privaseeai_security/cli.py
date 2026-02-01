@@ -19,6 +19,8 @@ from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 from rich import box
+import subprocess
+
 
 from .orchestrator import ThreatOrchestrator, MonitorStatus
 from .logger import get_logger
@@ -235,6 +237,26 @@ def alerts(count: int):
     ))
     
     console.print("\n[dim]Future: Will show threat history from database[/dim]")
+
+
+@cli.command(context_settings=dict(ignore_unknown_options=True, allow_extra_args=True))
+@click.argument("pytest_args", nargs=-1, type=click.UNPROCESSED)
+def test(pytest_args):
+    """Run the test suite using pytest. Additional pytest args are forwarded.
+
+    Examples:
+        privasee test
+        privasee test -q
+        privasee test tests/unit/test_config.py::test_load_config
+    """
+    cmd = [sys.executable, "-m", "pytest"] + list(pytest_args)
+    console.print(f"[cyan]Running tests:[/cyan] {' '.join(cmd)}")
+    try:
+        res = subprocess.run(cmd)
+        sys.exit(res.returncode)
+    except KeyboardInterrupt:
+        console.print('\n[yellow]Test run cancelled[/yellow]')
+        sys.exit(1)
 
 
 @cli.command()
