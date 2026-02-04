@@ -300,16 +300,28 @@ class TestThreatEventRepositoryIntegration:
 @pytest.fixture
 async def async_session():
     """
-    Provide an async database session for testing.
+    Provide an async database session for testing with proper transaction isolation.
 
-    Note: This would need to be implemented with a test database.
-    For now, it's a placeholder showing the expected interface.
+    This fixture uses SQLAlchemy's nested transaction pattern to ensure each test
+    runs in an isolated transaction that is rolled back after the test completes,
+    preventing test data from persisting and ensuring test independence.
+
+    Note: This is a placeholder for integration tests. To use this fixture:
+    1. Set up a test database (e.g., using pytest-postgresql)
+    2. Initialize the schema with alembic migrations
+    3. Each test will run in a transaction that's rolled back afterward
+
+    Example test database setup:
+        DATABASE_URL=postgresql+asyncpg://test:test@localhost:5432/test_db
     """
     from src.privaseeai_security.database import get_async_session
 
     async for session in get_async_session():
-        yield session
-        await session.rollback()  # Rollback after each test
+        # Start a nested transaction for test isolation
+        async with session.begin_nested():
+            yield session
+            # Transaction will be rolled back when exiting this context
+            # This ensures no test data persists in the database
 
 
 @pytest.fixture

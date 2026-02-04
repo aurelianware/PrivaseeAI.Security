@@ -45,14 +45,16 @@ class DeviceRepository:
             name: Human-readable device name
             udid: Unique device identifier
             baseline_hash: Optional baseline fingerprint
-            device_metadata: Optional device metadata dictionary (column name matches parameter)
+            device_metadata: Optional device metadata as JSONB dictionary
 
         Returns:
             Created Device instance
 
         Note:
-            Parameter name matches the model's column name for consistency,
-            avoiding confusion with SQLAlchemy's reserved `metadata` attribute.
+            The parameter name `device_metadata` explicitly matches the model's column name
+            to maintain API clarity and avoid confusion with SQLAlchemy's reserved `metadata`
+            attribute (used for table definitions). This consistent naming makes the code
+            more maintainable and prevents potential bugs.
         """
         device = Device(
             name=name,
