@@ -8,6 +8,7 @@ Tests cover:
 - Fingerprint generation
 """
 
+import asyncio
 from datetime import datetime, timedelta
 from uuid import uuid4
 

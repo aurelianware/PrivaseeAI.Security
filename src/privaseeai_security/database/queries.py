@@ -5,7 +5,7 @@ Demonstrates common query patterns for threat persistence layer.
 """
 
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -56,7 +56,7 @@ async def get_threats_last_n_days_grouped_by_severity(
 
 async def get_top_threat_types(
     session: AsyncSession, days: int = 30, limit: int = 10
-) -> List[Dict[str, any]]:
+) -> List[Dict[str, Any]]:
     """
     Get the most common threat types in the last N days.
 
@@ -101,7 +101,7 @@ async def get_top_threat_types(
     ]
 
 
-async def get_device_threat_summary(session: AsyncSession, device_id: str) -> Dict[str, any]:
+async def get_device_threat_summary(session: AsyncSession, device_id: str) -> Dict[str, Any]:
     """
     Get a comprehensive threat summary for a specific device.
 
@@ -179,7 +179,7 @@ async def get_device_threat_summary(session: AsyncSession, device_id: str) -> Di
     }
 
 
-async def get_trending_threats(session: AsyncSession, hours: int = 24) -> List[Dict[str, any]]:
+async def get_trending_threats(session: AsyncSession, hours: int = 24) -> List[Dict[str, Any]]:
     """
     Get threats that are trending (increasing in frequency) in recent hours.
 
