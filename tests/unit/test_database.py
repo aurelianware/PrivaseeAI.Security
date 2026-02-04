@@ -9,6 +9,7 @@ Tests cover:
 """
 
 import asyncio
+import os
 from datetime import datetime, timedelta
 from uuid import uuid4
 
@@ -21,6 +22,23 @@ from src.privaseeai_security.database import (
     ThreatEvent,
     ThreatEventRepository,
     get_threats_last_n_days_grouped_by_severity,
+)
+
+
+# Helper to check if database is available
+def is_database_available():
+    """Check if a test database is configured and available."""
+    db_url = os.getenv("DATABASE_URL", "")
+    # Skip integration tests if no DATABASE_URL is set or if it's the default placeholder
+    if not db_url or "localhost:5432" in db_url:
+        return False
+    return True
+
+
+# Skip marker for integration tests when database is not available
+skip_if_no_db = pytest.mark.skipif(
+    not is_database_available(),
+    reason="Database not available - set DATABASE_URL to run integration tests",
 )
 
 
@@ -105,6 +123,7 @@ class TestDeviceModel:
 
 
 @pytest.mark.integration
+@skip_if_no_db
 class TestDeviceRepositoryIntegration:
     """Integration tests for DeviceRepository (requires database)."""
 
@@ -157,6 +176,7 @@ class TestDeviceRepositoryIntegration:
 
 
 @pytest.mark.integration
+@skip_if_no_db
 class TestThreatEventRepositoryIntegration:
     """Integration tests for ThreatEventRepository (requires database)."""
 
