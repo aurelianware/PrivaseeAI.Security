@@ -20,38 +20,52 @@ class BenefitPlanBase(BaseModel):
     """Base model with common benefit plan fields."""
 
     name: str = Field(..., min_length=1, max_length=255, description="Plan name")
-    payer_id: str = Field(..., min_length=1, max_length=255, description="Insurance company identifier")
+    payer_id: str = Field(
+        ..., min_length=1, max_length=255, description="Insurance company identifier"
+    )
     plan_type: BenefitPlanType = Field(..., description="Type of insurance plan")
     network_type: NetworkType = Field(..., description="Network coverage type")
     is_active: bool = Field(default=True, description="Whether the plan is active")
     effective_date: date = Field(..., description="Plan effective start date")
     termination_date: Optional[date] = Field(None, description="Plan termination date")
-    
+
     # Deductibles
-    deductible_individual: Optional[Decimal] = Field(None, ge=0, description="Individual deductible amount")
+    deductible_individual: Optional[Decimal] = Field(
+        None, ge=0, description="Individual deductible amount"
+    )
     deductible_family: Optional[Decimal] = Field(None, ge=0, description="Family deductible amount")
-    
+
     # Out-of-pocket maximums
-    out_of_pocket_max_individual: Optional[Decimal] = Field(None, ge=0, description="Individual OOP max")
+    out_of_pocket_max_individual: Optional[Decimal] = Field(
+        None, ge=0, description="Individual OOP max"
+    )
     out_of_pocket_max_family: Optional[Decimal] = Field(None, ge=0, description="Family OOP max")
-    
+
     # Copays
     office_visit_copay: Optional[Decimal] = Field(None, ge=0, description="Office visit copay")
-    specialist_visit_copay: Optional[Decimal] = Field(None, ge=0, description="Specialist visit copay")
+    specialist_visit_copay: Optional[Decimal] = Field(
+        None, ge=0, description="Specialist visit copay"
+    )
     emergency_room_copay: Optional[Decimal] = Field(None, ge=0, description="Emergency room copay")
-    
+
     # Coinsurance
     hospital_inpatient_coinsurance_percent: Optional[Decimal] = Field(
         None, ge=0, le=100, description="Hospital inpatient coinsurance percentage (0-100)"
     )
-    
+
     # Preventive care
-    preventive_care_covered: bool = Field(default=True, description="Whether preventive care is covered")
-    
+    preventive_care_covered: bool = Field(
+        default=True, description="Whether preventive care is covered"
+    )
+
     # Prescription tiers
-    prescription_tier1_copay: Optional[Decimal] = Field(None, ge=0, description="Tier 1 prescription copay")
-    prescription_tier2_copay: Optional[Decimal] = Field(None, ge=0, description="Tier 2 prescription copay")
-    
+    prescription_tier1_copay: Optional[Decimal] = Field(
+        None, ge=0, description="Tier 1 prescription copay"
+    )
+    prescription_tier2_copay: Optional[Decimal] = Field(
+        None, ge=0, description="Tier 2 prescription copay"
+    )
+
     # Additional limits
     annual_maximum: Optional[Decimal] = Field(None, ge=0, description="Annual benefit maximum")
     waiting_period_months: Optional[int] = Field(None, ge=0, description="Waiting period in months")
@@ -75,7 +89,7 @@ class BenefitPlanCreate(BenefitPlanBase):
 
 class BenefitPlanUpdate(BaseModel):
     """Input model for updating an existing benefit plan.
-    
+
     All fields are optional to support partial updates.
     """
 

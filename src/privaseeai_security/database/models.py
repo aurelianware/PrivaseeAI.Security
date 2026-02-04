@@ -142,7 +142,7 @@ class ThreatEvent(Base):
 class BenefitPlan(Base):
     """
     BenefitPlan model for insurance plan configuration.
-    
+
     Represents insurance benefit plans for healthcare organizations.
     Supports soft deletes via deleted_at timestamp.
     """
@@ -151,27 +151,23 @@ class BenefitPlan(Base):
 
     # Primary key and identifiers
     id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
-    organization_id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), nullable=False, index=True
-    )
+    organization_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     payer_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    
+
     # Plan configuration
     plan_type: Mapped[str] = mapped_column(String(50), nullable=False)
     network_type: Mapped[str] = mapped_column(String(50), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
-    
+
     # Date ranges
     effective_date: Mapped[datetime] = mapped_column(Date, nullable=False)
     termination_date: Mapped[Optional[datetime]] = mapped_column(Date, nullable=True)
-    
+
     # Deductibles
-    deductible_individual: Mapped[Optional[Decimal]] = mapped_column(
-        Numeric(10, 2), nullable=True
-    )
+    deductible_individual: Mapped[Optional[Decimal]] = mapped_column(Numeric(10, 2), nullable=True)
     deductible_family: Mapped[Optional[Decimal]] = mapped_column(Numeric(10, 2), nullable=True)
-    
+
     # Out-of-pocket maximums
     out_of_pocket_max_individual: Mapped[Optional[Decimal]] = mapped_column(
         Numeric(10, 2), nullable=True
@@ -179,22 +175,20 @@ class BenefitPlan(Base):
     out_of_pocket_max_family: Mapped[Optional[Decimal]] = mapped_column(
         Numeric(10, 2), nullable=True
     )
-    
+
     # Copays
     office_visit_copay: Mapped[Optional[Decimal]] = mapped_column(Numeric(10, 2), nullable=True)
-    specialist_visit_copay: Mapped[Optional[Decimal]] = mapped_column(
-        Numeric(10, 2), nullable=True
-    )
+    specialist_visit_copay: Mapped[Optional[Decimal]] = mapped_column(Numeric(10, 2), nullable=True)
     emergency_room_copay: Mapped[Optional[Decimal]] = mapped_column(Numeric(10, 2), nullable=True)
-    
+
     # Coinsurance
     hospital_inpatient_coinsurance_percent: Mapped[Optional[Decimal]] = mapped_column(
         Numeric(5, 2), nullable=True
     )
-    
+
     # Preventive care
     preventive_care_covered: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    
+
     # Prescription tiers
     prescription_tier1_copay: Mapped[Optional[Decimal]] = mapped_column(
         Numeric(10, 2), nullable=True
@@ -202,11 +196,11 @@ class BenefitPlan(Base):
     prescription_tier2_copay: Mapped[Optional[Decimal]] = mapped_column(
         Numeric(10, 2), nullable=True
     )
-    
+
     # Additional limits
     annual_maximum: Mapped[Optional[Decimal]] = mapped_column(Numeric(10, 2), nullable=True)
     waiting_period_months: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    
+
     # Audit timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=func.now()

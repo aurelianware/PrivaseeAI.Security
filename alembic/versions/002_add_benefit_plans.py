@@ -55,9 +55,7 @@ def upgrade() -> None:
         sa.Column("deductible_individual", sa.Numeric(precision=10, scale=2), nullable=True),
         sa.Column("deductible_family", sa.Numeric(precision=10, scale=2), nullable=True),
         # Out-of-pocket maximums
-        sa.Column(
-            "out_of_pocket_max_individual", sa.Numeric(precision=10, scale=2), nullable=True
-        ),
+        sa.Column("out_of_pocket_max_individual", sa.Numeric(precision=10, scale=2), nullable=True),
         sa.Column("out_of_pocket_max_family", sa.Numeric(precision=10, scale=2), nullable=True),
         # Copays
         sa.Column("office_visit_copay", sa.Numeric(precision=10, scale=2), nullable=True),
