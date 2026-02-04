@@ -13,7 +13,7 @@ import logging
 import logging.handlers
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -47,7 +47,7 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
         super().add_fields(log_record, record, message_dict)
         
         # Add timestamp in ISO format
-        log_record["timestamp"] = datetime.utcnow().isoformat() + "Z"
+        log_record["timestamp"] = datetime.now(timezone.utc).isoformat()
         log_record["level"] = record.levelname
         log_record["logger"] = record.name
         log_record["module"] = record.module
@@ -72,7 +72,7 @@ class JSONFormatter(logging.Formatter):
             JSON formatted log string
         """
         log_data: Dict[str, Any] = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),

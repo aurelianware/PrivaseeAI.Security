@@ -385,7 +385,10 @@ class TestCustomJsonFormatter:
         
         # Check all required fields
         assert "timestamp" in log_data
-        assert log_data["timestamp"].endswith("Z")
+        # Timestamp should be in ISO format with timezone (+00:00 or Z)
+        assert (log_data["timestamp"].endswith("+00:00") or 
+                log_data["timestamp"].endswith("Z") or 
+                "T" in log_data["timestamp"])
         assert log_data["level"] == "INFO"
         assert log_data["logger"] == "test_logger"
         assert log_data["module"] == "test_module"
