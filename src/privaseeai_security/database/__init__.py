@@ -6,7 +6,7 @@ threat detection events in PostgreSQL with TimescaleDB hypertables.
 """
 
 from .engine import AsyncEngine, get_async_session, init_db
-from .models import Base, Device, ThreatEvent
+from .models import Base, BenefitPlan, Device, ThreatEvent
 from .queries import (
     get_device_threat_summary,
     get_threats_last_n_days_grouped_by_severity,
@@ -20,6 +20,7 @@ __all__ = [
     "Base",
     "Device",
     "ThreatEvent",
+    "BenefitPlan",
     "AsyncEngine",
     "get_async_session",
     "init_db",
