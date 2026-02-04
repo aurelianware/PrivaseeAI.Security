@@ -326,6 +326,9 @@ class TestExponentialBackoff:
                 max_retry_delay=4,
             )
             
+            # Verify initial retry count is 0
+            assert orchestrator._retry_counts["carrier"] == 0
+            
             # Start the monitor
             task = asyncio.create_task(orchestrator._monitor_carrier())
             
@@ -339,7 +342,12 @@ class TestExponentialBackoff:
             except asyncio.CancelledError:
                 pass
             
-            # Should complete without error
+            # Verify monitor ran successfully and reset retry count
+            # Since no errors occurred, retry count should remain 0
+            assert orchestrator._retry_counts["carrier"] == 0
+            
+            # Verify monitor status was properly set
+            assert orchestrator._monitor_status["carrier"] == MonitorStatus.STOPPED
 
 
 class TestSignalHandling:

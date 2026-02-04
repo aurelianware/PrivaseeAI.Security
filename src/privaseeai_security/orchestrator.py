@@ -513,8 +513,11 @@ class ThreatOrchestrator:
     
     async def _handle_carrier_threat(self, threat: CarrierThreatDetection) -> None:
         """Process carrier threat detection."""
-        # Create unique ID for deduplication
-        threat_id = f"carrier_{threat.attack_type}_{hash(str(threat.indicators))}"
+        # Create unique ID for deduplication using deterministic hash
+        import hashlib
+        threat_data = f"{threat.attack_type}_{str(sorted(threat.indicators))}"
+        threat_hash = hashlib.sha256(threat_data.encode()).hexdigest()[:16]
+        threat_id = f"carrier_{threat.attack_type}_{threat_hash}"
         
         if threat_id in self._seen_threat_ids:
             return  # Already processed
