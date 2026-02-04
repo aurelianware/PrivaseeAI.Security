@@ -133,5 +133,5 @@ def test_orchestrator_module_can_run():
         
         # Check for import errors or other startup failures in output
         combined = (stdout + stderr).lower()
-        assert "traceback" not in combined or "modulenotfounderror" not in combined, \
+        assert "traceback" not in combined and "modulenotfounderror" not in combined, \
             f"Module had errors: {stdout}\n{stderr}"

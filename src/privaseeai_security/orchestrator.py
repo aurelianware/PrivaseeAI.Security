@@ -415,8 +415,8 @@ async def _run_daemon():
             logger.info("✅ Orchestrator daemon stopped")
 
 
+# Entry point for python -m privaseeai_security.orchestrator
 if __name__ == "__main__":
-    """Entry point for python -m privaseeai_security.orchestrator"""
     import sys
     
     logger.info("Starting PrivaseeAI Security Orchestrator daemon...")
