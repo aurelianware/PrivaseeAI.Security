@@ -225,16 +225,16 @@ async for session in get_async_session():
 
 ### devices table
 
-| Column        | Type         | Description                          |
-|---------------|--------------|--------------------------------------|
-| id            | UUID         | Primary key                          |
-| name          | VARCHAR(255) | Human-readable device name           |
-| udid          | VARCHAR(255) | Unique device identifier (indexed)   |
-| last_seen     | TIMESTAMP    | Last activity timestamp              |
-| baseline_hash | VARCHAR(64)  | Baseline fingerprint for comparison  |
-| metadata      | JSONB        | Additional device metadata           |
-| created_at    | TIMESTAMP    | Creation timestamp                   |
-| updated_at    | TIMESTAMP    | Last update timestamp (auto-updated) |
+| Column          | Type         | Description                          |
+|-----------------|--------------|--------------------------------------|
+| id              | UUID         | Primary key                          |
+| name            | VARCHAR(255) | Human-readable device name           |
+| udid            | VARCHAR(255) | Unique device identifier (indexed)   |
+| last_seen       | TIMESTAMP    | Last activity timestamp              |
+| baseline_hash   | VARCHAR(64)  | Baseline fingerprint for comparison  |
+| device_metadata | JSONB        | Additional device metadata           |
+| created_at      | TIMESTAMP    | Creation timestamp                   |
+| updated_at      | TIMESTAMP    | Last update timestamp (auto-updated) |
 
 ### threat_events table (TimescaleDB Hypertable)
 

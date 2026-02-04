@@ -60,7 +60,7 @@ async def main():
                 name="Test iPhone 15 Pro",
                 udid="test-iphone-12345",
                 baseline_hash="abc123def456",
-                metadata={
+                device_metadata={
                     "model": "iPhone 15 Pro",
                     "ios_version": "18.2",
                     "carrier": "Verizon",

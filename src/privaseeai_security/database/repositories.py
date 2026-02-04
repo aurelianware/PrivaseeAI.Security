@@ -36,7 +36,7 @@ class DeviceRepository:
         name: str,
         udid: str,
         baseline_hash: Optional[str] = None,
-        metadata: Optional[dict] = None,
+        device_metadata: Optional[dict] = None,
     ) -> Device:
         """
         Create a new device record.
@@ -45,7 +45,7 @@ class DeviceRepository:
             name: Human-readable device name
             udid: Unique device identifier
             baseline_hash: Optional baseline fingerprint
-            metadata: Optional metadata dictionary
+            device_metadata: Optional metadata dictionary
             
         Returns:
             Created Device instance
@@ -54,7 +54,7 @@ class DeviceRepository:
             name=name,
             udid=udid,
             baseline_hash=baseline_hash,
-            metadata=metadata or {},
+            device_metadata=device_metadata or {},
         )
         self.session.add(device)
         await self.session.commit()

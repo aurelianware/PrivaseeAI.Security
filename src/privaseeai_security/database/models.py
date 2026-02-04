@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
+import sqlalchemy as sa
 from sqlalchemy import (
     Boolean,
     DateTime,
@@ -45,7 +46,7 @@ class Device(Base):
         DateTime(timezone=True), nullable=False, default=func.now(), onupdate=func.now()
     )
     baseline_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
-    metadata: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
+    device_metadata: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=func.now()
     )
@@ -82,7 +83,10 @@ class ThreatEvent(Base):
         DateTime(timezone=True), nullable=False, default=func.now(), index=True
     )
     device_id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), nullable=False, index=True
+        PGUUID(as_uuid=True), 
+        sa.ForeignKey("devices.id", ondelete="CASCADE"),
+        nullable=False, 
+        index=True
     )
     severity: Mapped[str] = mapped_column(
         String(20), nullable=False, index=True
