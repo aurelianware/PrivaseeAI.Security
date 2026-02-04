@@ -9,7 +9,8 @@
     <!-- Program to execute -->
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/bin/python3</string>
+        <string>/usr/bin/env</string>
+        <string>python3</string>
         <string>-m</string>
         <string>privaseeai_security.orchestrator</string>
     </array>
@@ -25,13 +26,13 @@
     <!-- Keep process alive if it crashes -->
     <key>KeepAlive</key>
     <dict>
-        <!-- Restart on any exit (crash or normal exit) -->
+        <!-- Restart only on abnormal (non-zero) exit; do not restart after a successful exit -->
         <key>SuccessfulExit</key>
         <false/>
     </dict>
     
-    <!-- Throttle restarts to prevent rapid restart loops (exponential backoff) -->
-    <!-- If the job exits within ThrottleInterval seconds, wait progressively longer -->
+    <!-- Throttle restarts to prevent rapid restart loops by enforcing a minimum delay -->
+    <!-- If the job exits, launchd will wait at least ThrottleInterval seconds before restarting -->
     <key>ThrottleInterval</key>
     <integer>60</integer>
     

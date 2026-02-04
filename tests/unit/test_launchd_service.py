@@ -112,7 +112,6 @@ def test_orchestrator_module_can_run():
     """Test that orchestrator can be run as a module (with quick timeout)."""
     # This test tries to run the module but times out quickly
     # Just verifying it starts without import errors
-    import signal
     
     proc = subprocess.Popen(
         [sys.executable, "-m", "privaseeai_security.orchestrator"],
@@ -125,7 +124,7 @@ def test_orchestrator_module_can_run():
         # Let it run for 2 seconds
         stdout, stderr = proc.communicate(timeout=2)
         # If we get here, process exited early (might be an error)
-        assert False, f"Process exited unexpectedly: {stderr}"
+        pytest.fail(f"Process exited unexpectedly: {stderr}")
     except subprocess.TimeoutExpired:
         # This is expected - the daemon should keep running
         proc.kill()

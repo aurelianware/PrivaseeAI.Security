@@ -10,7 +10,6 @@ Usage:
 import asyncio
 import signal
 import sys
-from pathlib import Path
 from typing import Optional
 
 from .orchestrator import ThreatOrchestrator
@@ -22,13 +21,6 @@ logger = get_logger(__name__)
 
 # Global orchestrator instance for signal handling
 _orchestrator: Optional[ThreatOrchestrator] = None
-
-
-def signal_handler(signum, frame):
-    """Handle shutdown signals gracefully."""
-    logger.info(f"Received signal {signum}, initiating shutdown...")
-    # Set the shutdown event if it exists in the current context
-    # The event is created in run_daemon() to avoid asyncio issues
 
 
 async def run_daemon():
@@ -44,7 +36,6 @@ async def run_daemon():
         shutdown_event.set()
     
     # Setup signal handlers
-    import signal
     signal.signal(signal.SIGTERM, _signal_handler)
     signal.signal(signal.SIGINT, _signal_handler)
     

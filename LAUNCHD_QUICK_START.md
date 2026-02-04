@@ -18,6 +18,7 @@ pip install -e .
 # 2. Create required directories
 sudo mkdir -p /var/log/privaseeai /opt/privaseeai
 sudo chown $(whoami):staff /var/log/privaseeai /opt/privaseeai
+chmod 700 /var/log/privaseeai
 
 # 3. Install the service
 cp com.privaseeai.security.plist ~/Library/LaunchAgents/
@@ -33,7 +34,7 @@ tail -f /var/log/privaseeai/security.log
 ## Service Features
 
 ✅ **Auto-start on boot** - Runs automatically when you log in  
-✅ **Auto-restart on crash** - Keeps running with 60-second throttle  
+✅ **Auto-restart on crash** - Keeps running with 60-second minimum restart delay  
 ✅ **Centralized logging** - All output goes to `/var/log/privaseeai/security.log`  
 ✅ **User agent** - Runs as your user, not as root  
 ✅ **Python module execution** - Runs via `python -m privaseeai_security.orchestrator`

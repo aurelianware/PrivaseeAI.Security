@@ -8,15 +8,15 @@ The `com.privaseeai.security.plist` file configures PrivaseeAI Security to run a
 
 - ✅ Runs `python -m privaseeai_security.orchestrator` automatically
 - ✅ Starts on boot (user agent)
-- ✅ Auto-restarts if crashed (with exponential backoff via ThrottleInterval)
+- ✅ Auto-restarts if crashed (with a minimum restart delay enforced by ThrottleInterval)
 - ✅ Logs to `/var/log/privaseeai/security.log`
 - ✅ Runs from `/opt/privaseeai` working directory
 - ✅ Executes as the current user
-- ✅ Prevents rapid restart loops with 60-second throttle
+- ✅ Prevents rapid restart loops with a fixed 60-second ThrottleInterval between restarts
 
 ## Prerequisites
 
-1. **Python 3.11+** installed at `/usr/bin/python3`
+1. **Python 3.11+** - Ensure a Python 3.11+ interpreter is available in your PATH (via Homebrew, venv, or system Python)
 2. **PrivaseeAI Security** installed as a Python package
 3. **Proper permissions** to write to `/var/log/privaseeai/`
 
@@ -45,8 +45,8 @@ sudo mkdir -p /var/log/privaseeai
 # Set ownership to current user
 sudo chown $(whoami):staff /var/log/privaseeai
 
-# Set appropriate permissions
-chmod 755 /var/log/privaseeai
+# Restrict permissions so only this user can access logs
+chmod 700 /var/log/privaseeai
 ```
 
 ### 3. Set Up Working Directory
