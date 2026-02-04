@@ -5,7 +5,7 @@ Provides async methods for managing benefit plan records with proper
 separation of concerns and auditability.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID
 
@@ -166,7 +166,7 @@ class BenefitPlanRepository:
         if not db_plan:
             return False
 
-        db_plan.deleted_at = datetime.utcnow()
+        db_plan.deleted_at = datetime.now(timezone.utc)
         await self.session.commit()
         return True
 
