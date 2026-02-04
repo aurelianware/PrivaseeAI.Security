@@ -267,7 +267,7 @@ class ThreatEventRepository:
         query = select(ThreatEvent).where(ThreatEvent.device_id == device_id)
 
         if unresolved_only:
-            query = query.where(ThreatEvent.resolved == False)
+            query = query.where(~ThreatEvent.resolved)
 
         query = query.order_by(ThreatEvent.timestamp.desc()).limit(limit).offset(offset)
 

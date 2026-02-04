@@ -134,7 +134,7 @@ async def get_device_threat_summary(session: AsyncSession, device_id: str) -> Di
 
     # Count unresolved threats
     unresolved_query = select(func.count(ThreatEvent.id)).where(
-        and_(ThreatEvent.device_id == device_id, ThreatEvent.resolved == False)
+        and_(ThreatEvent.device_id == device_id, ~ThreatEvent.resolved)
     )
     unresolved_result = await session.execute(unresolved_query)
     unresolved_count = unresolved_result.scalar()
@@ -142,7 +142,7 @@ async def get_device_threat_summary(session: AsyncSession, device_id: str) -> Di
     # Get severity breakdown for unresolved threats
     severity_query = (
         select(ThreatEvent.severity, func.count(ThreatEvent.id).label("count"))
-        .where(and_(ThreatEvent.device_id == device_id, ThreatEvent.resolved == False))
+        .where(and_(ThreatEvent.device_id == device_id, ~ThreatEvent.resolved))
         .group_by(ThreatEvent.severity)
     )
     severity_result = await session.execute(severity_query)
@@ -285,8 +285,8 @@ async def get_unacknowledged_critical_threats(
         .where(
             and_(
                 ThreatEvent.severity == "CRITICAL",
-                ThreatEvent.acknowledged == False,
-                ThreatEvent.resolved == False,
+                ~ThreatEvent.acknowledged,
+                ~ThreatEvent.resolved,
             )
         )
         .order_by(ThreatEvent.timestamp.desc())
