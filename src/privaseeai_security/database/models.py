@@ -18,7 +18,8 @@ from sqlalchemy import (
     Text,
     func,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -31,15 +32,13 @@ class Base(DeclarativeBase):
 class Device(Base):
     """
     Device model representing monitored iOS devices.
-    
+
     Stores device metadata and last seen information.
     """
 
     __tablename__ = "devices"
 
-    id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid4
-    )
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     udid: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     last_seen: Mapped[datetime] = mapped_column(
@@ -69,24 +68,22 @@ class Device(Base):
 class ThreatEvent(Base):
     """
     ThreatEvent model for storing security threat detections.
-    
+
     This will be converted to a TimescaleDB hypertable partitioned by timestamp.
     Supports fingerprint-based deduplication using upsert logic.
     """
 
     __tablename__ = "threat_events"
 
-    id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid4
-    )
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=func.now(), index=True
     )
     device_id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), 
+        PGUUID(as_uuid=True),
         sa.ForeignKey("devices.id", ondelete="CASCADE"),
-        nullable=False, 
-        index=True
+        nullable=False,
+        index=True,
     )
     severity: Mapped[str] = mapped_column(
         String(20), nullable=False, index=True
@@ -99,7 +96,7 @@ class ThreatEvent(Base):
     fingerprint: Mapped[str] = mapped_column(
         String(64), unique=True, nullable=False, index=True
     )  # SHA256 hash for deduplication
-    
+
     # Deduplication tracking
     occurrence_count: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     first_seen: Mapped[datetime] = mapped_column(
@@ -108,7 +105,7 @@ class ThreatEvent(Base):
     last_seen: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=func.now(), onupdate=func.now()
     )
-    
+
     # Status tracking
     acknowledged: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     resolved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -126,12 +123,12 @@ class ThreatEvent(Base):
     def generate_fingerprint(device_id: UUID, threat_type: str, key_indicators: str) -> str:
         """
         Generate a unique fingerprint for deduplication.
-        
+
         Args:
             device_id: UUID of the device
             threat_type: Type of threat detected
             key_indicators: Unique string representing the threat characteristics
-            
+
         Returns:
             SHA256 hash as hex string
         """

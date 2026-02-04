@@ -8,14 +8,15 @@ Tests cover:
 - Fingerprint generation
 """
 
-import pytest
 from datetime import datetime, timedelta
 from uuid import uuid4
 
+import pytest
+
 from src.privaseeai_security.database import (
     Device,
-    ThreatEvent,
     DeviceRepository,
+    ThreatEvent,
     ThreatEventRepository,
     get_threats_last_n_days_grouped_by_severity,
 )
@@ -30,12 +31,8 @@ class TestThreatEventModel:
         threat_type = "VPN_MANIPULATION"
         indicators = "tcp_fallback:protonvpn:us-ny-01"
 
-        fingerprint1 = ThreatEvent.generate_fingerprint(
-            device_id, threat_type, indicators
-        )
-        fingerprint2 = ThreatEvent.generate_fingerprint(
-            device_id, threat_type, indicators
-        )
+        fingerprint1 = ThreatEvent.generate_fingerprint(device_id, threat_type, indicators)
+        fingerprint2 = ThreatEvent.generate_fingerprint(device_id, threat_type, indicators)
 
         # Same inputs should produce same fingerprint
         assert fingerprint1 == fingerprint2
@@ -48,12 +45,8 @@ class TestThreatEventModel:
         threat_type = "VPN_MANIPULATION"
         indicators = "tcp_fallback:protonvpn:us-ny-01"
 
-        fingerprint1 = ThreatEvent.generate_fingerprint(
-            device_id1, threat_type, indicators
-        )
-        fingerprint2 = ThreatEvent.generate_fingerprint(
-            device_id2, threat_type, indicators
-        )
+        fingerprint1 = ThreatEvent.generate_fingerprint(device_id1, threat_type, indicators)
+        fingerprint2 = ThreatEvent.generate_fingerprint(device_id2, threat_type, indicators)
 
         # Different device IDs should produce different fingerprints
         assert fingerprint1 != fingerprint2
@@ -108,6 +101,7 @@ class TestDeviceModel:
 # Integration tests would require a database connection
 # These are marked as integration tests and would need a test database
 
+
 @pytest.mark.integration
 class TestDeviceRepositoryIntegration:
     """Integration tests for DeviceRepository (requires database)."""
@@ -134,9 +128,7 @@ class TestDeviceRepositoryIntegration:
         repo = DeviceRepository(async_session)
 
         # Create device
-        created = await repo.create(
-            name="Test Device", udid="unique-udid-67890"
-        )
+        created = await repo.create(name="Test Device", udid="unique-udid-67890")
 
         # Retrieve by UDID
         retrieved = await repo.get_by_udid("unique-udid-67890")
@@ -224,9 +216,7 @@ class TestThreatEventRepositoryIntegration:
         assert threat2.last_seen > threat1.first_seen
 
     @pytest.mark.asyncio
-    async def test_get_threats_last_n_days_grouped_by_severity(
-        self, async_session, test_device
-    ):
+    async def test_get_threats_last_n_days_grouped_by_severity(self, async_session, test_device):
         """Test the example query: threats last 7 days grouped by severity."""
         repo = ThreatEventRepository(async_session)
 
@@ -245,9 +235,7 @@ class TestThreatEventRepositoryIntegration:
             )
 
         # Query grouped by severity
-        result = await get_threats_last_n_days_grouped_by_severity(
-            async_session, days=7
-        )
+        result = await get_threats_last_n_days_grouped_by_severity(async_session, days=7)
 
         assert "CRITICAL" in result
         assert "HIGH" in result
@@ -261,9 +249,7 @@ class TestThreatEventRepositoryIntegration:
         """Test acknowledging a threat event."""
         repo = ThreatEventRepository(async_session)
 
-        fingerprint = ThreatEvent.generate_fingerprint(
-            test_device.id, "TEST", "acknowledge-test"
-        )
+        fingerprint = ThreatEvent.generate_fingerprint(test_device.id, "TEST", "acknowledge-test")
         threat = await repo.create_or_update(
             device_id=test_device.id,
             severity="MEDIUM",
@@ -288,9 +274,7 @@ class TestThreatEventRepositoryIntegration:
         """Test resolving a threat event."""
         repo = ThreatEventRepository(async_session)
 
-        fingerprint = ThreatEvent.generate_fingerprint(
-            test_device.id, "TEST", "resolve-test"
-        )
+        fingerprint = ThreatEvent.generate_fingerprint(test_device.id, "TEST", "resolve-test")
         threat = await repo.create_or_update(
             device_id=test_device.id,
             severity="MEDIUM",
@@ -316,7 +300,7 @@ class TestThreatEventRepositoryIntegration:
 async def async_session():
     """
     Provide an async database session for testing.
-    
+
     Note: This would need to be implemented with a test database.
     For now, it's a placeholder showing the expected interface.
     """

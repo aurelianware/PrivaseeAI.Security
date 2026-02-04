@@ -23,7 +23,7 @@ DEFAULT_DATABASE_URL = "postgresql+asyncpg://privasee:privasee@localhost:5432/pr
 def get_database_url() -> str:
     """
     Get database URL from environment or use default.
-    
+
     Returns:
         Database URL string for asyncpg connection
     """
@@ -33,16 +33,16 @@ def get_database_url() -> str:
 def create_engine(database_url: str | None = None, echo: bool = False) -> AsyncEngine:
     """
     Create async SQLAlchemy engine with asyncpg driver.
-    
+
     Args:
         database_url: PostgreSQL connection URL. If None, uses environment or default.
         echo: Whether to echo SQL statements (useful for debugging)
-        
+
     Returns:
         Configured AsyncEngine instance
     """
     url = database_url or get_database_url()
-    
+
     return create_async_engine(
         url,
         echo=echo,
@@ -61,10 +61,10 @@ _session_factory: async_sessionmaker[AsyncSession] | None = None
 def get_engine(echo: bool = False) -> AsyncEngine:
     """
     Get or create the global async engine instance.
-    
+
     Args:
         echo: Whether to echo SQL statements
-        
+
     Returns:
         Global AsyncEngine instance
     """
@@ -77,7 +77,7 @@ def get_engine(echo: bool = False) -> AsyncEngine:
 def get_session_factory() -> async_sessionmaker[AsyncSession]:
     """
     Get or create the global session factory.
-    
+
     Returns:
         Session factory for creating async sessions
     """
@@ -97,10 +97,10 @@ def get_session_factory() -> async_sessionmaker[AsyncSession]:
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     """
     Dependency for FastAPI or other frameworks to get async database sessions.
-    
+
     Yields:
         AsyncSession instance
-        
+
     Example:
         ```python
         async def my_route(session: AsyncSession = Depends(get_async_session)):
@@ -119,19 +119,19 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
 async def init_db(drop_existing: bool = False) -> None:
     """
     Initialize database schema.
-    
+
     Creates all tables defined in Base metadata. For TimescaleDB hypertables,
     you should run alembic migrations after this to set up partitioning.
-    
+
     Args:
         drop_existing: If True, drops all existing tables first (DANGEROUS!)
-        
+
     Warning:
         This does NOT create TimescaleDB hypertables. Use alembic migrations
         for production deployments with proper hypertable setup.
     """
     engine = get_engine()
-    
+
     async with engine.begin() as conn:
         if drop_existing:
             await conn.run_sync(Base.metadata.drop_all)
@@ -141,7 +141,7 @@ async def init_db(drop_existing: bool = False) -> None:
 async def dispose_engine() -> None:
     """
     Dispose of the global engine and close all connections.
-    
+
     Call this when shutting down the application.
     """
     global _engine, _session_factory

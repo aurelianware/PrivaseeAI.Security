@@ -22,13 +22,13 @@ from uuid import uuid4
 
 from src.privaseeai_security.database import (
     Device,
-    ThreatEvent,
     DeviceRepository,
+    ThreatEvent,
     ThreatEventRepository,
     get_async_session,
-    init_db,
-    get_threats_last_n_days_grouped_by_severity,
     get_device_threat_summary,
+    get_threats_last_n_days_grouped_by_severity,
+    init_db,
 )
 
 
@@ -52,7 +52,7 @@ async def main():
     print("Step 2: Creating a test device...")
     async for session in get_async_session():
         device_repo = DeviceRepository(session)
-        
+
         # Check if device already exists
         device = await device_repo.get_by_udid("test-iphone-12345")
         if not device:
@@ -69,7 +69,7 @@ async def main():
             print(f"✓ Created device: {device.name} (ID: {device.id})")
         else:
             print(f"✓ Found existing device: {device.name} (ID: {device.id})")
-        
+
         device_id = device.id
         break  # Exit async generator
     print()
@@ -78,14 +78,14 @@ async def main():
     print("Step 3: Creating threat events...")
     async for session in get_async_session():
         threat_repo = ThreatEventRepository(session)
-        
+
         # Create first threat event
         fingerprint1 = ThreatEvent.generate_fingerprint(
             device_id=device_id,
             threat_type="VPN_MANIPULATION",
             key_indicators="tcp_fallback:protonvpn:us-ny-01",
         )
-        
+
         threat1 = await threat_repo.create_or_update(
             device_id=device_id,
             severity="CRITICAL",
@@ -100,8 +100,10 @@ async def main():
             },
             fingerprint=fingerprint1,
         )
-        print(f"✓ Created threat event: {threat1.threat_type} (Occurrence: {threat1.occurrence_count})")
-        
+        print(
+            f"✓ Created threat event: {threat1.threat_type} (Occurrence: {threat1.occurrence_count})"
+        )
+
         # Create duplicate threat (should increment occurrence_count)
         threat1_dup = await threat_repo.create_or_update(
             device_id=device_id,
@@ -117,15 +119,17 @@ async def main():
             },
             fingerprint=fingerprint1,  # Same fingerprint = deduplication
         )
-        print(f"✓ Deduplicated threat: {threat1_dup.threat_type} (Occurrence: {threat1_dup.occurrence_count})")
-        
+        print(
+            f"✓ Deduplicated threat: {threat1_dup.threat_type} (Occurrence: {threat1_dup.occurrence_count})"
+        )
+
         # Create different threat types
         fingerprint2 = ThreatEvent.generate_fingerprint(
             device_id=device_id,
             threat_type="CARRIER_COMPROMISE",
             key_indicators="localhost_routing:dns_tampering",
         )
-        
+
         threat2 = await threat_repo.create_or_update(
             device_id=device_id,
             severity="HIGH",
@@ -139,13 +143,13 @@ async def main():
             fingerprint=fingerprint2,
         )
         print(f"✓ Created threat event: {threat2.threat_type} (Severity: {threat2.severity})")
-        
+
         fingerprint3 = ThreatEvent.generate_fingerprint(
             device_id=device_id,
             threat_type="API_ABUSE",
             key_indicators="location_api:rate_limited",
         )
-        
+
         threat3 = await threat_repo.create_or_update(
             device_id=device_id,
             severity="MEDIUM",
@@ -160,16 +164,14 @@ async def main():
             fingerprint=fingerprint3,
         )
         print(f"✓ Created threat event: {threat3.threat_type} (Severity: {threat3.severity})")
-        
+
         break  # Exit async generator
     print()
 
     # Step 4: Query threats last 7 days grouped by severity (REQUIRED EXAMPLE)
     print("Step 4: Querying threats last 7 days grouped by severity...")
     async for session in get_async_session():
-        severity_counts = await get_threats_last_n_days_grouped_by_severity(
-            session, days=7
-        )
+        severity_counts = await get_threats_last_n_days_grouped_by_severity(session, days=7)
         print("Threat counts by severity (last 7 days):")
         for severity, count in severity_counts.items():
             print(f"  {severity:10s}: {count}")
@@ -185,9 +187,11 @@ async def main():
         print(f"  Unresolved: {summary['unresolved_count']}")
         print(f"  Resolved: {summary['resolved_count']}")
         print(f"  Severity breakdown: {summary['severity_breakdown']}")
-        if summary.get('most_recent_threat'):
-            recent = summary['most_recent_threat']
-            print(f"  Most recent: {recent['threat_type']} ({recent['severity']}) at {recent['timestamp']}")
+        if summary.get("most_recent_threat"):
+            recent = summary["most_recent_threat"]
+            print(
+                f"  Most recent: {recent['threat_type']} ({recent['severity']}) at {recent['timestamp']}"
+            )
         break
     print()
 
@@ -196,24 +200,24 @@ async def main():
     async for session in get_async_session():
         threat_repo = ThreatEventRepository(session)
         device_repo = DeviceRepository(session)
-        
+
         # List all threats for device
         threats = await threat_repo.list_by_device(device_id, unresolved_only=True)
         print(f"✓ Found {len(threats)} unresolved threats for device")
-        
+
         # Acknowledge a threat
         if threats:
             await threat_repo.acknowledge(threats[0].id)
             print(f"✓ Acknowledged threat: {threats[0].threat_type}")
-        
+
         # Update device last_seen
         await device_repo.update_last_seen(device_id)
         print(f"✓ Updated device last_seen timestamp")
-        
+
         # List all devices
         devices = await device_repo.list_all(limit=10)
         print(f"✓ Total devices in database: {len(devices)}")
-        
+
         break
     print()
 
