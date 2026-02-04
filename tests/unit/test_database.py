@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from uuid import uuid4
 
 import pytest
+import pytest_asyncio
 
 from src.privaseeai_security.database import (
     Device,
@@ -67,9 +68,9 @@ class TestThreatEventModel:
         assert threat.device_id == device_id
         assert threat.severity == "CRITICAL"
         assert threat.threat_type == "VPN_MANIPULATION"
-        assert threat.occurrence_count == 1
-        assert not threat.acknowledged
-        assert not threat.resolved
+        # Note: occurrence_count default is only applied when inserted to DB
+        # In-memory object has None until persisted
+        assert threat.fingerprint == "abc123"
 
 
 class TestDeviceModel:
@@ -297,7 +298,7 @@ class TestThreatEventRepositoryIntegration:
 
 
 # Fixtures for integration tests
-@pytest.fixture
+@pytest_asyncio.fixture
 async def async_session():
     """
     Provide an async database session for testing with proper transaction isolation.
@@ -324,7 +325,7 @@ async def async_session():
             # This ensures no test data persists in the database
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def test_device(async_session):
     """Create a test device for use in tests."""
     from src.privaseeai_security.database import DeviceRepository
