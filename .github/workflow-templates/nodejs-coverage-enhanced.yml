@@ -1,0 +1,118 @@
+name: Test Suite with Enhanced Coverage
+
+on:
+  push:
+    branches: [ main, develop, 'release/*', 'feature/*' ]
+  pull_request:
+    branches: [ main, develop, 'release/*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  test:
+    name: Run Tests with Coverage
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing dependencies..."
+          npm ci
+          echo "✅ Dependencies installed"
+      
+      - name: Build TypeScript
+        run: |
+          echo "🔨 Building TypeScript..."
+          npm run build
+          echo "✅ Build complete"
+      
+      - name: Run tests with coverage
+        run: |
+          echo "🧪 Running tests with coverage..."
+          npm test -- --coverage \
+            --coverageReporters=lcov \
+            --coverageReporters=json-summary \
+            --coverageReporters=text \
+            --coverageReporters=html \
+            --testResultsProcessor=jest-junit
+          echo "✅ Tests complete"
+        env:
+          JEST_JUNIT_OUTPUT_DIR: ./test-results
+          JEST_JUNIT_OUTPUT_NAME: junit.xml
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
+      
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            test-results/junit.xml
+          check_name: Test Results
+          comment_mode: off
+      
+      - name: Upload coverage HTML report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report-html
+          path: coverage/
+          retention-days: 30
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 30
+      
+      - name: Comment coverage on PR
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          lcov-file: ./coverage/lcov.info
+          delete-old-comments: true
+      
+      - name: Coverage summary
+        if: always()
+        run: |
+          echo ""
+          echo "=========================================="
+          echo "📊 Code Coverage Report"
+          echo "=========================================="
+          if [ -f coverage/coverage-summary.json ]; then
+            echo "✅ Coverage data generated successfully"
+            echo ""
+            node -e "const fs = require('fs'); try { const raw = fs.readFileSync('coverage/coverage-summary.json', 'utf8'); const data = JSON.parse(raw); const total = data.total; console.log('Lines:      ' + total.lines.pct + '%'); console.log('Statements: ' + total.statements.pct + '%'); console.log('Functions:  ' + total.functions.pct + '%'); console.log('Branches:   ' + total.branches.pct + '%'); } catch (e) { console.error('⚠️  Error parsing coverage summary: ' + e); process.exit(1); }"
+            echo ""
+            echo "📤 Report uploaded to Codecov"
+            echo "📁 HTML report available as artifact"
+            echo "💬 Coverage comment added to PR (if applicable)"
+          else
+            echo "⚠️  No coverage summary found"
+          fi
+          echo ""
+          echo "=========================================="
