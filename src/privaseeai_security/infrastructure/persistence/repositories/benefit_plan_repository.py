@@ -115,12 +115,15 @@ class BenefitPlanRepository:
         )
         return list(result.scalars().all())
 
-    async def update(self, plan_id: UUID, data: BenefitPlanUpdate) -> Optional[BenefitPlan]:
+    async def update(
+        self, plan_id: UUID, org_id: UUID, data: BenefitPlanUpdate
+    ) -> Optional[BenefitPlan]:
         """
         Update an existing benefit plan.
 
         Args:
             plan_id: UUID of the plan to update
+            org_id: UUID of the organization (for access control)
             data: BenefitPlanUpdate schema with updated fields
 
         Returns:
@@ -128,7 +131,11 @@ class BenefitPlanRepository:
         """
         result = await self.session.execute(
             select(BenefitPlan).where(
-                and_(BenefitPlan.id == plan_id, BenefitPlan.deleted_at.is_(None))
+                and_(
+                    BenefitPlan.id == plan_id,
+                    BenefitPlan.organization_id == org_id,
+                    BenefitPlan.deleted_at.is_(None),
+                )
             )
         )
         db_plan = result.scalar_one_or_none()
@@ -147,19 +154,24 @@ class BenefitPlanRepository:
         await self.session.refresh(db_plan)
         return db_plan
 
-    async def soft_delete(self, plan_id: UUID) -> bool:
+    async def soft_delete(self, plan_id: UUID, org_id: UUID) -> bool:
         """
         Soft delete a benefit plan by setting deleted_at timestamp.
 
         Args:
             plan_id: UUID of the plan to delete
+            org_id: UUID of the organization (for access control)
 
         Returns:
             True if deleted successfully, False if not found
         """
         result = await self.session.execute(
             select(BenefitPlan).where(
-                and_(BenefitPlan.id == plan_id, BenefitPlan.deleted_at.is_(None))
+                and_(
+                    BenefitPlan.id == plan_id,
+                    BenefitPlan.organization_id == org_id,
+                    BenefitPlan.deleted_at.is_(None),
+                )
             )
         )
         db_plan = result.scalar_one_or_none()
@@ -169,6 +181,28 @@ class BenefitPlanRepository:
         db_plan.deleted_at = datetime.now(timezone.utc)
         await self.session.commit()
         return True
+
+    async def find_by_org_and_name(self, org_id: UUID, name: str) -> Optional[BenefitPlan]:
+        """
+        Find a benefit plan by organization and name.
+
+        Args:
+            org_id: Organization UUID
+            name: Plan name
+
+        Returns:
+            BenefitPlan instance or None if not found
+        """
+        result = await self.session.execute(
+            select(BenefitPlan).where(
+                and_(
+                    BenefitPlan.organization_id == org_id,
+                    BenefitPlan.name == name,
+                    BenefitPlan.deleted_at.is_(None),
+                )
+            )
+        )
+        return result.scalar_one_or_none()
 
     async def find_by_payer_and_name(
         self, payer_id: str, name: str, org_id: UUID

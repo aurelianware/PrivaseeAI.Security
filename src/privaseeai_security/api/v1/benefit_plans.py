@@ -31,13 +31,14 @@ async def get_current_organization() -> UUID:
     - Verify user has access to the organization
     - Return the organization UUID
 
-    For testing purposes, returns a fixed UUID.
+    For testing purposes, returns a stable UUID.
     """
     # TODO: Implement proper authentication and organization context
     # Example: org_id = request.state.user.organization_id
-    from uuid import uuid4
+    # For now, return a stable test UUID to ensure consistency across requests
+    from uuid import UUID
 
-    return uuid4()  # Placeholder
+    return UUID("00000000-0000-0000-0000-000000000001")  # Stable test organization
 
 
 async def get_benefit_plan_service(
@@ -64,6 +65,7 @@ async def get_benefit_plan_service(
 )
 async def create_benefit_plan(
     plan_data: BenefitPlanCreate,
+    org_id: UUID = Depends(get_current_organization),
     service: BenefitPlanService = Depends(get_benefit_plan_service),
 ) -> BenefitPlanRead:
     """
@@ -71,6 +73,7 @@ async def create_benefit_plan(
 
     Args:
         plan_data: Benefit plan creation data
+        org_id: Current organization UUID from auth context
         service: Injected service instance
 
     Returns:
@@ -79,6 +82,8 @@ async def create_benefit_plan(
     Raises:
         HTTPException: 400 if validation fails or duplicate exists
     """
+    # Override organization_id with authenticated org context
+    plan_data.organization_id = org_id
     try:
         return await service.create_plan(plan_data)
     except ValueError as e:

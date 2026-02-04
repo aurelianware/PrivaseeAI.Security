@@ -30,6 +30,9 @@ def upgrade() -> None:
     """
     Create benefit_plans table and related indexes.
     """
+    # Enable pgcrypto extension for gen_random_uuid()
+    op.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto;")
+
     # Create benefit_plans table
     op.create_table(
         "benefit_plans",
@@ -98,36 +101,36 @@ def upgrade() -> None:
 
     # Create indexes
     op.create_index(
-        "idx_benefit_plans_organization_id",
+        "ix_benefit_plans_organization_id",
         "benefit_plans",
         ["organization_id"],
     )
     op.create_index(
-        "idx_benefit_plans_payer_id",
+        "ix_benefit_plans_payer_id",
         "benefit_plans",
         ["payer_id"],
     )
     op.create_index(
-        "idx_benefit_plans_is_active",
+        "ix_benefit_plans_is_active",
         "benefit_plans",
         ["is_active"],
     )
     op.create_index(
-        "idx_benefit_plans_deleted_at",
+        "ix_benefit_plans_deleted_at",
         "benefit_plans",
         ["deleted_at"],
     )
 
     # Create composite index for organization and active status
     op.create_index(
-        "idx_benefit_plans_org_active",
+        "ix_benefit_plans_org_active",
         "benefit_plans",
         ["organization_id", "is_active"],
     )
 
     # Create unique constraint for name per organization (excluding soft-deleted)
     op.create_index(
-        "idx_benefit_plans_org_name_unique",
+        "ix_benefit_plans_org_name_unique",
         "benefit_plans",
         ["organization_id", "name"],
         unique=True,
@@ -139,10 +142,10 @@ def downgrade() -> None:
     """
     Drop benefit_plans table and related indexes.
     """
-    op.drop_index("idx_benefit_plans_org_name_unique", table_name="benefit_plans")
-    op.drop_index("idx_benefit_plans_org_active", table_name="benefit_plans")
-    op.drop_index("idx_benefit_plans_deleted_at", table_name="benefit_plans")
-    op.drop_index("idx_benefit_plans_is_active", table_name="benefit_plans")
-    op.drop_index("idx_benefit_plans_payer_id", table_name="benefit_plans")
-    op.drop_index("idx_benefit_plans_organization_id", table_name="benefit_plans")
+    op.drop_index("ix_benefit_plans_org_name_unique", table_name="benefit_plans")
+    op.drop_index("ix_benefit_plans_org_active", table_name="benefit_plans")
+    op.drop_index("ix_benefit_plans_deleted_at", table_name="benefit_plans")
+    op.drop_index("ix_benefit_plans_is_active", table_name="benefit_plans")
+    op.drop_index("ix_benefit_plans_payer_id", table_name="benefit_plans")
+    op.drop_index("ix_benefit_plans_organization_id", table_name="benefit_plans")
     op.drop_table("benefit_plans")

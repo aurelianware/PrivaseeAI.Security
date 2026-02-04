@@ -8,8 +8,7 @@ Tests cover:
 """
 
 from datetime import date
-from decimal import Decimal
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
@@ -52,7 +51,7 @@ class TestBenefitPlanService:
     async def test_create_plan_success(self, service, mock_repository, sample_plan_data):
         """Test successfully creating a plan."""
         # Mock no existing plan
-        mock_repository.find_by_payer_and_name.return_value = None
+        mock_repository.find_by_org_and_name.return_value = None
 
         # Mock created plan
         from datetime import datetime
@@ -91,7 +90,7 @@ class TestBenefitPlanService:
             network_type="In-Network",
             effective_date=date(2024, 1, 1),
         )
-        mock_repository.find_by_payer_and_name.return_value = existing_plan
+        mock_repository.find_by_org_and_name.return_value = existing_plan
 
         with pytest.raises(ValueError, match="already exists"):
             await service.create_plan(sample_plan_data)
@@ -102,13 +101,13 @@ class TestBenefitPlanService:
         """Test that invalid date range raises ValueError."""
         from pydantic import ValidationError as PydanticValidationError
 
-        mock_repository.find_by_payer_and_name.return_value = None
+        mock_repository.find_by_org_and_name.return_value = None
 
         # This should raise a Pydantic ValidationError during model creation
         with pytest.raises(
             PydanticValidationError, match="termination_date must be on or after effective_date"
         ):
-            invalid_plan = BenefitPlanCreate(
+            BenefitPlanCreate(
                 organization_id=uuid4(),
                 name="Invalid Plan",
                 payer_id="INV001",
@@ -140,6 +139,7 @@ class TestBenefitPlanService:
             updated_at=datetime.utcnow(),
         )
         mock_repository.get_by_id.return_value = existing_plan
+        mock_repository.find_by_org_and_name.return_value = None  # No duplicate
 
         # Mock updated plan
         updated_plan = BenefitPlan(
@@ -307,7 +307,7 @@ class TestBenefitPlanService:
         result = await service.deactivate_plan(plan_id, org_id)
 
         assert result is True
-        mock_repository.soft_delete.assert_called_once_with(plan_id)
+        mock_repository.soft_delete.assert_called_once_with(plan_id, org_id)
 
     async def test_deactivate_plan_not_found(self, service, mock_repository):
         """Test deactivating non-existent plan returns False."""

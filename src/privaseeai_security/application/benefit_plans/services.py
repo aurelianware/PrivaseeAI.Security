@@ -47,15 +47,13 @@ class BenefitPlanService:
             ValueError: If validation fails or duplicate exists
         """
         # Check for duplicate plan name in organization
-        existing = await self.repository.find_by_payer_and_name(
-            payer_id=plan_data.payer_id,
-            name=plan_data.name,
+        existing = await self.repository.find_by_org_and_name(
             org_id=plan_data.organization_id,
+            name=plan_data.name,
         )
         if existing:
             raise ValueError(
-                f"Benefit plan '{plan_data.name}' with payer '{plan_data.payer_id}' "
-                f"already exists for this organization"
+                f"Benefit plan '{plan_data.name}' already exists for this organization"
             )
 
         # Validate date range
@@ -92,6 +90,18 @@ class BenefitPlanService:
         if not existing:
             return None
 
+        # Check for duplicate name if renaming
+        update_dict = update_data.model_dump(exclude_unset=True)
+        if "name" in update_dict and update_dict["name"] != existing.name:
+            duplicate = await self.repository.find_by_org_and_name(
+                org_id=org_id,
+                name=update_dict["name"],
+            )
+            if duplicate:
+                raise ValueError(
+                    f"Benefit plan '{update_dict['name']}' already exists for this organization"
+                )
+
         # Validate date range if both are being updated or one is updated
         update_dict = update_data.model_dump(exclude_unset=True)
         effective = update_dict.get("effective_date", existing.effective_date)
@@ -101,7 +111,7 @@ class BenefitPlanService:
             raise ValueError("effective_date must be on or before termination_date")
 
         # Perform update
-        updated_plan = await self.repository.update(plan_id, update_data)
+        updated_plan = await self.repository.update(plan_id, org_id, update_data)
         if updated_plan:
             return BenefitPlanRead.model_validate(updated_plan)
         return None
@@ -164,4 +174,4 @@ class BenefitPlanService:
         # if await self._is_referenced_by_patients(plan_id):
         #     raise ValueError("Cannot delete plan that is referenced by active patients")
 
-        return await self.repository.soft_delete(plan_id)
+        return await self.repository.soft_delete(plan_id, org_id)

@@ -5,7 +5,7 @@ Modern SQLAlchemy 2.0 style with async support using asyncpg driver.
 """
 
 import hashlib
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional
 from uuid import UUID, uuid4
@@ -161,8 +161,8 @@ class BenefitPlan(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
 
     # Date ranges
-    effective_date: Mapped[datetime] = mapped_column(Date, nullable=False)
-    termination_date: Mapped[Optional[datetime]] = mapped_column(Date, nullable=True)
+    effective_date: Mapped[date] = mapped_column(Date, nullable=False)
+    termination_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
 
     # Deductibles
     deductible_individual: Mapped[Optional[Decimal]] = mapped_column(Numeric(10, 2), nullable=True)
@@ -218,13 +218,13 @@ class BenefitPlan(Base):
     # Composite unique constraint for name per organization (excluding soft-deleted)
     __table_args__ = (
         sa.Index(
-            "idx_benefit_plans_org_name_unique",
+            "ix_benefit_plans_org_name_unique",
             "organization_id",
             "name",
             unique=True,
             postgresql_where=sa.text("deleted_at IS NULL"),
         ),
-        sa.Index("idx_benefit_plans_org_active", "organization_id", "is_active"),
+        sa.Index("ix_benefit_plans_org_active", "organization_id", "is_active"),
     )
 
     def __repr__(self) -> str:

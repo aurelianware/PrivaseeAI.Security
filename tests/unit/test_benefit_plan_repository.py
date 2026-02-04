@@ -9,7 +9,7 @@ Tests cover:
 """
 
 import os
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 from uuid import uuid4
 
@@ -31,8 +31,9 @@ from src.privaseeai_security.infrastructure.persistence.repositories.benefit_pla
 def is_database_available():
     """Check if a test database is configured and available."""
     db_url = os.getenv("DATABASE_URL", "")
-    # Skip integration tests if no DATABASE_URL is set or if it's the default placeholder
-    if not db_url or "localhost:5432" in db_url:
+    # Skip integration tests if no DATABASE_URL is set or it's empty
+    # Allow localhost URLs to support local development/testing
+    if not db_url:
         return False
     return True
 
