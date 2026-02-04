@@ -87,8 +87,8 @@ The image was created using Python and Pillow. To recreate or modify it:
 # Install Pillow if needed
 pip install Pillow
 
-# Run the generation script (if available in scripts/)
-python scripts/generate-social-preview.py
+# Run the generation script
+python scripts/generate_social_preview.py
 
 # Or create your own script based on the original
 ```
