@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import and_, func, select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 

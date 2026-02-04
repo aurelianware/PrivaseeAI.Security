@@ -7,7 +7,7 @@ Demonstrates common query patterns for threat persistence layer.
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import Device, ThreatEvent

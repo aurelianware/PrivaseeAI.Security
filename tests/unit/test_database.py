@@ -10,7 +10,6 @@ Tests cover:
 
 import asyncio
 import os
-from datetime import datetime, timedelta
 from uuid import uuid4
 
 import pytest
