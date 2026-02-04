@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Service identifier -->
+    <key>Label</key>
+    <string>com.privaseeai.security</string>
+    
+    <!-- Program to execute -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>-m</string>
+        <string>privaseeai_security.orchestrator</string>
+    </array>
+    
+    <!-- Working directory for the service -->
+    <key>WorkingDirectory</key>
+    <string>/opt/privaseeai</string>
+    
+    <!-- Start automatically on boot (user agent) -->
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <!-- Keep process alive if it crashes -->
+    <key>KeepAlive</key>
+    <dict>
+        <!-- Restart on any exit (crash or normal exit) -->
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+    
+    <!-- Throttle restarts to prevent rapid restart loops (exponential backoff) -->
+    <!-- If the job exits within ThrottleInterval seconds, wait progressively longer -->
+    <key>ThrottleInterval</key>
+    <integer>60</integer>
+    
+    <!-- Log file paths -->
+    <key>StandardOutPath</key>
+    <string>/var/log/privaseeai/security.log</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/var/log/privaseeai/security.log</string>
+    
+    <!-- Environment variables -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>PYTHONUNBUFFERED</key>
+        <string>1</string>
+    </dict>
+    
+    <!-- Process priority (0 = normal, negative = higher priority, positive = lower priority) -->
+    <key>Nice</key>
+    <integer>0</integer>
+    
+    <!-- Session type - run as user agent (not system daemon) -->
+    <key>LimitLoadToSessionType</key>
+    <array>
+        <string>Aqua</string>
+    </array>
+</dict>
+</plist>

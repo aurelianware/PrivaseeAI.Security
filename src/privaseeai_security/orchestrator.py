@@ -372,3 +372,60 @@ class ThreatOrchestrator:
         logger.info("Manual scan triggered")
         await self._scan_backups_once()
         return self.get_threat_summary()
+
+
+# Daemon entry point when running as module
+async def _run_daemon():
+    """Run orchestrator as a daemon service."""
+    import signal
+    
+    shutdown_event = asyncio.Event()
+    orchestrator = None
+    
+    def signal_handler(signum, frame):
+        """Handle shutdown signals."""
+        logger.info(f"Received signal {signum}, shutting down...")
+        shutdown_event.set()
+    
+    # Setup signal handlers
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
+    
+    try:
+        # Create and start orchestrator
+        orchestrator = ThreatOrchestrator(
+            backup_path=None,  # Auto-detect
+            telegram_enabled=True,
+            monitor_interval=30,
+            scan_backups_on_start=True
+        )
+        
+        await orchestrator.start()
+        logger.info("✅ Orchestrator daemon started")
+        
+        # Wait for shutdown signal
+        await shutdown_event.wait()
+        
+    except Exception as e:
+        logger.error(f"Orchestrator daemon error: {e}", exc_info=True)
+        raise
+    finally:
+        if orchestrator:
+            await orchestrator.stop()
+            logger.info("✅ Orchestrator daemon stopped")
+
+
+if __name__ == "__main__":
+    """Entry point for python -m privaseeai_security.orchestrator"""
+    import sys
+    
+    logger.info("Starting PrivaseeAI Security Orchestrator daemon...")
+    
+    try:
+        asyncio.run(_run_daemon())
+    except KeyboardInterrupt:
+        logger.info("Daemon interrupted")
+    except Exception as e:
+        logger.error(f"Fatal error: {e}", exc_info=True)
+        sys.exit(1)
+
