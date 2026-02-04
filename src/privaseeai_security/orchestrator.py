@@ -6,8 +6,10 @@ a central point for status monitoring and health checks.
 """
 
 import asyncio
+import json
+import signal
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Set
@@ -22,6 +24,9 @@ from .crypto.cert_validator import ThreatLevel
 
 
 logger = get_logger(__name__)
+
+# Default state file location
+DEFAULT_STATE_FILE = Path.home() / ".privaseeai" / "orchestrator_state.json"
 
 
 class MonitorStatus(Enum):
@@ -44,6 +49,16 @@ class ThreatSummary:
     low_count: int
     threats_by_source: Dict[str, int] = field(default_factory=dict)
     latest_critical: Optional[str] = None
+
+
+@dataclass
+class OrchestratorState:
+    """Persistent state of the orchestrator for crash recovery."""
+    total_threats: int
+    last_threat_time: Optional[str]  # ISO format datetime string
+    seen_threat_ids: List[str]
+    threat_counts: Dict[str, int]  # ThreatLevel.name -> count
+    saved_at: str  # ISO format datetime string
 
 
 @dataclass
@@ -91,6 +106,8 @@ class ThreatOrchestrator:
         telegram_enabled: bool = True,
         monitor_interval: int = 30,
         scan_backups_on_start: bool = True,
+        state_file: Optional[Path] = None,
+        max_retry_delay: int = 300,  # Max 5 minutes
     ):
         """Initialize orchestrator.
         
@@ -99,10 +116,14 @@ class ThreatOrchestrator:
             telegram_enabled: Enable Telegram alerts
             monitor_interval: Seconds between monitor checks
             scan_backups_on_start: Run full backup scan on startup
+            state_file: Path to state persistence file (default: ~/.privaseeai/orchestrator_state.json)
+            max_retry_delay: Maximum delay for exponential backoff (seconds)
         """
         self.backup_path = backup_path or self._auto_detect_backup_path()
         self.monitor_interval = monitor_interval
         self.scan_backups_on_start = scan_backups_on_start
+        self.state_file = state_file or DEFAULT_STATE_FILE
+        self.max_retry_delay = max_retry_delay
         
         # Initialize monitors
         self.vpn_monitor = VPNIntegrityMonitor()
@@ -128,10 +149,18 @@ class ThreatOrchestrator:
         self._seen_threat_ids: Set[str] = set()
         self._threat_counts: Dict[ThreatLevel, int] = defaultdict(int)
         
+        # Alert queue tracking for graceful shutdown
+        self._pending_alerts: asyncio.Queue = asyncio.Queue()
+        self._alert_tasks: List[asyncio.Task] = []
+        
+        # Retry tracking for exponential backoff
+        self._retry_counts: Dict[str, int] = defaultdict(int)
+        
         logger.info("Orchestrator initialized", extra={
             "backup_path": str(self.backup_path),
             "telegram_enabled": telegram_enabled,
-            "monitor_interval": monitor_interval
+            "monitor_interval": monitor_interval,
+            "state_file": str(self.state_file)
         })
     
     @staticmethod
@@ -159,7 +188,7 @@ class ThreatOrchestrator:
         """Start all monitors and begin threat detection.
         
         This starts concurrent monitoring tasks and optionally runs
-        an initial backup scan.
+        an initial backup scan. Also restores previous state if available.
         """
         if self._running:
             logger.warning("Orchestrator already running")
@@ -169,6 +198,9 @@ class ThreatOrchestrator:
         self._started_at = datetime.now()
         
         logger.info("🚀 Starting PrivaseeAI Security Orchestrator")
+        
+        # Restore previous state if available
+        self._restore_state()
         
         # Initial backup scan if requested
         if self.scan_backups_on_start and self.backup_path.exists():
@@ -182,52 +214,92 @@ class ThreatOrchestrator:
             asyncio.create_task(self._monitor_carrier(), name="carrier_monitor"),
         ]
         
+        # Start alert processing task
+        self._alert_tasks = [
+            asyncio.create_task(self._process_alerts(), name="alert_processor"),
+        ]
+        
         logger.info("✅ All monitors started", extra={
             "active_monitors": len(self._monitor_tasks)
         })
     
     async def stop(self) -> None:
-        """Stop all monitors gracefully."""
+        """Stop all monitors gracefully with state persistence."""
         if not self._running:
             logger.warning("Orchestrator not running")
             return
         
-        logger.info("Stopping orchestrator...")
+        logger.info("🛑 Stopping orchestrator gracefully...")
         self._running = False
         
         # Cancel all monitor tasks
         for task in self._monitor_tasks:
-            task.cancel()
+            if not task.done():
+                task.cancel()
         
-        # Wait for clean shutdown
-        await asyncio.gather(*self._monitor_tasks, return_exceptions=True)
+        # Wait for monitors to finish cleanly
+        if self._monitor_tasks:
+            await asyncio.gather(*self._monitor_tasks, return_exceptions=True)
+            logger.info("✅ All monitors stopped")
+        
+        # Wait for pending alerts to be sent
+        logger.info("⏳ Waiting for pending alerts to be sent...")
+        await self._drain_alerts()
+        
+        # Cancel alert processing tasks
+        for task in self._alert_tasks:
+            if not task.done():
+                task.cancel()
+        
+        if self._alert_tasks:
+            await asyncio.gather(*self._alert_tasks, return_exceptions=True)
+            logger.info("✅ Alert processing stopped")
+        
+        # Save current state to disk
+        self._save_state()
         
         self._monitor_tasks.clear()
+        self._alert_tasks.clear()
         for monitor_name in self._monitor_status:
             self._monitor_status[monitor_name] = MonitorStatus.STOPPED
         
-        logger.info("✅ Orchestrator stopped", extra={
+        runtime = (datetime.now() - self._started_at).total_seconds() if self._started_at else 0
+        logger.info("✅ Orchestrator stopped gracefully", extra={
             "total_threats_detected": self._total_threats,
-            "runtime_seconds": (datetime.now() - self._started_at).total_seconds() if self._started_at else 0
+            "runtime_seconds": runtime
         })
     
     async def _monitor_vpn(self) -> None:
-        """Monitor VPN integrity continuously."""
+        """Monitor VPN integrity continuously with exponential backoff retry."""
         monitor_name = "vpn"
         self._monitor_status[monitor_name] = MonitorStatus.RUNNING
         
         try:
             while self._running:
-                # Note: VPN monitor currently parses log files
-                # In a real deployment, this would tail live logs
-                # For now, we check periodically
-                await asyncio.sleep(self.monitor_interval)
+                try:
+                    # Note: VPN monitor currently parses log files
+                    # In a real deployment, this would tail live logs
+                    await asyncio.sleep(self.monitor_interval)
+                    
+                    # Reset retry count on successful iteration
+                    self._retry_counts[monitor_name] = 0
+                    
+                except Exception as e:
+                    # Exponential backoff for critical monitor
+                    retry_count = self._retry_counts[monitor_name]
+                    delay = min(2 ** retry_count, self.max_retry_delay)
+                    self._retry_counts[monitor_name] += 1
+                    
+                    logger.error(
+                        f"{monitor_name} monitor error, retrying in {delay}s",
+                        exc_info=e,
+                        extra={"retry_count": retry_count, "delay": delay}
+                    )
+                    await asyncio.sleep(delay)
                 
         except asyncio.CancelledError:
             logger.info(f"{monitor_name} monitor cancelled")
-        except Exception as e:
-            logger.error(f"{monitor_name} monitor error", exc_info=e)
-            self._monitor_status[monitor_name] = MonitorStatus.ERROR
+            raise  # Re-raise to properly handle cancellation
         finally:
             self._monitor_status[monitor_name] = MonitorStatus.STOPPED
     
@@ -251,32 +323,177 @@ class ThreatOrchestrator:
             self._monitor_status[monitor_name] = MonitorStatus.STOPPED
     
     async def _monitor_carrier(self) -> None:
-        """Monitor carrier configuration continuously."""
+        """Monitor carrier configuration continuously with exponential backoff retry."""
         monitor_name = "carrier"
         self._monitor_status[monitor_name] = MonitorStatus.RUNNING
         
         try:
             while self._running:
-                # Check for carrier changes
-                if self.backup_path.exists():
-                    # Run carrier detection
-                    threats = self.carrier_detector.monitor_esim_profiles(
-                        backup_path=self.backup_path
-                    )
+                try:
+                    # Check for carrier changes
+                    if self.backup_path.exists():
+                        # Run carrier detection
+                        threats = self.carrier_detector.monitor_esim_profiles(
+                            backup_path=self.backup_path
+                        )
+                        
+                        # Process any threats found
+                        for threat in threats:
+                            await self._handle_carrier_threat(threat)
                     
-                    # Process any threats found
-                    for threat in threats:
-                        await self._handle_carrier_threat(threat)
-                
-                await asyncio.sleep(self.monitor_interval * 2)  # Less frequent
+                    await asyncio.sleep(self.monitor_interval * 2)  # Less frequent
+                    
+                    # Reset retry count on successful iteration
+                    self._retry_counts[monitor_name] = 0
+                    
+                except Exception as e:
+                    # Exponential backoff for critical monitor
+                    retry_count = self._retry_counts[monitor_name]
+                    delay = min(2 ** retry_count, self.max_retry_delay)
+                    self._retry_counts[monitor_name] += 1
+                    
+                    logger.error(
+                        f"{monitor_name} monitor error, retrying in {delay}s",
+                        exc_info=e,
+                        extra={"retry_count": retry_count, "delay": delay}
+                    )
+                    await asyncio.sleep(delay)
                 
         except asyncio.CancelledError:
             logger.info(f"{monitor_name} monitor cancelled")
-        except Exception as e:
-            logger.error(f"{monitor_name} monitor error", exc_info=e)
-            self._monitor_status[monitor_name] = MonitorStatus.ERROR
+            raise  # Re-raise to properly handle cancellation
         finally:
             self._monitor_status[monitor_name] = MonitorStatus.STOPPED
+    
+    def _save_state(self) -> None:
+        """Save current orchestrator state to disk for crash recovery."""
+        try:
+            # Ensure state directory exists
+            self.state_file.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Convert threat counts to serializable format
+            threat_counts_dict = {
+                level.name: count for level, count in self._threat_counts.items()
+            }
+            
+            state = OrchestratorState(
+                total_threats=self._total_threats,
+                last_threat_time=self._last_threat_time.isoformat() if self._last_threat_time else None,
+                seen_threat_ids=list(self._seen_threat_ids),
+                threat_counts=threat_counts_dict,
+                saved_at=datetime.now().isoformat()
+            )
+            
+            # Write state to file atomically
+            temp_file = self.state_file.with_suffix('.tmp')
+            with open(temp_file, 'w') as f:
+                json.dump(asdict(state), f, indent=2)
+            
+            # Atomic rename
+            temp_file.replace(self.state_file)
+            
+            logger.info("💾 State saved to disk", extra={
+                "state_file": str(self.state_file),
+                "total_threats": self._total_threats
+            })
+            
+        except Exception as e:
+            logger.error("Failed to save state", exc_info=e)
+    
+    def _restore_state(self) -> None:
+        """Restore orchestrator state from disk after crash or restart."""
+        if not self.state_file.exists():
+            logger.info("No previous state file found, starting fresh")
+            return
+        
+        try:
+            with open(self.state_file, 'r') as f:
+                state_dict = json.load(f)
+            
+            # Restore state
+            self._total_threats = state_dict.get('total_threats', 0)
+            
+            last_threat_str = state_dict.get('last_threat_time')
+            self._last_threat_time = datetime.fromisoformat(last_threat_str) if last_threat_str else None
+            
+            self._seen_threat_ids = set(state_dict.get('seen_threat_ids', []))
+            
+            # Restore threat counts
+            threat_counts_dict = state_dict.get('threat_counts', {})
+            for level_name, count in threat_counts_dict.items():
+                try:
+                    level = ThreatLevel[level_name]
+                    self._threat_counts[level] = count
+                except KeyError:
+                    logger.warning(f"Unknown threat level in saved state: {level_name}")
+            
+            saved_at = state_dict.get('saved_at', 'unknown')
+            logger.info("✅ State restored from disk", extra={
+                "state_file": str(self.state_file),
+                "total_threats": self._total_threats,
+                "saved_at": saved_at
+            })
+            
+        except Exception as e:
+            logger.error("Failed to restore state, starting fresh", exc_info=e)
+    
+    async def _process_alerts(self) -> None:
+        """Process pending alerts from the queue."""
+        try:
+            while self._running:
+                try:
+                    # Wait for alert with timeout
+                    alert_data = await asyncio.wait_for(
+                        self._pending_alerts.get(),
+                        timeout=1.0
+                    )
+                    
+                    # Send the alert
+                    if self.telegram_alerter:
+                        try:
+                            threat_type = alert_data.get('type')
+                            threat = alert_data.get('threat')
+                            
+                            if threat_type == 'carrier':
+                                self.telegram_alerter.send_carrier_threat_alert(threat)
+                            # Add other alert types as needed
+                            
+                        except Exception as e:
+                            logger.error("Failed to send alert", exc_info=e)
+                    
+                    self._pending_alerts.task_done()
+                    
+                except asyncio.TimeoutError:
+                    continue  # No alerts in queue, continue
+                    
+        except asyncio.CancelledError:
+            logger.info("Alert processor cancelled")
+            raise
+    
+    async def _drain_alerts(self, timeout: float = 10.0) -> None:
+        """Wait for all pending alerts to be sent before shutdown.
+        
+        Args:
+            timeout: Maximum time to wait for alerts (seconds)
+        """
+        if self._pending_alerts.empty():
+            logger.info("No pending alerts to drain")
+            return
+        
+        try:
+            pending_count = self._pending_alerts.qsize()
+            logger.info(f"Draining {pending_count} pending alerts...")
+            
+            # Wait for queue to be empty with timeout
+            await asyncio.wait_for(
+                self._pending_alerts.join(),
+                timeout=timeout
+            )
+            logger.info("✅ All pending alerts sent")
+            
+        except asyncio.TimeoutError:
+            remaining = self._pending_alerts.qsize()
+            logger.warning(f"Alert drain timeout, {remaining} alerts may not have been sent")
     
     async def _scan_backups_once(self) -> None:
         """Run one-time backup scan for all threats."""
@@ -297,7 +514,7 @@ class ThreatOrchestrator:
     async def _handle_carrier_threat(self, threat: CarrierThreatDetection) -> None:
         """Process carrier threat detection."""
         # Create unique ID for deduplication
-        threat_id = f"carrier_{threat.threat_type}_{threat.esim_id}"
+        threat_id = f"carrier_{threat.attack_type}_{hash(str(threat.indicators))}"
         
         if threat_id in self._seen_threat_ids:
             return  # Already processed
@@ -309,20 +526,20 @@ class ThreatOrchestrator:
         
         # Log threat
         logger.warning(
-            f"🚨 Carrier threat detected: {threat.threat_type}",
+            f"🚨 Carrier threat detected: {threat.attack_type}",
             extra={
                 "threat_level": threat.threat_level.name,
-                "esim_id": threat.esim_id,
+                "indicators": threat.indicators,
                 "details": threat.details
             }
         )
         
-        # Send alert if configured
+        # Queue alert if configured and severity is high
         if self.telegram_alerter and threat.threat_level in [ThreatLevel.HIGH, ThreatLevel.CRITICAL]:
-            try:
-                self.telegram_alerter.send_carrier_threat_alert(threat)
-            except Exception as e:
-                logger.error("Failed to send Telegram alert", exc_info=e)
+            await self._pending_alerts.put({
+                'type': 'carrier',
+                'threat': threat
+            })
     
     def get_status(self) -> SystemStatus:
         """Get current system status.
@@ -376,20 +593,20 @@ class ThreatOrchestrator:
 
 # Daemon entry point when running as module
 async def _run_daemon():
-    """Run orchestrator as a daemon service."""
-    import signal
-    
-    shutdown_event = asyncio.Event()
+    """Run orchestrator as a daemon service with robust crash recovery."""
     orchestrator = None
+    loop = asyncio.get_running_loop()
+    shutdown_event = asyncio.Event()
     
-    def signal_handler(signum, frame):
-        """Handle shutdown signals."""
-        logger.info(f"Received signal {signum}, shutting down...")
+    def signal_handler(sig):
+        """Handle shutdown signals (SIGTERM, SIGINT)."""
+        sig_name = signal.Signals(sig).name
+        logger.info(f"📡 Received signal {sig_name}, initiating graceful shutdown...")
         shutdown_event.set()
     
-    # Setup signal handlers
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
+    # Setup signal handlers for graceful shutdown
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        loop.add_signal_handler(sig, lambda s=sig: signal_handler(s))
     
     try:
         # Create and start orchestrator
@@ -401,18 +618,23 @@ async def _run_daemon():
         )
         
         await orchestrator.start()
-        logger.info("✅ Orchestrator daemon started")
+        logger.info("✅ Orchestrator daemon started and running")
         
         # Wait for shutdown signal
         await shutdown_event.wait()
         
+    except asyncio.CancelledError:
+        logger.info("⚠️  Orchestrator task cancelled")
     except Exception as e:
-        logger.error(f"Orchestrator daemon error: {e}", exc_info=True)
+        logger.error(f"💥 Orchestrator daemon error: {e}", exc_info=True)
         raise
     finally:
         if orchestrator:
-            await orchestrator.stop()
-            logger.info("✅ Orchestrator daemon stopped")
+            try:
+                await orchestrator.stop()
+                logger.info("✅ Orchestrator daemon stopped cleanly")
+            except Exception as e:
+                logger.error(f"Error during shutdown: {e}", exc_info=True)
 
 
 # Entry point for python -m privaseeai_security.orchestrator
@@ -424,8 +646,11 @@ if __name__ == "__main__":
     try:
         asyncio.run(_run_daemon())
     except KeyboardInterrupt:
-        logger.info("Daemon interrupted")
+        logger.info("⌨️  Keyboard interrupt received")
     except Exception as e:
-        logger.error(f"Fatal error: {e}", exc_info=True)
+        logger.error(f"💥 Fatal error: {e}", exc_info=True)
         sys.exit(1)
+    
+    logger.info("👋 Daemon exiting")
+    sys.exit(0)
 
