@@ -2,9 +2,9 @@ name: Test Suite with Enhanced Coverage
 
 on:
   push:
-    branches: [ main, develop, 'release/*', 'feature/*' ]
+    branches: [main, develop, 'release/*', 'feature/*']
   pull_request:
-    branches: [ main, develop, 'release/*' ]
+    branches: [main, develop, 'release/*']
   workflow_dispatch:
 
 permissions:
@@ -16,29 +16,29 @@ jobs:
   test:
     name: Run Tests with Coverage
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: |
           echo "📦 Installing dependencies..."
           npm ci
           echo "✅ Dependencies installed"
-      
+
       - name: Build TypeScript
         run: |
           echo "🔨 Building TypeScript..."
           npm run build
           echo "✅ Build complete"
-      
+
       - name: Run tests with coverage
         run: |
           echo "🧪 Running tests with coverage..."
@@ -52,7 +52,7 @@ jobs:
         env:
           JEST_JUNIT_OUTPUT_DIR: ./test-results
           JEST_JUNIT_OUTPUT_NAME: junit.xml
-      
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -62,7 +62,7 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: false
           verbose: true
-      
+
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
@@ -71,7 +71,7 @@ jobs:
             test-results/junit.xml
           check_name: Test Results
           comment_mode: off
-      
+
       - name: Upload coverage HTML report
         uses: actions/upload-artifact@v4
         if: always()
@@ -79,7 +79,7 @@ jobs:
           name: coverage-report-html
           path: coverage/
           retention-days: 30
-      
+
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -87,7 +87,7 @@ jobs:
           name: test-results
           path: test-results/
           retention-days: 30
-      
+
       - name: Comment coverage on PR
         uses: romeovs/lcov-reporter-action@v0.3.1
         if: github.event_name == 'pull_request'
@@ -95,7 +95,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           lcov-file: ./coverage/lcov.info
           delete-old-comments: true
-      
+
       - name: Coverage summary
         if: always()
         run: |
