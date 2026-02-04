@@ -6,7 +6,9 @@ a central point for status monitoring and health checks.
 """
 
 import asyncio
+import hashlib
 import json
+import os
 import signal
 from collections import defaultdict
 from dataclasses import dataclass, field, asdict
@@ -392,6 +394,9 @@ class ThreatOrchestrator:
             # Atomic rename
             temp_file.replace(self.state_file)
             
+            # Set secure file permissions (600 - owner read/write only)
+            os.chmod(self.state_file, 0o600)
+            
             logger.info("💾 State saved to disk", extra={
                 "state_file": str(self.state_file),
                 "total_threats": self._total_threats
@@ -438,9 +443,13 @@ class ThreatOrchestrator:
             logger.error("Failed to restore state, starting fresh", exc_info=e)
     
     async def _process_alerts(self) -> None:
-        """Process pending alerts from the queue."""
+        """Process pending alerts from the queue.
+        
+        Runs continuously until cancelled. Does not check self._running to ensure
+        alerts continue to be processed during shutdown sequence.
+        """
         try:
-            while self._running:
+            while True:
                 try:
                     # Wait for alert with timeout
                     alert_data = await asyncio.wait_for(
@@ -514,7 +523,6 @@ class ThreatOrchestrator:
     async def _handle_carrier_threat(self, threat: CarrierThreatDetection) -> None:
         """Process carrier threat detection."""
         # Create unique ID for deduplication using deterministic hash
-        import hashlib
         threat_data = f"{threat.attack_type}_{str(sorted(threat.indicators))}"
         threat_hash = hashlib.sha256(threat_data.encode()).hexdigest()[:16]
         threat_id = f"carrier_{threat.attack_type}_{threat_hash}"

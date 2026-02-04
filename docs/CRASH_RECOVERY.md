@@ -114,7 +114,10 @@ def _restore_state(self) -> None:
     
     # Restore state
     self._total_threats = state_dict.get('total_threats', 0)
+    
+    last_threat_str = state_dict.get('last_threat_time')
     self._last_threat_time = datetime.fromisoformat(last_threat_str) if last_threat_str else None
+    
     self._seen_threat_ids = set(state_dict.get('seen_threat_ids', []))
     # ... restore threat counts
 ```

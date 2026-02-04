@@ -13,12 +13,11 @@ import asyncio
 import signal
 import sys
 from pathlib import Path
-from datetime import datetime
 
 # Add src to path for development
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from privaseeai_security.orchestrator import ThreatOrchestrator
+from privaseeai_security.orchestrator import ThreatOrchestrator, MonitorStatus
 from privaseeai_security.logger import setup_logger, get_logger
 
 
@@ -66,7 +65,7 @@ async def main():
     print("📈 System Status:")
     print(f"   Running: {status.running}")
     print(f"   Started at: {status.started_at.strftime('%H:%M:%S')}")
-    print(f"   Active monitors: {len([m for m in status.monitors.values() if m.name == 'running'])}")
+    print(f"   Active monitors: {len([m for m in status.monitors.values() if m == MonitorStatus.RUNNING])}")
     print(f"   Threats detected: {status.threats_detected}\n")
     
     # Setup signal handler for demo

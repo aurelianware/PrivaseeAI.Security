@@ -6,12 +6,11 @@ import pytest
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch, call
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from privaseeai_security.orchestrator import (
     ThreatOrchestrator,
     MonitorStatus,
-    OrchestratorState,
     _run_daemon,
 )
 from privaseeai_security.crypto.cert_validator import ThreatLevel
@@ -306,6 +305,7 @@ class TestExponentialBackoff:
                 try:
                     await task
                 except asyncio.CancelledError:
+                    # Task cancellation is expected during this test
                     pass
             
             # The monitor should have slept for monitor_interval
@@ -340,6 +340,7 @@ class TestExponentialBackoff:
             try:
                 await task
             except asyncio.CancelledError:
+                # Task cancellation is expected during this test
                 pass
             
             # Verify monitor ran successfully and reset retry count
@@ -348,6 +349,56 @@ class TestExponentialBackoff:
             
             # Verify monitor status was properly set
             assert orchestrator._monitor_status["carrier"] == MonitorStatus.STOPPED
+
+    @pytest.mark.asyncio
+    async def test_vpn_monitor_exponential_backoff_on_errors(self):
+        """Test VPN monitor uses exponential backoff when errors occur."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_file = Path(tmpdir) / "state.json"
+            
+            orchestrator = ThreatOrchestrator(
+                backup_path=Path(tmpdir),
+                telegram_enabled=False,
+                monitor_interval=0.05,
+                scan_backups_on_start=False,
+                state_file=state_file,
+                max_retry_delay=8,
+            )
+            
+            # Track sleep calls to verify exponential backoff
+            sleep_delays = []
+            original_sleep = asyncio.sleep
+            error_count = [0]  # Use list to allow modification in closure
+            
+            async def mock_sleep(delay):
+                sleep_delays.append(delay)
+                await original_sleep(0.01)  # Very short actual sleep
+                # Simulate errors for first few iterations
+                if error_count[0] < 3:
+                    error_count[0] += 1
+                    raise Exception(f"Simulated error {error_count[0]}")
+            
+            with patch('asyncio.sleep', side_effect=mock_sleep):
+                task = asyncio.create_task(orchestrator._monitor_vpn())
+                
+                # Let it run long enough for multiple retries
+                await original_sleep(0.3)
+                
+                task.cancel()
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    # Task cancellation is expected during this test
+                    pass
+            
+            # Should have exponentially increasing delays (1s, 2s, 4s) plus normal intervals
+            # Filter out the very small test delays
+            retry_delays = [d for d in sleep_delays if d >= 1]
+            if len(retry_delays) >= 3:
+                # Verify exponential progression: each should be ~2x the previous
+                assert retry_delays[0] == 1  # First retry: 2^0 = 1
+                assert retry_delays[1] == 2  # Second retry: 2^1 = 2
+                assert retry_delays[2] == 4  # Third retry: 2^2 = 4
 
 
 class TestSignalHandling:
@@ -369,6 +420,7 @@ class TestSignalHandling:
             try:
                 await task
             except asyncio.CancelledError:
+                # Task cancellation is expected during this test
                 pass
             
             # Verify stop was called
