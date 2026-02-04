@@ -90,8 +90,10 @@ class BenefitPlanService:
         if not existing:
             return None
 
-        # Check for duplicate name if renaming
+        # Get update data once
         update_dict = update_data.model_dump(exclude_unset=True)
+
+        # Check for duplicate name if renaming
         if "name" in update_dict and update_dict["name"] != existing.name:
             duplicate = await self.repository.find_by_org_and_name(
                 org_id=org_id,
@@ -103,7 +105,6 @@ class BenefitPlanService:
                 )
 
         # Validate date range if both are being updated or one is updated
-        update_dict = update_data.model_dump(exclude_unset=True)
         effective = update_dict.get("effective_date", existing.effective_date)
         termination = update_dict.get("termination_date", existing.termination_date)
 
