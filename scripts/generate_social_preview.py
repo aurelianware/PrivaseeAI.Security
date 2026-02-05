@@ -147,7 +147,7 @@ def find_font(font_paths, size):
             continue
     
     # No fonts found, return default
-    print(f"Warning: Could not find fonts at standard locations, using default font")
+    sys.stderr.write("Warning: Could not find fonts at standard locations, using default font\n")
     return ImageFont.load_default()
 
 
@@ -248,14 +248,14 @@ def create_social_preview(output_path):
     try:
         img.save(output_path)
     except OSError as e:
-        print(f"Error: Failed to save image to '{output_path}': {e}")
-        return
+        sys.stderr.write(f"Error: Failed to save image to '{output_path}': {e}\n")
+        sys.exit(1)
 
     # Try to determine file size; if it fails, continue without it
     try:
         file_size_kb = Path(output_path).stat().st_size / 1024
     except OSError as e:
-        print(f"Warning: Image saved but failed to retrieve file size for '{output_path}': {e}")
+        sys.stderr.write(f"Warning: Image saved but failed to retrieve file size for '{output_path}': {e}\n")
         file_size_kb = None
 
     print(f"Social preview image created: {output_path}")
