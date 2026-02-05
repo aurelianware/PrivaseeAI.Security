@@ -234,6 +234,7 @@ echo "TELEGRAM_CHAT_ID=your_chat_id" >> .env
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - How to contribute
 - **[SECURITY.md](SECURITY.md)** - Security policy and vulnerability reporting
 - **[TESTING_SUMMARY.md](TESTING_SUMMARY.md)** - Test infrastructure overview
+- **[.github/SOCIAL_PREVIEW_SETUP.md](.github/SOCIAL_PREVIEW_SETUP.md)** - Social media preview image setup
 
 ## 🎯 Use Cases
 
