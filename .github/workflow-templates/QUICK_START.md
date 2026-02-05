@@ -1,4 +1,4 @@
-# Quick Start: Apply Enhanced Coverage to CloudHealthOffice
+# Quick Start: Apply Enhanced Coverage to cloudhealthoffice
 
 This guide provides step-by-step instructions to apply the enhanced code coverage workflow to the cloudhealthoffice repository.
 

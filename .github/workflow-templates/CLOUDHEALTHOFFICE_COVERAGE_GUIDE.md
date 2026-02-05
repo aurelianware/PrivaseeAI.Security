@@ -1,4 +1,4 @@
-# Enhanced Code Coverage Report Template for CloudHealthOffice
+# Enhanced Code Coverage Report Template for cloudhealthoffice
 
 ## Overview
 
@@ -156,7 +156,7 @@ npm test -- --coverage \
   --coverageReporters=lcov \        # For Codecov
   --coverageReporters=json-summary \ # For summary display
   --coverageReporters=text \         # For terminal output
-  --coverageReporters=html           # For browseable report
+  --coverageReporters=html           # For browsable report
 ```
 
 ### Feature 2: Test Results Publishing
@@ -186,6 +186,8 @@ This creates a status check on PRs with test statistics.
 
 Automatically posts coverage information to PRs.
 
+**Security Note:** This example uses a mutable tag (`@v0.3.1`). For enhanced security in production environments, consider pinning this action to a specific commit SHA to prevent potential supply chain attacks. For example: `uses: romeovs/lcov-reporter-action@<commit-sha>`. You can find the commit SHA for a specific release on the action's GitHub repository.
+
 ### Feature 4: Artifact Upload
 
 ```yaml
@@ -208,7 +210,7 @@ Stores coverage and test results for 30 days.
 | Coverage Upload | Codecov | Codecov |
 | HTML Reports | ✅ htmlcov/ | ✅ coverage/ |
 | Test Result Publishing | ✅ EnricoMi action | ✅ EnricoMi action |
-| PR Coverage Comments | ✅ py-cov-action | ✅ lcov-reporter-action |
+| PR Coverage Comments | ✅ py-cov-action/python-coverage-comment-action | ✅ lcov-reporter-action |
 | Test Artifacts | ✅ JUnit XML | ✅ JUnit XML |
 | Artifact Retention | 30 days | 30 days |
 | Multi-version Matrix | Python 3.11, 3.12 | Node.js 20 (single) |
