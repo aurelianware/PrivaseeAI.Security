@@ -37,6 +37,7 @@ LOGGER = logging.getLogger(__name__)
 
 class ThreatLevel(Enum):
     NONE = "NONE"
+    INFO = "INFO"
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"

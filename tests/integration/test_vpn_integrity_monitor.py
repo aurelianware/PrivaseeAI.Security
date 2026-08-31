@@ -30,26 +30,26 @@ class TestVPNIntegrityMonitor:
         return Path(__file__).parent.parent.parent / "test_fixtures" / "attack_logs"
 
     def test_detect_tcp_fallback_attack(self, monitor):
-        """Test detection of TCP fallback when UDP is expected.
-        
-        Real-world scenario: Attacker blocks UDP to force TCP fallback,
-        making traffic easier to inspect/manipulate.
-        
-        Input: WireGuard log with "socketType value: tcp"
-        Expected: ThreatLevel.MEDIUM, attack_type='TRANSPORT_MANIPULATION'
+        """A single TCP socketType line is an INFO observation, not an attack.
+
+        Policy change (timeline engine): TCP transport is normal Proton Smart
+        Protocol behaviour on restrictive networks. It is recorded as an INFO
+        ``TRANSPORT_TCP`` observation and only escalates to LOW at the session
+        level when it persists (see test_vpn_integrity_session). It is no longer
+        scored MEDIUM ``TRANSPORT_MANIPULATION`` on a single line.
         """
-        # Real WireGuard log format from attack
+        # Real WireGuard log format
         log_line = "2026-01-26T04:24:55.103672Z | INFO | PROTOCOL | New socketType value: tcp"
-        
+
         detections = monitor.analyze_log_entry(log_line)
-        
-        # Should detect TCP fallback
-        assert len(detections) > 0, "Should detect TCP fallback"
-        
-        tcp_detection = next((d for d in detections if d.attack_type == "TRANSPORT_MANIPULATION"), None)
-        assert tcp_detection is not None, "Should identify as TRANSPORT_MANIPULATION"
-        assert tcp_detection.threat_level == ThreatLevel.MEDIUM, "TCP fallback should be MEDIUM threat"
-        assert "TCP_FALLBACK" in tcp_detection.indicators or "UDP_BLOCKING" in str(tcp_detection.indicators)
+
+        # Should observe TCP transport as INFO
+        assert len(detections) > 0, "Should observe TCP transport"
+
+        tcp_detection = next((d for d in detections if d.attack_type == "TRANSPORT_TCP"), None)
+        assert tcp_detection is not None, "Should identify as TRANSPORT_TCP observation"
+        assert tcp_detection.threat_level == ThreatLevel.INFO, "TCP transport should be INFO"
+        assert "TRANSPORT_TCP" in tcp_detection.indicators
 
     def test_udp_normal_operation(self, monitor):
         """Test that normal UDP operation is not flagged as a threat."""
@@ -63,26 +63,26 @@ class TestVPNIntegrityMonitor:
             assert udp_detection.threat_level == ThreatLevel.NONE, "UDP should be normal (NONE threat)"
 
     def test_detect_api_cooldown_tracking(self, monitor, sample_logs_dir):
-        """Test detection of API rate limiting indicating tracking attempts.
-        
-        Real-world scenario: ProtonVPN API returns cooldown error when
-        attacker is making excessive location tracking requests.
-        
-        Input: ProtonVPN log with cooldown error
-        Expected: ThreatLevel.HIGH, attack_type='API_TRACKING'
+        """An API cooldown is an INFO observation from the VPN integrity monitor.
+
+        Policy change (timeline engine): Proton rate-limits routine client
+        requests, so a ``cooldown(...)`` line is not by itself evidence of
+        tracking. The VPN integrity monitor records it as an INFO ``API_COOLDOWN``
+        observation (the dedicated APIAbuseMonitor still applies its own,
+        frequency-based judgment separately).
         """
-        # Real ProtonVPN log format from attack
-        log_line = 'ERROR | API | User location request failed | {"error":"cooldown(2026-01-26 05:24:44 +0000)"}'
-        
+        # Real ProtonVPN log format
+        log_line = '2026-01-26T05:00:00.000000Z | ERROR | API | User location request failed | {"error":"cooldown(2026-01-26 05:24:44 +0000)"}'
+
         detections = monitor.analyze_log_entry(log_line)
-        
-        # Should detect API rate limiting
-        assert len(detections) > 0, "Should detect API rate limiting"
-        
-        api_detection = next((d for d in detections if d.attack_type == "API_TRACKING"), None)
-        assert api_detection is not None, "Should identify as API_TRACKING"
-        assert api_detection.threat_level == ThreatLevel.HIGH, "API rate limiting should be HIGH threat"
-        assert "API_RATE_LIMIT" in api_detection.indicators or "COOLDOWN" in str(api_detection.indicators)
+
+        # Should observe the cooldown
+        assert len(detections) > 0, "Should observe API cooldown"
+
+        api_detection = next((d for d in detections if d.attack_type == "API_COOLDOWN"), None)
+        assert api_detection is not None, "Should identify as API_COOLDOWN observation"
+        assert api_detection.threat_level == ThreatLevel.INFO, "API cooldown should be INFO"
+        assert "API_COOLDOWN" in api_detection.indicators
 
     def test_detect_rapid_server_hopping(self, monitor):
         """Test detection of rapid VPN server hopping.
@@ -137,15 +137,34 @@ class TestVPNIntegrityMonitor:
         assert "KNOWN_GOOD" in str(cert_detection.indicators)
 
     def test_detect_unknown_certificate(self, monitor):
-        """Test detection of unknown certificate fingerprint."""
-        # Unknown certificate fingerprint
-        log_line = "DEBUG | USER_CERT | Certificate with features saved | certificateFingerprint: 'deadbeef12345678'"
-        
+        """An unknown (full-length) fingerprint is LOW, not HIGH MITM.
+
+        Policy change (timeline engine): a certificate fingerprint pulled from a
+        log is a weak signal on its own, so an unknown fingerprint is LOW rather
+        than HIGH ``MITM_CERTIFICATE``. Fingerprints shorter than 32 hex chars are
+        rejected entirely (see test_reject_short_fingerprint).
+        """
+        # Unknown, but full 64-hex-char (SHA-256) fingerprint
+        fp = "abcdef0123456789" * 4  # 64 hex chars
+        log_line = f"DEBUG | USER_CERT | Certificate with features saved | certificateFingerprint: '{fp}'"
+
         detections = monitor.analyze_log_entry(log_line)
-        
-        cert_detection = next((d for d in detections if "CERT" in str(d.indicators) or d.attack_type == "MITM_CERTIFICATE"), None)
-        assert cert_detection is not None, "Should detect unknown certificate"
-        assert cert_detection.threat_level in [ThreatLevel.HIGH, ThreatLevel.MEDIUM], "Unknown cert should be elevated threat"
+
+        cert_detection = next(
+            (d for d in detections if d.attack_type == "UNKNOWN_CERT_FINGERPRINT"), None
+        )
+        assert cert_detection is not None, "Should observe unknown certificate"
+        assert cert_detection.threat_level == ThreatLevel.LOW, "Unknown cert should be LOW"
+
+    def test_reject_short_fingerprint(self, monitor):
+        """Fingerprints shorter than 32 hex chars are ignored, not escalated."""
+        log_line = "DEBUG | USER_CERT | Certificate with features saved | certificateFingerprint: 'deadbeef12345678'"
+
+        detections = monitor.analyze_log_entry(log_line)
+
+        assert not any(
+            d.attack_type == "UNKNOWN_CERT_FINGERPRINT" for d in detections
+        ), "Short/ambiguous fingerprint must not produce a threat"
 
     def test_rapid_reconnection_detection(self, monitor):
         """Test detection of rapid reconnections (< 2 minutes apart)."""
@@ -167,15 +186,12 @@ class TestVPNIntegrityMonitor:
             assert rapid_detection.threat_level == ThreatLevel.MEDIUM, "Rapid reconnection should be MEDIUM threat"
 
     def test_end_to_end_attack_detection(self, monitor):
-        """Test complete attack sequence with multiple threat types.
-        
-        Real-world scenario: Complete log sequence from actual attack showing:
-        1. TCP fallback (transport manipulation)
-        2. API rate limiting (tracking attempt)
-        3. Server hopping (connection disruption)
-        4. Certificate validation (should pass for known-good)
-        
-        Expected: Multiple threat detections with proper severity
+        """Complete log sequence, scored under the new observation/judgment policy.
+
+        Policy change (timeline engine): TCP and cooldown are INFO observations
+        (TRANSPORT_TCP / API_COOLDOWN), the known-good cert stays NONE, and only
+        the DNS64 IP churn produces an actionable MEDIUM judgment. Crucially, the
+        whole sequence yields no HIGH/CRITICAL.
         """
         # Complete attack sequence
         attack_logs = [
@@ -202,41 +218,45 @@ class TestVPNIntegrityMonitor:
         for log_line in attack_logs:
             detections = monitor.analyze_log_entry(log_line)
             all_detections.extend(detections)
-        
-        # Verify we detected the key attack components
+
         attack_types_detected = {d.attack_type for d in all_detections if d.attack_type}
-        
-        # Should detect transport manipulation
-        assert "TRANSPORT_MANIPULATION" in attack_types_detected, "Should detect TCP fallback"
-        
-        # Should detect API tracking
-        assert "API_TRACKING" in attack_types_detected, "Should detect API rate limiting"
-        
-        # Should detect server hopping or connection disruption
-        assert any(t in attack_types_detected for t in ["FORCED_RECONNECTION", "CONNECTION_DISRUPTION"]), \
-            "Should detect server hopping pattern"
-        
-        # Should have HIGH or MEDIUM threats
-        high_threats = [d for d in all_detections if d.threat_level in [ThreatLevel.HIGH, ThreatLevel.MEDIUM]]
-        assert len(high_threats) >= 2, f"Should detect at least 2 significant threats, found {len(high_threats)}"
-        
-        # Certificate should pass
+
+        # TCP and cooldown are now INFO observations, not attacks.
+        assert "TRANSPORT_TCP" in attack_types_detected, "Should observe TCP transport"
+        assert "API_COOLDOWN" in attack_types_detected, "Should observe API cooldown"
+
+        # DNS64 churn still yields the one actionable judgment.
+        assert any(
+            t in attack_types_detected for t in ["FORCED_RECONNECTION", "CONNECTION_DISRUPTION"]
+        ), "Should detect DNS64 IP churn"
+
+        # New policy: no HIGH/CRITICAL for this sequence.
+        assert not any(
+            d.threat_level in [ThreatLevel.HIGH, ThreatLevel.CRITICAL] for d in all_detections
+        ), "Normal Proton/iOS behaviour must not score HIGH/CRITICAL"
+
+        # Certificate should pass.
         cert_detections = [d for d in all_detections if "CERT" in str(d.indicators)]
         if cert_detections:
             known_good = [d for d in cert_detections if d.threat_level == ThreatLevel.NONE]
             assert len(known_good) > 0, "Known-good certificate should pass validation"
 
     def test_json_log_format_parsing(self, monitor):
-        """Test parsing of JSON-formatted log entries."""
+        """JSON cooldown entries parse to an INFO observation.
+
+        Policy change (timeline engine): a cooldown is an INFO ``API_COOLDOWN``
+        observation regardless of log format, not a HIGH/MEDIUM threat.
+        """
         # ProtonVPN uses JSON format
         json_log = '{"timestamp":"2026-01-26T04:30:00Z","level":"ERROR","error":"cooldown(2026-01-26 05:24:44 +0000)"}'
-        
+
         detections = monitor.analyze_log_entry(json_log)
-        
-        # Should parse and detect cooldown even in JSON format
-        cooldown_detection = next((d for d in detections if "COOLDOWN" in str(d.indicators) or "API" in str(d.attack_type or "")), None)
-        if cooldown_detection:
-            assert cooldown_detection.threat_level in [ThreatLevel.HIGH, ThreatLevel.MEDIUM]
+
+        cooldown_detection = next(
+            (d for d in detections if d.attack_type == "API_COOLDOWN"), None
+        )
+        assert cooldown_detection is not None, "Should observe cooldown in JSON format"
+        assert cooldown_detection.threat_level == ThreatLevel.INFO
 
     def test_malformed_log_handling(self, monitor):
         """Test that malformed logs don't crash the monitor."""
@@ -329,14 +349,10 @@ class TestVPNIntegrityMonitor:
             "Should detect rapid server hopping pattern"
     
     def test_combined_attack_sequence(self, monitor):
-        """Test detection of combined attack: TCP fallback + API limiting + server hopping.
-        
-        Real-world scenario: Multiple attack vectors happening simultaneously
-        - UDP blocked → TCP fallback
-        - API rate limited
-        - Forced server hopping
-        
-        Expected: Multiple threats detected with varying severity
+        """Combined TCP + cooldown + DNS64 churn under the new policy.
+
+        Policy change (timeline engine): TCP and cooldown are INFO observations;
+        only DNS64 IP churn is actionable (MEDIUM). Nothing here is HIGH/CRITICAL.
         """
         all_detections = []
         
@@ -358,13 +374,13 @@ class TestVPNIntegrityMonitor:
             detections = monitor.analyze_log_entry(server_log)
             all_detections.extend(detections)
         
-        # Verify multiple attack types detected
+        # Verify observation types detected
         attack_types = {d.attack_type for d in all_detections if d}
-        
-        assert "TRANSPORT_MANIPULATION" in attack_types, "Should detect TCP fallback"
-        assert "API_RATE_LIMITING" in attack_types or len(all_detections) >= 2, \
-            "Should detect API limiting or multiple threats"
-        
-        # Verify threat levels vary
-        threat_levels = {d.threat_level for d in all_detections if d and d.threat_level != ThreatLevel.NONE}
-        assert len(threat_levels) > 0, "Should have detected threats with severity levels"
+
+        assert "TRANSPORT_TCP" in attack_types, "Should observe TCP transport"
+        assert "API_COOLDOWN" in attack_types, "Should observe API cooldown"
+
+        # No HIGH/CRITICAL should come out of this normal-looking churn.
+        assert not any(
+            d.threat_level in [ThreatLevel.HIGH, ThreatLevel.CRITICAL] for d in all_detections
+        ), "Combined normal behaviour must not score HIGH/CRITICAL"

@@ -292,6 +292,64 @@ def test_ci(pytest_args):
 
 
 @cli.command()
+@click.argument("logfile", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option("--json", "as_json", is_flag=True, help="Emit the report as JSON.")
+@click.option(
+    "--baseline",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="Compare metrics against another log file.",
+)
+@click.option(
+    "--verbose",
+    is_flag=True,
+    help="Show INFO/LOW judgments too (default shows only MEDIUM+).",
+)
+def analyze(logfile: Path, as_json: bool, baseline: Optional[Path], verbose: bool):
+    """Analyze a WireGuard/Proton VPN log as a session timeline.
+
+    Parses event times from the log lines (never wall-clock), separates neutral
+    observations from judgments, and only prints alarming guidance when a
+    high-confidence HIGH/CRITICAL judgment is present.
+
+    Examples:
+        privasee analyze path/to/WireGuard.log
+        privasee analyze WireGuard.log --verbose
+        privasee analyze today.log --baseline yesterday.log
+        privasee analyze WireGuard.log --json
+    """
+    from .monitors.vpn_session_report import (
+        analyze_logfile,
+        render_json,
+        render_report,
+        render_baseline_delta,
+    )
+    from .crypto.cert_validator import ThreatLevel
+
+    report = analyze_logfile(str(logfile))
+
+    if as_json:
+        console.print_json(render_json(report))
+    else:
+        console.print(render_report(report, verbose=verbose))
+        if baseline is not None:
+            base_report = analyze_logfile(str(baseline))
+            console.print("")
+            console.print("\n".join(render_baseline_delta(report, base_report)))
+
+    # Exit non-zero only on a genuinely actionable (MEDIUM+) judgment so this is
+    # usable in CI/automation without alarming on normal churn.
+    order = {
+        ThreatLevel.NONE: 0,
+        ThreatLevel.INFO: 1,
+        ThreatLevel.LOW: 2,
+        ThreatLevel.MEDIUM: 3,
+        ThreatLevel.HIGH: 4,
+        ThreatLevel.CRITICAL: 5,
+    }
+    sys.exit(1 if order[report.max_severity()] >= order[ThreatLevel.MEDIUM] else 0)
+
+
+@cli.command()
 def config():
     """Show current configuration.
     
