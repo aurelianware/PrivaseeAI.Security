@@ -28,6 +28,25 @@ def test_timestamp_is_parsed_timezone_aware_utc():
     assert ev.is_path_bump is True
 
 
+def test_timestamp_with_colonless_offset_is_parsed():
+    """A trailing +HHMM/-HHMM offset (no colon) must still parse to UTC."""
+    ev = parse_vpn_log_line(
+        "2026-08-31T16:13:01.724260+0000 | INFO | PROTOCOL | New socketType value: udp"
+    )
+    assert ev is not None
+    assert ev.ts == datetime.datetime(
+        2026, 8, 31, 16, 13, 1, 724260, tzinfo=datetime.timezone.utc
+    )
+    # Non-UTC colon-less offset normalises correctly too.
+    ev2 = parse_vpn_log_line(
+        "2026-08-31T16:13:01-0530 | INFO | PROTOCOL | New socketType value: udp"
+    )
+    assert ev2 is not None
+    assert ev2.ts == datetime.datetime(
+        2026, 8, 31, 21, 43, 1, tzinfo=datetime.timezone.utc
+    )
+
+
 def test_line_without_timestamp_is_skipped():
     assert parse_vpn_log_line("just some text without a prefix") is None
     events = parse_vpn_log_lines(["garbage", "more garbage"])

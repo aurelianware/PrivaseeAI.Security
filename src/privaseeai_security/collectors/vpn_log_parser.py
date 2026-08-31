@@ -79,11 +79,19 @@ def _parse_timestamp(raw_ts: str) -> Optional[datetime.datetime]:
     """Parse an ISO-8601 timestamp into a timezone-aware UTC datetime.
 
     Returns ``None`` if the value cannot be parsed. A trailing ``Z`` is treated
-    as ``+00:00``. Naive values are assumed to already be UTC.
+    as ``+00:00``, and a colon-less offset (``+0000`` / ``-0530``) is normalised
+    to ``+00:00`` / ``-05:30`` since ``datetime.fromisoformat`` does not accept
+    the colon-less form on every supported Python version. Naive values are
+    assumed to already be UTC.
     """
     text = raw_ts.strip()
     if text.endswith("Z"):
         text = text[:-1] + "+00:00"
+    else:
+        # Normalise a trailing colon-less UTC offset, e.g. "+0000" -> "+00:00".
+        m = re.search(r"([+-]\d{2})(\d{2})$", text)
+        if m:
+            text = text[: m.start()] + f"{m.group(1)}:{m.group(2)}"
     try:
         dt = datetime.datetime.fromisoformat(text)
     except ValueError:

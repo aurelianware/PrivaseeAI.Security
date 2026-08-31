@@ -38,6 +38,7 @@ from privaseeai_security.crypto.cert_validator import CertificateValidator, Thre
 from privaseeai_security.collectors.vpn_log_parser import (
     VpnLogEvent,
     parse_vpn_log_line,
+    parse_vpn_log_lines,
 )
 
 LOGGER = get_logger(__name__)
@@ -46,6 +47,10 @@ LOGGER = get_logger(__name__)
 # to reason about. Shorter values are ambiguous log fragments, not real SHA-256
 # fingerprints, so we never escalate them to HIGH MITM.
 _MIN_FINGERPRINT_HEX = 32
+
+# How recently a "Starting tunnel" must precede a peer change for that change to
+# count as a normal user reconnect rather than an unexpected switch.
+_PEER_RECONNECT_WINDOW = datetime.timedelta(minutes=5)
 
 
 @dataclass
@@ -316,10 +321,14 @@ class VPNIntegrityMonitor:
         )
         self.server_connections.append(connection)
 
-        # Analyse recent connections within a 10-minute LOG-time window.
+        # Analyse recent connections within a 10-minute LOG-time window. Bound the
+        # delta to [0, window] so out-of-order / future-stamped entries (negative
+        # deltas) cannot slip in and inflate the unique count.
         window = datetime.timedelta(minutes=10)
         recent = [
-            c for c in self.server_connections if event.ts - c.timestamp <= window
+            c
+            for c in self.server_connections
+            if datetime.timedelta(0) <= event.ts - c.timestamp <= window
         ]
         unique = sorted({c.server_ip for c in recent})
 
@@ -409,15 +418,22 @@ class VPNIntegrityMonitor:
         Accepts a list of :class:`VpnLogEvent` (preferred) or raw log strings.
         Builds session metrics and runs the session-level detectors described in
         the module docstring.
+
+        Raw string inputs are parsed as a batch via :func:`parse_vpn_log_lines`
+        so multi-line NWPath blocks are folded into one event and ``line_no``
+        values are correct -- parsing each line in isolation would lose both.
         """
-        parsed: List[VpnLogEvent] = []
-        for e in events:
-            if isinstance(e, str):
-                pe = parse_vpn_log_line(e)
-                if pe is not None:
-                    parsed.append(pe)
-            else:
-                parsed.append(e)  # event-like object (duck-typed)
+        if events and all(isinstance(e, str) for e in events):
+            parsed: List[VpnLogEvent] = parse_vpn_log_lines(events)
+        else:
+            parsed = []
+            for e in events:
+                if isinstance(e, str):
+                    pe = parse_vpn_log_line(e)
+                    if pe is not None:
+                        parsed.append(pe)
+                else:
+                    parsed.append(e)  # event-like object (duck-typed)
         parsed.sort(key=lambda ev: ev.ts)
 
         report = SessionReport()
@@ -681,7 +697,13 @@ class VPNIntegrityMonitor:
     def _detect_expensive_flap(
         self, events: List[VpnLogEvent], metrics: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
-        """EXPENSIVE_FLAP: isExpensive toggles without the path going unsatisfied."""
+        """EXPENSIVE_FLAP: isExpensive toggles without the path going unsatisfied.
+
+        Per policy the guard is the path *status* (must not be ``unsatisfied``),
+        not ``isViable``: real iOS republishes routinely carry ``isViable: NO``
+        while the tunnel keeps working, so gating on viability would suppress the
+        common normal case.
+        """
         if metrics["expensive_flips"] <= 0:
             return None
         unsatisfied = any(e.path_status == "unsatisfied" for e in events)
@@ -696,8 +718,8 @@ class VPNIntegrityMonitor:
                 "Personal hotspot / low-data-mode toggling",
             ],
             summary=(
-                f"isExpensive flapped {metrics['expensive_flips']} time(s) with the "
-                "path staying viable -- normal iOS cost re-evaluation."
+                f"isExpensive flapped {metrics['expensive_flips']} time(s) with no "
+                "unsatisfied path -- normal iOS cost re-evaluation."
             ),
         )
 
@@ -813,15 +835,21 @@ class VPNIntegrityMonitor:
                 last_start_ts = e.ts
             if e.peer:
                 if last_peer is not None and e.peer != last_peer:
-                    # Did a user stop AND start happen before this new peer?
+                    # A user reconnect requires a userInitiated stop, then a tunnel
+                    # start, then this new peer -- and the start must be RECENT
+                    # (within _PEER_RECONNECT_WINDOW) so a stale earlier stop/start
+                    # does not keep excusing much later peer changes.
                     user_reconnect = (
                         last_user_stop_ts is not None
                         and last_start_ts is not None
-                        and last_user_stop_ts <= e.ts
-                        and last_start_ts <= e.ts
-                        and last_user_stop_ts <= last_start_ts
+                        and last_user_stop_ts <= last_start_ts <= e.ts
+                        and (e.ts - last_start_ts) <= _PEER_RECONNECT_WINDOW
                     )
                     if user_reconnect:
+                        # Consume this reconnect so it cannot classify a later,
+                        # unrelated peer change as well.
+                        last_user_stop_ts = None
+                        last_start_ts = None
                         judgments.append(
                             self._judgment(
                                 kind="PEER_SWITCH",

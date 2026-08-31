@@ -232,6 +232,66 @@ def test_judgments_carry_confidence_and_alternatives(monitor):
         assert isinstance(j["alternatives"], list) and len(j["alternatives"]) >= 1
 
 
+def test_analyze_session_with_raw_strings_folds_nwpath_and_line_no(monitor):
+    """Raw string input is batch-parsed: NWPath folds and line_no is correct."""
+    start = datetime.datetime(2026, 8, 31, 16, 0, 0, tzinfo=UTC)
+    lines = [
+        f"{_ts(start)} | INFO | PROTOCOL | NWPath: Optional(",
+        "\tstatus: unsatisfied,",
+        "\tisExpensive: NO,",
+        "\tmtu: 1428",
+        ")",
+        f"{_ts(start + datetime.timedelta(seconds=5))} | INFO | PROTOCOL | New socketType value: udp",
+    ]
+    report = monitor.analyze_session(lines)  # raw strings, not events
+    # The folded NWPath block yields one unsatisfied-path observation, so the
+    # socketType event must be line 6 (block consumed lines 1-5), not line 1.
+    socket_obs = [o for o in report.observations if o["kind"] == "SOCKET_UDP"]
+    assert socket_obs and socket_obs[0]["line_no"] == 6
+    # The unsatisfied status was captured from a folded continuation line, which
+    # single-line parsing would have dropped.
+    assert any(
+        j["kind"] == "EXPENSIVE_FLAP" for j in report.judgments
+    ) is False  # unsatisfied path suppresses the flap
+
+
+def test_peer_switch_stale_reconnect_is_unexpected(monitor):
+    """A stale earlier user stop/start must not excuse a much-later peer change."""
+    start = datetime.datetime(2026, 8, 31, 16, 0, 0, tzinfo=UTC)
+    lines = [
+        f"{_ts(start)} | INFO | PROTOCOL | Stopping tunnel. Reason: userInitiated (1)",
+        f"{_ts(start + datetime.timedelta(seconds=5))} | INFO | PROTOCOL | Starting tunnel",
+        f"{_ts(start + datetime.timedelta(seconds=6))} | INFO | PROTOCOL | Receiving handshake response from peer rPDCApAI",
+        # 30 minutes later, peer changes with NO fresh stop/start.
+        f"{_ts(start + datetime.timedelta(minutes=30))} | INFO | PROTOCOL | Receiving handshake response from peer cxkp3kDI",
+    ]
+    report = monitor.analyze_session(parse_vpn_log_lines(lines))
+    kinds = {j["kind"] for j in report.judgments}
+    assert "UNEXPECTED_PEER_SWITCH" in kinds
+    assert "PEER_SWITCH" not in kinds
+
+
+def test_track_server_connection_ignores_future_stamped_entry(monitor):
+    """Out-of-order (future) DNS64 entries must not inflate the hopping window."""
+    base = datetime.datetime(2026, 8, 31, 16, 0, 0, tzinfo=UTC)
+    # A future-stamped mapping arrives first, then three past-stamped ones.
+    future = base + datetime.timedelta(hours=2)
+    monitor.track_server_connection(
+        parse_vpn_log_lines([f"{_ts(future)} | INFO | VPN | DNS64: mapped 1.1.1.1 to itself."])[0]
+    )
+    dets = []
+    for i, ip in enumerate(["2.2.2.2", "3.3.3.3", "4.4.4.4"]):
+        ev = parse_vpn_log_lines(
+            [f"{_ts(base + datetime.timedelta(seconds=i))} | INFO | VPN | DNS64: mapped {ip} to itself."]
+        )[0]
+        d = monitor.track_server_connection(ev)
+        if d:
+            dets.append(d)
+    # The future 1.1.1.1 has a negative delta relative to the base events and must
+    # be excluded, so we never reach 4 unique IPs in-window -> no FORCED_RECONNECTION.
+    assert not dets
+
+
 def test_empty_session_returns_empty_metrics(monitor):
     report = monitor.analyze_session([])
     assert isinstance(report, SessionReport)
