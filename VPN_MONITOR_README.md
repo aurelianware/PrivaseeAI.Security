@@ -117,7 +117,72 @@ It detects:
 - 🔴 **CRITICAL** - Immediate action required (MITM attack, malicious config)
 - 🟠 **HIGH** - Serious threat (API tracking, forced protocol changes)
 - 🟡 **MEDIUM** - Suspicious activity (server hopping, connection issues)
-- 🔵 **LOW** - Informational (unsigned profiles, minor issues)
+- 🔵 **LOW** - Noise / low-risk pattern (NWPathMonitor storms, isExpensive flaps)
+- ⚪ **INFO** - Neutral observation (TCP transport, API cooldown, user reconnect)
+
+## Timeline Analysis (`privasee analyze`)
+
+The timeline engine reasons about a whole WireGuard/Proton VPN session rather
+than scoring individual lines, so normal iOS Network Extension churn is no longer
+mistaken for an attack.
+
+### Run it
+
+```bash
+# Human-readable timeline, metrics and judgments
+privasee analyze path/to/WireGuard.log
+
+# Show INFO/LOW judgments too (default shows only MEDIUM+)
+privasee analyze path/to/WireGuard.log --verbose
+
+# Machine-readable output
+privasee analyze path/to/WireGuard.log --json
+
+# Compare metrics against a known-good session
+privasee analyze today.log --baseline yesterday.log
+```
+
+You can also run the standalone scanner without installing the CLI:
+
+```bash
+python scan_vpn_logs.py "WireGuard Logs (1).log"
+python scan_vpn_logs.py proton_vpn.log --verbose
+```
+
+The command exits non-zero only when there is an actionable (MEDIUM or higher)
+judgment, so it is safe to use in automation.
+
+### Timestamp rule
+
+**Event time always comes from the log line, never wall-clock time.** Every
+`VpnLogEvent.ts` is parsed from the line's ISO-8601 prefix and normalised to
+timezone-aware UTC. All time windows (path-storm bursts, DNS64 hopping, keepalive
+asymmetry) are measured in *log* time, so a January log analysed in August still
+uses January timestamps. Lines with no parseable timestamp prefix are skipped
+(NWPath continuation lines are folded into the event that opened the block).
+
+### Severity policy
+
+Observations are recorded separately from judgments; judgments always carry a
+`confidence` (0–1) and a list of benign `alternatives`.
+
+| Log signal | Default | Escalates when |
+|------------|---------|----------------|
+| `socketType tcp` | INFO `TRANSPORT_TCP` | LOW only if TCP persists > 15 min with no later `udp` and no `userInitiated` stop |
+| `socketType udp` | NONE (normal) | — |
+| API `cooldown(...)` | INFO `API_COOLDOWN` | — (not scored as tracking here) |
+| DNS64 IP change | INFO | MEDIUM at ≥ 4 unique IPs within 10 log-time minutes with no user reconnect |
+| Certificate "seems up to date" | no threat | — |
+| Unknown cert fingerprint | LOW | never HIGH; fingerprints < 32 hex chars are ignored |
+| NWPathMonitor bumps | LOW `PATH_MONITOR_STORM` | > 60 bumps/hr, or 3+ in 60s while path stays satisfied |
+| `isExpensive` flap | LOW `EXPENSIVE_FLAP` | only while path stays viable |
+| Handshake gap near sleep/wake | INFO `SLEEP_HANDSHAKE_GAP` | expected on a locked iPhone |
+| Peer change after user stop/start | INFO `PEER_SWITCH` | MEDIUM `UNEXPECTED_PEER_SWITCH` if no stop/start between |
+| Keepalive send ≫ recv | LOW `KEEPALIVE_ASYMMETRY` | only with no sleep in the 10-min window |
+
+The scanner prints "disconnect immediately / your network may be compromised"
+**only** when there is a HIGH/CRITICAL judgment with confidence ≥ 0.7 — never for
+ordinary Proton/iOS behaviour.
 
 ## Troubleshooting
 

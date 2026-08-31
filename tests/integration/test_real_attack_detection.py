@@ -72,24 +72,32 @@ class TestRealAttackDetection:
     """Test detection of actual attack patterns from real logs."""
     
     def test_detect_tcp_fallback_from_real_logs(self, vpn_monitor, real_attack_logs):
-        """Test TCP fallback detection from actual attack logs."""
+        """TCP transport is recorded as an INFO observation, not a MEDIUM attack.
+
+        Policy change (timeline engine): a single TCP socketType line is normal
+        Proton Smart Protocol behaviour. It surfaces as INFO ``TRANSPORT_TCP``; it
+        is no longer scored MEDIUM ``TRANSPORT_MANIPULATION``.
+        """
         # Process UDP log first
         udp_log = real_attack_logs[0]
         threats = vpn_monitor.analyze_log_entry(udp_log)
-        # UDP logs may return informational (NONE level) detections
-        actionable_threats = [t for t in threats if t.threat_level.value != "NONE"]
-        assert len(actionable_threats) == 0  # UDP is normal
-        
-        # Process TCP fallback log
+        # UDP is normal (NONE level).
+        actionable_threats = [
+            t for t in threats if t.threat_level.value not in ("NONE", "INFO")
+        ]
+        assert len(actionable_threats) == 0
+
+        # Process TCP log
         tcp_log = real_attack_logs[2]
         threats = vpn_monitor.analyze_log_entry(tcp_log)
-        
-        # Filter out NONE-level informational threats
-        actionable = [t for t in threats if t.threat_level.value != "NONE"]
-        assert len(actionable) >= 1
-        assert actionable[0].threat_level.value == "MEDIUM"
-        assert actionable[0].attack_type == "TRANSPORT_MANIPULATION"
-        assert any("tcp" in indicator.lower() for indicator in actionable[0].indicators)
+
+        tcp_obs = next((t for t in threats if t.attack_type == "TRANSPORT_TCP"), None)
+        assert tcp_obs is not None, "Should observe TCP transport"
+        assert tcp_obs.threat_level.value == "INFO"
+        # And no MEDIUM+ threat from a single TCP line.
+        assert not any(
+            t.threat_level.value in ("MEDIUM", "HIGH", "CRITICAL") for t in threats
+        )
     
     def test_detect_api_rate_limiting_from_real_logs(self, api_monitor, real_attack_logs):
         """Test API rate limiting detection from actual ProtonVPN logs."""
@@ -157,14 +165,22 @@ class TestRealAttackDetection:
         
         # Filter out NONE level threats (successful validations)
         actionable_threats = [t for t in all_threats if t.threat_level != ThreatLevel.NONE]
-        
-        # Expect at least 3 threats: TCP fallback, API rate limit, server hopping
-        assert len(actionable_threats) >= 3
-        
-        # Verify we detected each attack type
+
+        # Policy change (timeline engine): TCP is now an INFO observation
+        # (TRANSPORT_TCP), while the dedicated APIAbuseMonitor still raises HIGH
+        # API_TRACKING and DNS64 churn still yields a MEDIUM judgment.
         attack_types = {t.attack_type for t in actionable_threats}
-        assert "TRANSPORT_MANIPULATION" in attack_types  # TCP fallback
-        assert "API_TRACKING" in attack_types  # Rate limiting
+        assert "TRANSPORT_TCP" in attack_types  # TCP observation
+        assert "API_TRACKING" in attack_types  # from APIAbuseMonitor
+        assert any(
+            t in attack_types for t in ["FORCED_RECONNECTION", "CONNECTION_DISRUPTION"]
+        )  # DNS64 churn
+        # The VPN integrity monitor itself contributes nothing HIGH/CRITICAL.
+        vpn_high = [
+            t for t in vpn_threats
+            if t.threat_level in (ThreatLevel.HIGH, ThreatLevel.CRITICAL)
+        ]
+        assert len(vpn_high) == 0
 
 
 class TestAlertingIntegration:
@@ -311,21 +327,26 @@ class TestEndToEndMonitoring:
                 pytest.fail(f"Malformed log caused exception: {e}")
     
     def test_state_persistence_across_log_entries(self, vpn_monitor):
-        """Test that monitor state persists across multiple log entries."""
+        """Monitor state persists across entries; TCP is observed as INFO.
+
+        Policy change (timeline engine): the TCP line is recorded as an INFO
+        ``TRANSPORT_TCP`` observation rather than a MEDIUM
+        ``TRANSPORT_MANIPULATION`` threat. Protocol history is still tracked.
+        """
         # Send UDP log
         udp_log = "2026-01-26T04:20:11.123456Z | INFO | PROTOCOL | New socketType value: udp"
         vpn_monitor.analyze_log_entry(udp_log)
-        
+
         # Verify protocol history is tracked
         assert len(vpn_monitor.protocol_history) > 0
-        
-        # Send TCP log - should detect change
+
+        # Send TCP log
         tcp_log = "2026-01-26T04:24:44.103672Z | INFO | PROTOCOL | New socketType value: tcp"
         threats = vpn_monitor.analyze_log_entry(tcp_log)
-        
-        # Should remember previous UDP state and detect TCP fallback
-        assert len(threats) > 0
-        assert any(t.attack_type == "TRANSPORT_MANIPULATION" for t in threats)
+
+        # Should observe TCP transport and record two protocol-history entries.
+        assert len(vpn_monitor.protocol_history) >= 2
+        assert any(t.attack_type == "TRANSPORT_TCP" for t in threats)
 
 
 class TestThreatDetectionAccuracy:
@@ -356,16 +377,22 @@ class TestThreatDetectionAccuracy:
         assert len(actionable_threats) == 0
     
     def test_threat_level_accuracy(self, vpn_monitor, api_monitor):
-        """Test that threat levels are assigned accurately."""
-        # TCP fallback should be MEDIUM (concerning but not critical)
+        """Threat levels match the new policy: TCP INFO, cooldown (APIAbuse) HIGH.
+
+        Policy change (timeline engine): a single TCP line is INFO
+        ``TRANSPORT_TCP`` in the VPN integrity monitor. The dedicated
+        APIAbuseMonitor still scores an active cooldown as HIGH.
+        """
+        # TCP transport should be an INFO observation
         tcp_log = "2026-01-26T04:24:44.103672Z | INFO | PROTOCOL | New socketType value: tcp"
-        vpn_monitor.analyze_log_entry("INFO | PROTOCOL | New socketType value: udp")  # Establish UDP first
+        vpn_monitor.analyze_log_entry(
+            "2026-01-26T04:20:00.000000Z | INFO | PROTOCOL | New socketType value: udp"
+        )  # Establish UDP first
         threats = vpn_monitor.analyze_log_entry(tcp_log)
-        tcp_threats = [t for t in threats if "TRANSPORT" in t.attack_type]
+        tcp_threats = [t for t in threats if t.attack_type and "TRANSPORT" in t.attack_type]
         if tcp_threats:
-            # Check the enum value directly
-            assert tcp_threats[0].threat_level.value == ThreatLevel.MEDIUM.value
-        
+            assert tcp_threats[0].threat_level.value == ThreatLevel.INFO.value
+
         # API rate limiting should be HIGH (active tracking attempt)
         api_log = '{"error":"cooldown(2026-01-26 05:24:44 +0000)"}'
         threat = api_monitor.check_rate_limit_responses("com.protonvpn.app", api_log)
