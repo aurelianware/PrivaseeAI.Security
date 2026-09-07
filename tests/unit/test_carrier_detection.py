@@ -85,10 +85,17 @@ class TestESIMProfileDetection:
         
         assert len(threats) > 0
         threat = threats[0]
-        assert threat.threat_level == ThreatLevel.CRITICAL
+        # Re-graded in the P1 port: an unsigned flag plus a loopback issuer is
+        # two non-decisive indicators, which the corroboration gate caps at
+        # MEDIUM. Nothing here is the documented attack (a VPN server pointing
+        # at the device), so CRITICAL was never warranted.
+        assert threat.threat_level == ThreatLevel.MEDIUM
         assert threat.attack_type == "ESIM_MANIPULATION"
-        assert "Unsigned" in str(threat.indicators)
-        assert "localhost" in str(threat.indicators).lower()
+        assert "not marked signed" in str(threat.indicators)
+        assert "loopback" in str(threat.indicators).lower()
+        # Every judgment must carry its uncertainty and the benign readings.
+        assert 0.0 < threat.confidence < 1.0
+        assert threat.alternatives
     
     def test_identify_localhost_routing_in_vpn_profile(self, temp_backup):
         """Test detection of VPN profile routing to localhost."""
@@ -177,10 +184,19 @@ class TestESIMProfileDetection:
         threats = detector.monitor_esim_profiles(backup_path=temp_backup.parent.parent, 
                                                  compare_across_backups=True)
         
-        # Should detect persistent suspicious profile
-        assert len(threats) > 0
-        threat_indicators = str([t.indicators for t in threats])
-        assert "persists across" in threat_indicators.lower() or "Unknown carrier" in threat_indicators
+        # Both rules this used to assert were deleted in the P1 port:
+        #   #20 "unknown carrier" flagged every MVNO and non-US/UK/CA operator.
+        #   #21 "persists across backups" flagged the normal state of a working
+        #       SIM, which appears in every backup by definition.
+        # A profile that is merely unsigned and unfamiliar is now an INFO
+        # observation, so nothing is alerted on.
+        assert threats == [], "an ordinary persistent carrier profile must stay quiet"
+
+        # The cross-backup fact is still recorded, just not as a finding.
+        assert detector.observations, "the profile should still be observed"
+        assert any(
+            o.kind == "UNSIGNED_ESIM_PROFILE" for o in detector.observations
+        )
     
     def test_detect_dns_tampering(self):
         """Test DNS configuration tampering detection."""
@@ -204,8 +220,13 @@ resolver #1
             
             assert len(threats) > 0
             threat = threats[0]
-            assert threat.threat_level in [ThreatLevel.HIGH, ThreatLevel.CRITICAL]
-            assert "localhost" in str(threat.indicators).lower() or "127.0.0.1" in str(threat.indicators)
+            # Re-graded: a loopback resolver is the standard deployment shape
+            # for NextDNS CLI, AdGuard Home, dnscrypt-proxy, Pi-hole and DoH
+            # clients -- the privacy tools this project's own users run. It is
+            # a LOW signal needing corroboration, not a HIGH finding.
+            assert threat.threat_level == ThreatLevel.LOW
+            assert "loopback" in str(threat.indicators).lower() or "127.0.0.1" in str(threat.indicators)
+            assert any("NextDNS" in alt or "DNS-over-HTTPS" in alt for alt in threat.alternatives)
     
     def test_monitor_network_interface_changes(self):
         """Test monitoring of network interface changes."""
@@ -262,9 +283,15 @@ class TestVPNProfileValidation:
         
         detector = CarrierCompromiseDetector()
         threats = detector.monitor_esim_profiles(backup_path=temp_backup.parent.parent)
-        
-        assert len(threats) > 0
-        assert "Unsigned" in str(threats[0].indicators)
+
+        # Re-graded to INFO: _extract_esim_profiles reads
+        # data.get("IsSigned", False), so a carrier plist that simply lacks the
+        # key -- the common real shape -- parses as unsigned. On its own that
+        # is not a finding.
+        assert threats == [], "an unsigned-only carrier profile must stay quiet"
+        assert any(
+            o.kind == "UNSIGNED_ESIM_PROFILE" for o in detector.observations
+        ), "but it is still observed"
     
     def test_detect_vpn_profile_no_remote_endpoint(self, temp_backup):
         """Test detection of VPN profile with no remote endpoint."""
@@ -281,9 +308,14 @@ class TestVPNProfileValidation:
         
         detector = CarrierCompromiseDetector()
         threats = detector.detect_localhost_routing(backup_path=temp_backup.parent.parent)
-        
-        assert len(threats) > 0
-        assert "no remote endpoint" in str(threats[0].indicators).lower()
+
+        # Re-graded to INFO: an absent endpoint is usually a truncated plist in
+        # the backup rather than an attack, and it is a parse-quality signal
+        # dressed up as a finding. Quiet on its own; still observed.
+        assert threats == [], "a missing endpoint alone must stay quiet"
+        assert any(
+            o.kind == "NO_REMOTE_ENDPOINT" for o in detector.observations
+        )
     
     def test_detect_mdm_vpn_profile(self, temp_backup):
         """Test detection of MDM-installed VPN profiles."""
@@ -326,7 +358,9 @@ class TestVPNProfileValidation:
         threats = detector.detect_localhost_routing(backup_path=temp_backup.parent.parent)
         
         assert len(threats) > 0
-        assert "Suspicious profile name" in str(threats[0].indicators)
+        # Wording changed with token matching: the check now reports which
+        # tokens actually matched, so "Latest" cannot be flagged as "test".
+        assert "Noteworthy profile name" in str(threats[0].indicators)
 
 
 class TestPrivateIPDetection:
@@ -627,14 +661,23 @@ class TestBackupComparison:
         
         detector = CarrierCompromiseDetector()
         threats = detector.monitor_esim_profiles(backup_path=backup_root, compare_across_backups=True)
-        
-        # Should detect persistence across backups
-        assert len(threats) > 0, "Should detect persistent suspicious profile"
-        
-        # Check that persistence is mentioned in indicators
-        threat_indicators = ' '.join([str(t.indicators) for t in threats])
-        assert "persist" in threat_indicators.lower() or "Unknown carrier" in threat_indicators, \
-            "Should flag profile persistence or suspicious carrier"
+
+        # Rule #21 was deleted in the P1 port. A profile appearing in every
+        # backup is the *normal* state of a working SIM, not rootkit behaviour;
+        # only survival across a factory reset would be interesting, and this
+        # code never distinguished the two. An unsigned, unfamiliar carrier
+        # profile is now an INFO observation.
+        assert threats == [], (
+            "a profile present in every backup is normal and must stay quiet"
+        )
+        assert detector.observations, "the profile should still be recorded"
+
+        # The cross-backup fact is preserved on the observation payload rather
+        # than being scored as an attack.
+        assert any(
+            (o.profile_info or {}).get("seen_in_earlier_backup") is True
+            for o in detector.observations
+        ), "cross-backup presence should still be visible to a caller"
     
     @pytest.mark.skip("Python 3.12 version-specific failure - passes on 3.11, fails on 3.12")
     def test_profile_modification_detection(self, multi_backup_dir):
