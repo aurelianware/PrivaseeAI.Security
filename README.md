@@ -2,15 +2,15 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Code](https://img.shields.io/badge/Code-7,469%20lines-blue)]()
-[![Tests](https://img.shields.io/badge/Tests-312%20passing-brightgreen)]()
-[![Coverage](https://img.shields.io/badge/Coverage-73%25-yellow)]()
+[![Code](https://img.shields.io/badge/Code-8,199%20lines-blue)]()
+[![Tests](https://img.shields.io/badge/Tests-385%20passing-brightgreen)]()
+[![Coverage](https://img.shields.io/badge/Coverage-74%25-yellow)]()
 
 **Real-Time iOS Threat Detection & Monitoring System**
 
 PrivaseeAI.Security is a privacy-preserving iOS threat detection system that provides continuous security monitoring through VPN integrity checks, backup analysis, and behavioral pattern detection. Built in response to a real carrier-level attack, its detection rules were derived from that incident's logs.
 
-> **Status:** v0.3.0-alpha - active development | 7,469 lines of Python | 312 tests passing, 10 skipped | 73% coverage
+> **Status:** v0.3.0-alpha - active development | 8,199 lines of Python | 385 tests passing, 10 skipped | 74% coverage
 >
 > Not production ready. Alert delivery and the AES helper work, but the web dashboard
 > is an unwired prototype, the persistence layer is not connected to any monitor, and
@@ -29,7 +29,7 @@ Unlike traditional periodic scans, PrivaseeAI.Security provides **continuous rea
 - ⚠️ **Continuous Monitoring:** `privasee start` currently runs carrier checks only;
   the VPN and API monitor loops are not yet wired to a live input
 - ✅ **Privacy-First:** analysis is 100% local, no cloud dependencies
-- ⚠️ **Alpha:** 7,469 lines of code, 312 tests passing, 73% coverage — not production ready
+- ⚠️ **Alpha:** 8,199 lines of code, 385 tests passing, 74% coverage — not production ready
 - ✅ **Open Source:** Apache 2.0 license, full transparency
 
 ## ✨ Current Features (v0.3.0-alpha)
@@ -102,7 +102,7 @@ privasee dashboard  # Launch web dashboard (NEW in v0.3.0)
 
 ### 📊 Test Coverage
 
-**322 Tests - 312 passing, 10 skipped, 73% line coverage**
+**395 Tests - 385 passing, 10 skipped, 74% line coverage**
 ```
 tests/
 ├── unit/ (~250 tests)
@@ -121,10 +121,16 @@ That provenance is a genuine strength — the rules were written against traffic
 actually happened, not invented scenarios.
 
 It is not the same as validation. The rules were derived from **one** incident, and
-the suite overwhelmingly tests that detection *fires* rather than that it stays quiet:
-roughly **4% of tests exercise benign input**. Until that gap closes, treat the
-false-positive rate as unmeasured. `ASSESSMENT.md` §3 grades every rule individually
-and §4 specifies the negative-test suite that would close it.
+the suite still tests that detection *fires* more thoroughly than that it stays quiet —
+though the gap is narrowing: roughly **12% of tests now exercise benign input**, up
+from 4%, via the `tests/negative/` suite specified in `ASSESSMENT.md` §4.
+
+That suite currently covers **carrier detection and network state only**. For those
+rules the false-positive behaviour is measured: 15 ordinary configurations that
+previously raised alerts — a corporate MDM profile, an MVNO SIM, a home router's
+resolver — now produce none, while a VPN terminating on the device still reports
+CRITICAL. For the remaining monitors the false-positive rate is still unmeasured.
+`ASSESSMENT.md` §3 grades every rule individually.
 
 ### 🔒 Privacy-First Design
 
@@ -351,11 +357,11 @@ We welcome contributions! This project needs:
 
 | Metric | Value |
 |--------|-------|
-| Production Code | 7,469 lines Python |
-| Test Code | 5,963 lines |
-| Tests | 322 (312 passing, 10 skipped) |
-| Line Coverage | 73% (as published by the repo's own coverage workflow) |
-| Negative-test coverage | ~4% (see ASSESSMENT.md §4) |
+| Production Code | 8,199 lines Python |
+| Test Code | 6,689 lines |
+| Tests | 395 (385 passing, 10 skipped) |
+| Line Coverage | 74% (as published by the repo's own coverage workflow) |
+| Negative-test coverage | ~12% (49/395; see ASSESSMENT.md §4) |
 | Test Fixtures | Real attack logs (Jan 26, 2026 incident) |
 
 ## 🛡️ Security
@@ -411,6 +417,6 @@ If you find this project useful, please consider:
 
 **Built with 🛡️ by privacy advocates, for privacy advocates.**
 
-**Status:** v0.3.0-alpha | active development | 312 tests passing | see [`ASSESSMENT.md`](ASSESSMENT.md)
+**Status:** v0.3.0-alpha | active development | 385 tests passing | see [`ASSESSMENT.md`](ASSESSMENT.md)
 
 [Get Started](#-quick-start) | [Documentation](#-documentation) | [Contribute](#-contributing) | [Roadmap](ROADMAP.md)
