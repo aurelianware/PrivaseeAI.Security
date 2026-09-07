@@ -30,7 +30,7 @@ On calibration: `vpn_integrity.py` (PR #19, Aug 31) is genuinely good work and s
 Every other detector predates it and none of them received the treatment. Of **55 detection rules**
 inventoried below, **21 are sound as written — and 16 of those 21 are in `vpn_integrity.py`.**
 Across the other five modules, 5 rules of 38 are sound. The calibration problem is not diffuse;
-it is precisely "everything written before 2026-08-31.
+it is precisely "everything written before 2026-08-31."
 
 **Verdict: refactor, don't archive — but narrow it hard first.** See §6.
 
