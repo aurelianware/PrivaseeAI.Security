@@ -39,7 +39,7 @@ APPLE_SYSTEM_PATHS: Set[str] = {
 #: Payload identifiers for services that are legitimate even when unsigned or
 #: carrying no organization.
 KNOWN_LEGITIMATE_SERVICES: Set[str] = {
-    "io.nextdns",                      # NextDNS DNS privacy service
+    "io.nextdns",  # NextDNS DNS privacy service
     "com.apple.managedconfiguration",  # Apple system configuration
 }
 
@@ -83,7 +83,8 @@ LOOPBACK_SERVER_ADDRESSES: Set[str] = {
 
 #: Tokens in a profile *name* that are worth noting. A hit is a weak signal --
 #: development, staging and corporate profiles legitimately contain these words
-#: -- so it is graded LOW and always carries benign alternatives.
+#: -- so carrier_detection grades it INFO: an observation that can corroborate
+#: another signal, never a finding on its own. A name is not evidence.
 NOTEWORTHY_NAME_TOKENS: Set[str] = {
     "test",
     "debug",

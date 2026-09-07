@@ -32,17 +32,15 @@ class TestContainsKeywordToken:
     @pytest.mark.parametrize(
         "name",
         [
-            "Latest Backup",        # contains "test"
-            "Contest Winner",       # contains "test"
-            "Local Office Wi-Fi",   # contains "local"
+            "Latest Backup",  # contains "test"
+            "Contest Winner",  # contains "test"
+            "Local Office Wi-Fi",  # contains "local"
             "Localisation Profile",
-            "TestFlight",           # one token, not "test"
+            "TestFlight",  # one token, not "test"
         ],
     )
     def test_benign_names_do_not_match(self, name):
-        assert allowlists.contains_keyword_token(
-            name, allowlists.NOTEWORTHY_NAME_TOKENS
-        ) == set()
+        assert allowlists.contains_keyword_token(name, allowlists.NOTEWORTHY_NAME_TOKENS) == set()
 
     @pytest.mark.parametrize(
         "name,expected",
@@ -55,8 +53,7 @@ class TestContainsKeywordToken:
     )
     def test_real_hits_still_match(self, name, expected):
         assert (
-            allowlists.contains_keyword_token(name, allowlists.NOTEWORTHY_NAME_TOKENS)
-            == expected
+            allowlists.contains_keyword_token(name, allowlists.NOTEWORTHY_NAME_TOKENS) == expected
         )
 
     def test_local_is_not_a_keyword_at_all(self):
@@ -88,9 +85,7 @@ class TestLoopbackMatching:
 
 
 class TestOrganizationAllowlist:
-    @pytest.mark.parametrize(
-        "org", ["Apple Inc.", "Proton AG", "Mullvad VPN AB", "Tailscale Inc."]
-    )
+    @pytest.mark.parametrize("org", ["Apple Inc.", "Proton AG", "Mullvad VPN AB", "Tailscale Inc."])
     def test_known_orgs(self, org):
         assert allowlists.is_known_organization(org) is True
 
@@ -108,9 +103,7 @@ class TestOrganizationAllowlist:
 
 class TestProfileAllowlisting:
     def test_apple_system_path(self):
-        assert allowlists.is_apple_system_path(
-            "Library/ConfigurationProfiles/foo.plist"
-        )
+        assert allowlists.is_apple_system_path("Library/ConfigurationProfiles/foo.plist")
 
     def test_known_service(self):
         assert allowlists.is_known_service("io.nextdns.profile")
