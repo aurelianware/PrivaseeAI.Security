@@ -15,6 +15,7 @@ try:
 except ImportError:
     HAS_IOSBACKUP = False
 
+from . import allowlists
 from .crypto.cert_validator import ThreatLevel
 
 
@@ -98,38 +99,22 @@ class DeviceInfoExtractor:
     """
     
     # Apple system paths that should not trigger alerts
-    APPLE_SYSTEM_PATHS = {
-        'Library/ConfigurationProfiles/',
-        'Library/UserConfigurationProfiles/',
-        'Library/Managed Preferences/',
-        'SystemConfiguration/',
-    }
+    # Sourced from privaseeai_security.allowlists so this module and
+    # carrier_detection share one definition of "known good".
+    APPLE_SYSTEM_PATHS = allowlists.APPLE_SYSTEM_PATHS
     
     # Known legitimate organizations (can be expanded)
     # Note: Carriers (Verizon, AT&T, T-Mobile) intentionally NOT whitelisted
     # due to potential insider threat concerns
-    KNOWN_LEGITIMATE_ORGS = {
-        'Apple Inc.',
-        'Apple',
-        'NextDNS Inc',
-        'NextDNS',
-    }
+    KNOWN_LEGITIMATE_ORGS = allowlists.KNOWN_LEGITIMATE_ORGS
     
     # Legitimate service identifiers (even if unsigned/no org)
     # Note: VPN profiles (networkextension) intentionally NOT whitelisted
     # to ensure all VPN configurations are reviewed
-    KNOWN_LEGITIMATE_SERVICES = {
-        'io.nextdns',  # NextDNS DNS privacy service
-        'com.apple.managedconfiguration',  # Apple system config
-    }
+    KNOWN_LEGITIMATE_SERVICES = allowlists.KNOWN_LEGITIMATE_SERVICES
     
     # Suspicious VPN server patterns
-    SUSPICIOUS_VPN_SERVERS = {
-        'localhost',
-        '127.0.0.1',
-        '0.0.0.0',
-        '::1',
-    }
+    SUSPICIOUS_VPN_SERVERS = allowlists.LOOPBACK_SERVER_ADDRESSES
 
     def __init__(self, backup_path: str, password: Optional[str] = None):
         """Initialize device info extractor.
@@ -564,9 +549,13 @@ class DeviceInfoExtractor:
             if self._has_localhost_server(profile):
                 indicators.append("VPN server points to localhost (CRITICAL)")
             
-            # Check for suspicious names
-            if profile.display_name and any(kw in profile.display_name.lower() 
-                                           for kw in ["test", "debug", "local", "proxy"]):
+            # Noteworthy names, token-matched rather than substring: the old
+            # check caught "Latest" as "test" and "Local Office Wi-Fi" as
+            # "local". "local" is dropped from the token set entirely -- a
+            # profile named for a locale or a local network is not evidence.
+            if allowlists.contains_keyword_token(
+                profile.display_name or "", allowlists.NOTEWORTHY_NAME_TOKENS
+            ):
                 indicators.append(f"Suspicious VPN name: {profile.display_name}")
             
             # Unsigned VPN from unknown org is concerning
@@ -641,15 +630,7 @@ class DeviceInfoExtractor:
         Returns:
             True if this is a known Apple system file
         """
-        if not profile_id:
-            return False
-        
-        # Check against known Apple system paths
-        for system_path in self.APPLE_SYSTEM_PATHS:
-            if system_path in profile_id:
-                return True
-        
-        # Check for 
+        return allowlists.is_apple_system_path(profile_id)
     
     def _is_known_service(self, profile_id: str) -> bool:
         """Check if profile ID is from a known legitimate service.
@@ -660,15 +641,7 @@ class DeviceInfoExtractor:
         Returns:
             True if this is a known legitimate service
         """
-        if not profile_id:
-            return False
-        
-        # Check against known legitimate services
-        for service in self.KNOWN_LEGITIMATE_SERVICES:
-            if service in profile_id:
-                return True
-        
-        return False
+        return allowlists.is_known_service(profile_id)
     
     def _has_localhost_server(self, profile: ProfileInfo) -> bool:
         """Check if VPN profile uses localhost or suspicious servers.
