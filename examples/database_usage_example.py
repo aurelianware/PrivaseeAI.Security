@@ -8,19 +8,39 @@ This script demonstrates:
 4. Example queries including "threats last 7 days grouped by severity"
 5. Repository pattern usage
 
-Run with:
-    python examples/database_usage_example.py
+WARNING: this script WRITES fabricated threat events -- including CRITICAL
+severities -- into whatever database DATABASE_URL points at. Those rows are
+invented for demonstration and are indistinguishable from real detections once
+stored. Never run it against a database you rely on.
+
+It therefore requires an explicit opt-in, the same flag the dashboard uses:
+
+    PRIVASEE_DEMO=1 python examples/database_usage_example.py
 
 Requires:
     - PostgreSQL with TimescaleDB extension
     - DATABASE_URL environment variable set (optional)
+    - PRIVASEE_DEMO=1
 """
 
 import asyncio
+import os
+import sys
 from datetime import datetime, timedelta
 from uuid import uuid4
 
-from src.privaseeai_security.database import (
+# Checked before importing anything heavy, so the refusal is the first thing an
+# operator sees. This script inserts invented threat events -- including
+# CRITICAL ones -- into a real database, where they are indistinguishable from
+# genuine detections.
+if __name__ == "__main__" and os.getenv("PRIVASEE_DEMO", "").strip() != "1":
+    sys.exit(
+        "Refusing to run: this example WRITES fabricated threat events "
+        "(including CRITICAL) into DATABASE_URL.\n"
+        "Re-run with PRIVASEE_DEMO=1 if that is what you intend."
+    )
+
+from privaseeai_security.database import (
     Device,
     DeviceRepository,
     ThreatEvent,

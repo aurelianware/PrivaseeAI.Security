@@ -1,14 +1,41 @@
 # PrivaseeAI Security Dashboard
 
-**Phase 5A Prototype** - Minimal FastAPI web dashboard for real-time iOS threat monitoring.
+> **This is an unwired UI prototype. It is not connected to the detection engine.**
+>
+> `dashboard/api/main.py` imports nothing from `privaseeai_security` and has no data
+> path to any detector, database, or monitor. Nothing it can display was detected on
+> any device. By default every endpoint returns an **empty result set** and the page
+> renders a banner saying so.
+>
+> Setting `PRIVASEE_DEMO=1` populates it with **fabricated** demonstration data and
+> renders a persistent "DEMO MODE" banner. That data is invented for layout purposes.
+> Do not read it as output, screenshot it as evidence, or share it as a finding.
+>
+> Wiring this to real detections is tracked as P3 in [`ASSESSMENT.md`](../ASSESSMENT.md).
+
+**Phase 5A Prototype** - Minimal FastAPI web dashboard for iOS threat monitoring.
 
 ## Features
 
+The list below describes the **UI surface that exists**, not working detection.
+Every item is backed by empty data unless `PRIVASEE_DEMO=1` is set.
+
 ✅ **Real-Time Monitoring** - WebSocket-based live updates
 ✅ **Threat Management** - View, filter, and resolve threats
-✅ **Monitor Control** - Start/stop detection monitors
+✅ **Monitor Control** - Start/stop buttons (they toggle a flag; no monitor is started)
 ✅ **Device Overview** - Track all monitored devices
 ✅ **Responsive UI** - Works on desktop, tablet, mobile
+
+## Demo mode
+
+```bash
+PRIVASEE_DEMO=1 privasee dashboard      # fabricated data, red DEMO MODE banner
+privasee dashboard                      # default: empty, amber "no data source" banner
+```
+
+The `/api/simulate/*` endpoints return **404** unless `PRIVASEE_DEMO=1` is set.
+`GET /api/health` reports `demo_mode` and `data_source` so a client can tell what it
+is looking at.
 
 ## Quick Start
 

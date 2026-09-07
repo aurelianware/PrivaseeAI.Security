@@ -3,12 +3,21 @@ PrivaseeAI.Security Dashboard API
 
 Minimal FastAPI application for Phase 5 web dashboard.
 Provides REST API and WebSocket support for real-time threat monitoring.
+
+NOT WIRED TO THE DETECTION ENGINE. This module imports nothing from
+``privaseeai_security`` and has no data path to any detector. By default every
+endpoint returns an empty result set.
+
+Setting ``PRIVASEE_DEMO=1`` opts in to fabricated demonstration data. That data
+is invented; it is not, and never was, detected on any device. The UI renders a
+persistent banner saying so whenever the flag is set.
 """
 
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 from pathlib import Path
 import json
+import os
 import random
 import asyncio
 
@@ -23,6 +32,11 @@ import uvicorn
 # For Phase 5B: Replace with real database
 # from sqlalchemy import create_engine
 # from sqlalchemy.orm import Session
+
+# Opt-in flag for fabricated demonstration data. Unset (the default) means every
+# endpoint below serves an empty result set, so the dashboard cannot present
+# invented threats as real findings.
+DEMO_MODE = os.getenv("PRIVASEE_DEMO", "").strip() == "1"
 
 app = FastAPI(
     title="PrivaseeAI Security Dashboard",
@@ -214,11 +228,11 @@ def log_activity(action: str, category: str, description: str, details: Optional
     if len(activity_log) > 1000:
         activity_log.pop()
 
-# Mock devices
-mock_devices = [
+# Demonstration seed data -- seen only when DEMO_MODE is on (see below).
+_DEMO_DEVICES = [
     Device(
         id="device-1",
-        device_name="Mark's iPhone",
+        device_name="Demo Device",
         device_model="iPhone 16 Pro",
         ios_version="18.2",
         last_seen_at=datetime.now() - timedelta(minutes=2),
@@ -352,12 +366,11 @@ mock_devices = [
     ),
 ]
 
-# Mock threats
-mock_threats = [
+_DEMO_THREATS = [
     Threat(
         id="threat-1",
         device_id="device-1",
-        device_name="Mark's iPhone",
+        device_name="Demo Device",
         threat_type="VPN_MANIPULATION",
         severity="HIGH",
         title="WireGuard forced to TCP (UDP blocked)",
@@ -370,7 +383,7 @@ mock_threats = [
     Threat(
         id="threat-2",
         device_id="device-1",
-        device_name="Mark's iPhone",
+        device_name="Demo Device",
         threat_type="API_ABUSE",
         severity="MEDIUM",
         title="Location API rate limiting detected",
@@ -395,14 +408,13 @@ mock_threats = [
     ),
 ]
 
-# Initialize activity log with some entries
-activity_log.extend([
+_DEMO_ACTIVITY = [
     ActivityLogEntry(
         id="log-init-1",
         timestamp=datetime.now() - timedelta(hours=2),
         action="threat_detected",
         category="threat",
-        description="VPN manipulation detected on Mark's iPhone",
+        description="VPN manipulation detected on Demo Device",
         details={"threat_id": "threat-1", "severity": "HIGH"}
     ),
     ActivityLogEntry(
@@ -410,7 +422,7 @@ activity_log.extend([
         timestamp=datetime.now() - timedelta(hours=5),
         action="threat_detected",
         category="threat",
-        description="Location API abuse detected on Mark's iPhone",
+        description="Location API abuse detected on Demo Device",
         details={"threat_id": "threat-2", "severity": "MEDIUM"}
     ),
     ActivityLogEntry(
@@ -429,10 +441,9 @@ activity_log.extend([
         description="Work iPhone enrolled in monitoring",
         details={"device_id": "device-3"}
     ),
-])
+]
 
-# Mock monitor status
-mock_monitors = [
+_DEMO_MONITORS = [
     MonitorStatus(
         monitor_name="VPNIntegrityMonitor",
         is_running=True,
@@ -467,6 +478,30 @@ mock_monitors = [
     ),
 ]
 
+# ---------------------------------------------------------------------------
+# The gate. Without PRIVASEE_DEMO=1 these are empty, so every endpoint that
+# reads them returns nothing rather than something invented.
+# ---------------------------------------------------------------------------
+mock_devices = _DEMO_DEVICES if DEMO_MODE else []
+mock_threats = _DEMO_THREATS if DEMO_MODE else []
+mock_monitors = _DEMO_MONITORS if DEMO_MODE else []
+if DEMO_MODE:
+    activity_log.extend(_DEMO_ACTIVITY)
+app_settings.demo_mode = DEMO_MODE
+
+
+def _require_demo_mode() -> None:
+    """Reject simulation endpoints unless demo data was explicitly opted into."""
+    if not DEMO_MODE:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "Threat simulation is disabled. Set PRIVASEE_DEMO=1 to enable "
+                "fabricated demonstration data."
+            ),
+        )
+
+
 # ============================================================================
 # API Routes
 # ============================================================================
@@ -474,7 +509,9 @@ mock_monitors = [
 @app.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
     """Main dashboard page"""
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+    return templates.TemplateResponse(
+        request, "dashboard.html", {"demo_mode": DEMO_MODE}
+    )
 
 @app.get("/api/stats", response_model=DashboardStats)
 async def get_stats():
@@ -631,11 +668,18 @@ async def websocket_endpoint(websocket: WebSocket):
 
 @app.get("/api/health")
 async def health_check():
-    """API health check"""
+    """API health check.
+
+    ``demo_mode`` tells a client whether the payloads it is receiving are
+    fabricated. ``data_source`` is ``none`` in both cases: this dashboard has no
+    connection to the detection engine either way.
+    """
     return {
         "status": "healthy",
         "version": "0.3.0",
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
+        "demo_mode": DEMO_MODE,
+        "data_source": "none",
     }
 
 # ============================================================================
@@ -652,6 +696,10 @@ async def update_settings(settings: PrivaseeSettings):
     """Update application settings"""
     global app_settings
     app_settings = settings
+    # demo_mode is a read-only mirror of the PRIVASEE_DEMO gate. A client must
+    # not be able to make GET /api/settings claim a provenance that does not
+    # match the banner and /api/health.
+    app_settings.demo_mode = DEMO_MODE
     log_activity("settings_updated", "settings", "Application settings updated")
     await manager.broadcast({
         "type": "settings_update",
@@ -768,8 +816,11 @@ simulation_running = False
 @app.post("/api/simulate/start")
 async def start_simulation():
     """Start threat simulation demo mode"""
+    _require_demo_mode()
     global simulation_running
-    app_settings.demo_mode = True
+    # Deliberately does NOT touch app_settings.demo_mode: that field mirrors the
+    # import-time DEMO_MODE gate, which this endpoint cannot change. Flipping it
+    # here would make GET /api/settings contradict /api/health and the banner.
     simulation_running = True
     log_activity("simulation_started", "system", "Threat simulation demo mode started")
     return {"success": True, "message": "Simulation started"}
@@ -777,8 +828,9 @@ async def start_simulation():
 @app.post("/api/simulate/stop")
 async def stop_simulation():
     """Stop threat simulation demo mode"""
+    _require_demo_mode()
     global simulation_running
-    app_settings.demo_mode = False
+    # See start_simulation: demo_mode reflects the env gate, not this toggle.
     simulation_running = False
     log_activity("simulation_stopped", "system", "Threat simulation demo mode stopped")
     return {"success": True, "message": "Simulation stopped"}
@@ -786,6 +838,7 @@ async def stop_simulation():
 @app.post("/api/simulate/threat")
 async def simulate_threat():
     """Generate a simulated threat"""
+    _require_demo_mode()
     threat_templates = [
         ("CRITICAL", "CARRIER_COMPROMISE", "SIM swap attack detected", "Unusual SIM activity detected. Your carrier may have been compromised."),
         ("HIGH", "VPN_MANIPULATION", "VPN tunnel disrupted", "Network conditions are forcing VPN protocol changes."),
