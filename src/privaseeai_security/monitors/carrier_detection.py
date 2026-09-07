@@ -151,6 +151,15 @@ class Indicator:
 
 #: Severity, confidence and benign explanations per indicator kind.
 #:
+#: Grades were set by working backwards from the negative-case contract in
+#: ASSESSMENT.md §4.3, which is the authority on what must stay quiet. A signal
+#: whose designed benign case (a corporate VPN on an RFC1918 gateway, a home
+#: router resolver, a local DNS proxy, stock macOS tunnel interfaces, a carrier
+#: rebrand, a profile whose name contains "test") has to produce no alert above
+#: INFO is graded INFO here. Those signals are still recorded as observations
+#: and still corroborate a judgment when something else co-occurs -- they just
+#: cannot raise an alert on their own.
+#:
 #: Grades follow the rule-by-rule table in ASSESSMENT.md §3.2. The dominant
 #: change from the pre-port module is that signals which are *routinely* true of
 #: ordinary devices -- unsigned profiles, missing PayloadOrganization, RFC1918
@@ -169,7 +178,7 @@ _INDICATOR_POLICY: Dict[IndicatorKind, IndicatorPolicy] = {
         ),
     ),
     IndicatorKind.PRIVATE_IP_SERVER: IndicatorPolicy(
-        severity=ThreatLevel.LOW,
+        severity=ThreatLevel.INFO,
         confidence=0.4,
         alternatives=(
             "A corporate VPN terminating on an RFC1918 gateway (very common)",
@@ -202,7 +211,7 @@ _INDICATOR_POLICY: Dict[IndicatorKind, IndicatorPolicy] = {
         ),
     ),
     IndicatorKind.NOTEWORTHY_PROFILE_NAME: IndicatorPolicy(
-        severity=ThreatLevel.LOW,
+        severity=ThreatLevel.INFO,
         confidence=0.35,
         alternatives=(
             "A development, staging or QA profile named accordingly",
@@ -227,7 +236,7 @@ _INDICATOR_POLICY: Dict[IndicatorKind, IndicatorPolicy] = {
         ),
     ),
     IndicatorKind.NOTEWORTHY_ISSUER: IndicatorPolicy(
-        severity=ThreatLevel.LOW,
+        severity=ThreatLevel.INFO,
         confidence=0.35,
         alternatives=(
             "A carrier's own test or staging issuer name",
@@ -235,7 +244,7 @@ _INDICATOR_POLICY: Dict[IndicatorKind, IndicatorPolicy] = {
         ),
     ),
     IndicatorKind.CARRIER_NAME_CHANGED: IndicatorPolicy(
-        severity=ThreatLevel.LOW,
+        severity=ThreatLevel.INFO,
         confidence=0.4,
         alternatives=(
             "A carrier rebrand (for example Sprint becoming T-Mobile)",
@@ -244,7 +253,7 @@ _INDICATOR_POLICY: Dict[IndicatorKind, IndicatorPolicy] = {
         ),
     ),
     IndicatorKind.SIGNATURE_STATUS_CHANGED: IndicatorPolicy(
-        severity=ThreatLevel.LOW,
+        severity=ThreatLevel.INFO,
         confidence=0.35,
         alternatives=(
             "The IsSigned key being present in one backup and absent in another",
@@ -259,7 +268,7 @@ _INDICATOR_POLICY: Dict[IndicatorKind, IndicatorPolicy] = {
         ),
     ),
     IndicatorKind.TUNTAP_COUNT_EXCESS: IndicatorPolicy(
-        severity=ThreatLevel.LOW,
+        severity=ThreatLevel.INFO,
         confidence=0.4,
         alternatives=(
             "iCloud Private Relay adds its own tunnel interfaces",
@@ -268,7 +277,7 @@ _INDICATOR_POLICY: Dict[IndicatorKind, IndicatorPolicy] = {
         ),
     ),
     IndicatorKind.LOOPBACK_DNS_SERVER: IndicatorPolicy(
-        severity=ThreatLevel.LOW,
+        severity=ThreatLevel.INFO,
         confidence=0.4,
         alternatives=(
             "A local DNS proxy: NextDNS CLI, AdGuard Home, dnscrypt-proxy, Pi-hole",
@@ -278,7 +287,7 @@ _INDICATOR_POLICY: Dict[IndicatorKind, IndicatorPolicy] = {
         ),
     ),
     IndicatorKind.PRIVATE_DNS_SERVER: IndicatorPolicy(
-        severity=ThreatLevel.LOW,
+        severity=ThreatLevel.INFO,
         confidence=0.3,
         alternatives=(
             "A home router acting as resolver (192.168.1.1 is the most common "
@@ -288,7 +297,7 @@ _INDICATOR_POLICY: Dict[IndicatorKind, IndicatorPolicy] = {
         ),
     ),
     IndicatorKind.INTERFACE_COUNT_EXCESS: IndicatorPolicy(
-        severity=ThreatLevel.LOW,
+        severity=ThreatLevel.INFO,
         confidence=0.35,
         alternatives=(
             "Stock macOS keeps utun0-utun3 up at idle for AWDL and Private Relay",
@@ -346,7 +355,19 @@ def _grade(indicators: Sequence[Indicator]) -> Tuple[ThreatLevel, float, List[st
         base = max(
             (p.severity for p in policies), key=lambda lvl: _SEVERITY_ORDER[lvl]
         )
-        cap = ThreatLevel.LOW if len(indicators) == 1 else ThreatLevel.MEDIUM
+        strong = [
+            p
+            for p in policies
+            if _SEVERITY_ORDER[p.severity] >= _SEVERITY_ORDER[ThreatLevel.MEDIUM]
+        ]
+        if len(strong) >= 2:
+            # Two independent MEDIUM-or-higher signals corroborate each other
+            # and may stand without a decisive indicator.
+            cap = ThreatLevel.CRITICAL
+        elif len(indicators) == 1:
+            cap = ThreatLevel.LOW
+        else:
+            cap = ThreatLevel.MEDIUM
         severity = base if _SEVERITY_ORDER[base] <= _SEVERITY_ORDER[cap] else cap
         # Corroboration adds a little confidence but never manufactures it.
         confidence = min(1.0, max(p.confidence for p in policies) + 0.05 * (len(indicators) - 1))

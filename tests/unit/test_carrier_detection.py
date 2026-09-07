@@ -136,9 +136,16 @@ class TestESIMProfileDetection:
         
         detector = CarrierCompromiseDetector()
         threats = detector.detect_localhost_routing(backup_path=temp_backup.parent.parent)
-        
-        assert len(threats) > 0
-        assert "private ip" in str(threats[0].indicators).lower()  # Case-insensitive match
+
+        # Re-graded to INFO. An RFC1918 gateway is what a corporate VPN looks
+        # like -- the original code's own comment conceded as much while still
+        # flagging it HIGH. ASSESSMENT.md §4.3 case B7 requires this scenario to
+        # stay quiet, so it is an observation that can corroborate, not a
+        # finding on its own.
+        assert threats == [], "a corporate VPN on a private IP must stay quiet"
+
+        observed = {o.kind for o in detector.observations}
+        assert "PRIVATE_IP_SERVER" in observed, "but it is still observed"
     
     def test_parse_ios_carrier_bundle(self, temp_backup):
         """Test parsing of iOS CarrierBundle files."""
@@ -217,16 +224,17 @@ resolver #1
             )
             
             threats = detector.analyze_dns_resolution()
-            
-            assert len(threats) > 0
-            threat = threats[0]
-            # Re-graded: a loopback resolver is the standard deployment shape
-            # for NextDNS CLI, AdGuard Home, dnscrypt-proxy, Pi-hole and DoH
-            # clients -- the privacy tools this project's own users run. It is
-            # a LOW signal needing corroboration, not a HIGH finding.
-            assert threat.threat_level == ThreatLevel.LOW
-            assert "loopback" in str(threat.indicators).lower() or "127.0.0.1" in str(threat.indicators)
-            assert any("NextDNS" in alt or "DNS-over-HTTPS" in alt for alt in threat.alternatives)
+
+            # Re-graded to INFO in the P1 port. A loopback resolver is the
+            # standard deployment shape for NextDNS CLI, AdGuard Home,
+            # dnscrypt-proxy, Pi-hole and DoH clients -- the privacy tools this
+            # project's own users run. ASSESSMENT.md §4.3 case C2 requires this
+            # exact scenario to produce no alert, so a DNS change to loopback is
+            # an observation that can corroborate, not a finding on its own.
+            assert threats == [], "a loopback resolver alone must not alert"
+
+            observed = {o.kind for o in detector.observations}
+            assert "LOOPBACK_DNS_SERVER" in observed, "but it is still observed"
     
     def test_monitor_network_interface_changes(self):
         """Test monitoring of network interface changes."""
@@ -248,11 +256,16 @@ utun4: flags=8051<UP,POINTOPOINT,RUNNING,MULTICAST> mtu 1380
             )
             
             threats = detector.track_network_interfaces()
-            
-            # Should flag excessive TUN/TAP interfaces
-            assert len(threats) > 0
-            # Check that details include interface names
-            assert "utun" in str(threats[0].details).lower()
+
+            # Re-graded to INFO. Stock macOS keeps utun0-utun3 up at idle for
+            # AWDL and iCloud Private Relay, and known_vpn_profiles is empty on
+            # a fresh process -- so the old threshold was an effective "> 2"
+            # that an untouched machine already exceeds. ASSESSMENT.md §4.3
+            # cases C5/C6 require this to stay quiet.
+            assert threats == [], "stock tunnel interfaces must not alert"
+
+            observed = {o.kind for o in detector.observations}
+            assert "INTERFACE_COUNT_EXCESS" in observed, "but it is still observed"
 
 
 class TestVPNProfileValidation:
@@ -357,10 +370,20 @@ class TestVPNProfileValidation:
         detector = CarrierCompromiseDetector()
         threats = detector.detect_localhost_routing(backup_path=temp_backup.parent.parent)
         
-        assert len(threats) > 0
-        # Wording changed with token matching: the check now reports which
-        # tokens actually matched, so "Latest" cannot be flagged as "test".
-        assert "Noteworthy profile name" in str(threats[0].indicators)
+        # A name is not evidence. "Debug Proxy" on an RFC1918 gateway, unsigned,
+        # is an ordinary development or corporate profile: three INFO signals,
+        # which the corroboration gate leaves as observations. ASSESSMENT.md
+        # §4.3 cases B8 and B10 require exactly this to stay quiet.
+        assert threats == [], "a noteworthy name alone must not alert"
+
+        observed = {o.kind for o in detector.observations}
+        assert "NOTEWORTHY_PROFILE_NAME" in observed
+        # Token matching, not substring: the matched tokens are named.
+        assert any(
+            "debug" in o.summary.lower() and "proxy" in o.summary.lower()
+            for o in detector.observations
+            if o.kind == "NOTEWORTHY_PROFILE_NAME"
+        )
 
 
 class TestPrivateIPDetection:
