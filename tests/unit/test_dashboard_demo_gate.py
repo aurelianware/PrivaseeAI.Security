@@ -92,6 +92,43 @@ class TestDefaultIsEmpty:
         assert "DEMO MODE" not in body
 
 
+class TestDemoModeIsConsistent:
+    """Every surface that reports provenance must agree with the env gate.
+
+    `app_settings.demo_mode` is surfaced by GET /api/settings, so if anything
+    can flip it independently of PRIVASEE_DEMO, the settings endpoint ends up
+    contradicting /api/health and the page banner about whether the data on
+    screen is real.
+    """
+
+    def test_settings_and_health_agree_by_default(self, default_client):
+        settings = default_client.get("/api/settings").json()
+        health = default_client.get("/api/health").json()
+        assert settings["demo_mode"] == health["demo_mode"] is False
+
+    def test_settings_and_health_agree_in_demo_mode(self, demo_client):
+        settings = demo_client.get("/api/settings").json()
+        health = demo_client.get("/api/health").json()
+        assert settings["demo_mode"] == health["demo_mode"] is True
+
+    def test_put_settings_cannot_forge_demo_mode(self, default_client):
+        """A client must not be able to make /api/settings misreport provenance."""
+        settings = default_client.get("/api/settings").json()
+        settings["demo_mode"] = True
+
+        assert default_client.put("/api/settings", json=settings).status_code == 200
+        assert default_client.get("/api/settings").json()["demo_mode"] is False
+        assert default_client.get("/api/health").json()["demo_mode"] is False
+
+    def test_stopping_simulation_does_not_desync_demo_mode(self, demo_client):
+        """Stopping the simulation does not make the fabricated data real."""
+        assert demo_client.post("/api/simulate/stop").status_code == 200
+
+        assert demo_client.get("/api/settings").json()["demo_mode"] is True
+        assert demo_client.get("/api/health").json()["demo_mode"] is True
+        assert "DEMO MODE" in demo_client.get("/").text
+
+
 class TestDemoModeIsLabelled:
     """With the opt-in, data may appear -- but never unlabelled."""
 

@@ -40,7 +40,7 @@ if __name__ == "__main__" and os.getenv("PRIVASEE_DEMO", "").strip() != "1":
         "Re-run with PRIVASEE_DEMO=1 if that is what you intend."
     )
 
-from src.privaseeai_security.database import (
+from privaseeai_security.database import (
     Device,
     DeviceRepository,
     ThreatEvent,

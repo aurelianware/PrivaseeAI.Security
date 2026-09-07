@@ -696,6 +696,10 @@ async def update_settings(settings: PrivaseeSettings):
     """Update application settings"""
     global app_settings
     app_settings = settings
+    # demo_mode is a read-only mirror of the PRIVASEE_DEMO gate. A client must
+    # not be able to make GET /api/settings claim a provenance that does not
+    # match the banner and /api/health.
+    app_settings.demo_mode = DEMO_MODE
     log_activity("settings_updated", "settings", "Application settings updated")
     await manager.broadcast({
         "type": "settings_update",
@@ -814,7 +818,9 @@ async def start_simulation():
     """Start threat simulation demo mode"""
     _require_demo_mode()
     global simulation_running
-    app_settings.demo_mode = True
+    # Deliberately does NOT touch app_settings.demo_mode: that field mirrors the
+    # import-time DEMO_MODE gate, which this endpoint cannot change. Flipping it
+    # here would make GET /api/settings contradict /api/health and the banner.
     simulation_running = True
     log_activity("simulation_started", "system", "Threat simulation demo mode started")
     return {"success": True, "message": "Simulation started"}
@@ -824,7 +830,7 @@ async def stop_simulation():
     """Stop threat simulation demo mode"""
     _require_demo_mode()
     global simulation_running
-    app_settings.demo_mode = False
+    # See start_simulation: demo_mode reflects the env gate, not this toggle.
     simulation_running = False
     log_activity("simulation_stopped", "system", "Threat simulation demo mode stopped")
     return {"success": True, "message": "Simulation stopped"}
