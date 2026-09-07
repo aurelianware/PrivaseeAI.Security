@@ -12,7 +12,9 @@ PrivaseeAI.Security is designed with security and privacy as foundational princi
 - **Local Processing**: All threat analysis occurs on your infrastructure
 - **No Cloud Dependencies**: Fully self-hosted deployment model
 - **Data Sovereignty**: You maintain complete control over security data
-- **No Telemetry**: The tool makes no outbound network connections of its own
+- **No Telemetry**: No usage data, analytics or crash reports are collected. The
+  only outbound connection the tool can make is a Telegram alert, and only when
+  you configure `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` yourself
 
 ### Security Design Principles
 - **Defense in Depth**: Multi-layer security monitoring and detection
@@ -31,8 +33,13 @@ not implemented, it says so rather than describing an intent.
 - **AES-256-GCM helper**: `CryptoHandler.encrypt` / `decrypt` provide authenticated
   encryption (random 96-bit nonce, 128-bit tag) for callers that need it. It is a
   building block; **no component currently uses it to encrypt stored data**.
-- **Encryption in transit**: not applicable. The tool makes no outbound network
-  connections. There is no TLS configuration because there is no client.
+- **Encryption in transit**: Telegram alerts go over HTTPS to the Telegram Bot
+  API (TLS is handled by `python-telegram-bot`/`httpx`; the tool does not
+  override or pin it). No other outbound connection exists, so there is nothing
+  else in transit to protect.
+- **Alert contents**: a delivered alert leaves your machine and reaches Telegram's
+  servers. It carries the threat type, severity, indicators and detail text. Do
+  not enable Telegram alerting if that metadata is itself sensitive to you.
 - **Key management**: **not implemented.** `generate_key()` produces a key; storage,
   rotation and derivation are the caller's responsibility.
 - **Access controls**: **not implemented.** There is no RBAC, no authentication and

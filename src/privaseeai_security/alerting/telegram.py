@@ -4,7 +4,10 @@ This module provides Telegram bot integration for sending security alerts
 when threats are detected by the monitoring system.
 """
 
+import asyncio
 import os
+import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, Optional, List
@@ -72,6 +75,11 @@ class TelegramAlerter:
         self.chat_id = chat_id or os.getenv("TELEGRAM_CHAT_ID")
         self.throttle_minutes = throttle_minutes
         self.dry_run = dry_run
+
+        # Delivery tuning. Kept small: an alert that arrives late is close to
+        # useless, and a monitor should not stall on a wedged network.
+        self.send_timeout_seconds = float(os.getenv("TELEGRAM_TIMEOUT_SECONDS", "10"))
+        self.max_send_attempts = int(os.getenv("TELEGRAM_MAX_ATTEMPTS", "3"))
         
         self.logger = get_logger("privaseeai_security.alerting.telegram")
         
@@ -224,26 +232,110 @@ class TelegramAlerter:
         
         return "\n".join(lines)
     
+    @staticmethod
+    def _run_coroutine(coro, timeout: float):
+        """Run *coro* to completion from synchronous code.
+
+        ``send_threat_alert`` is synchronous but the orchestrator calls it from
+        inside ``_process_alerts``, which is already running in an event loop.
+        ``asyncio.run`` raises in that situation, so when a loop is already
+        running the coroutine is handed to a short-lived worker thread with its
+        own loop instead.
+        """
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(asyncio.wait_for(coro, timeout))
+
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(
+                asyncio.run, asyncio.wait_for(coro, timeout)
+            )
+            return future.result()
+
+    async def _deliver(self, message: str) -> None:
+        """Post one message to the Telegram Bot API."""
+        from telegram import Bot
+
+        bot = Bot(token=self.bot_token)
+        async with bot:
+            # Deliberately no parse_mode: alert bodies embed text parsed out of
+            # device logs, and an unbalanced "<" or "&" would make Telegram
+            # reject the whole message (or worse, be interpreted as markup).
+            await bot.send_message(
+                chat_id=self.chat_id,
+                text=message,
+                read_timeout=self.send_timeout_seconds,
+                write_timeout=self.send_timeout_seconds,
+                connect_timeout=self.send_timeout_seconds,
+            )
+
     def _send_to_telegram(self, message: str) -> bool:
-        """Send message to Telegram (stub for now - would use python-telegram-bot).
-        
+        """Send a message to Telegram.
+
         Args:
             message: Message to send
-            
+
         Returns:
-            True if sent successfully
+            True only if Telegram accepted the message. False on every failure
+            path, so a caller never records a delivery that did not happen.
         """
-        # NOTE: In production, this would use python-telegram-bot library:
-        # from telegram import Bot
-        # bot = Bot(token=self.bot_token)
-        # bot.send_message(chat_id=self.chat_id, text=message, parse_mode='HTML')
-        
-        self.logger.info(f"Sending Telegram alert to chat {self.chat_id}")
-        self.logger.debug(f"Message content:\n{message}")
-        
-        # For now, simulate successful send
-        # In production, wrap in try/except and handle telegram.error.TelegramError
-        return True
+        try:
+            from telegram.error import RetryAfter, TelegramError
+        except ImportError:
+            self.logger.error(
+                "python-telegram-bot is not installed; cannot deliver alert. "
+                "Install it or construct TelegramAlerter(dry_run=True)."
+            )
+            return False
+
+        if not self.bot_token or not self.chat_id:
+            self.logger.error(
+                "Telegram bot token or chat ID missing; alert not delivered."
+            )
+            return False
+
+        for attempt in range(1, self.max_send_attempts + 1):
+            try:
+                self._run_coroutine(
+                    self._deliver(message),
+                    # Give the whole attempt a little more room than the
+                    # per-socket timeout so the transport can report first.
+                    timeout=self.send_timeout_seconds + 5,
+                )
+            except RetryAfter as exc:
+                delay = float(getattr(exc, "retry_after", 1))
+                self.logger.warning(
+                    "Telegram rate-limited the alert; retrying in %.1fs "
+                    "(attempt %d/%d)",
+                    delay, attempt, self.max_send_attempts,
+                )
+            except (TelegramError, asyncio.TimeoutError, OSError) as exc:
+                delay = min(2 ** (attempt - 1), 8)
+                self.logger.warning(
+                    "Telegram delivery attempt %d/%d failed: %s",
+                    attempt, self.max_send_attempts, exc,
+                )
+            except Exception as exc:  # pragma: no cover - defensive
+                self.logger.error(
+                    "Unexpected error delivering Telegram alert: %s", exc,
+                    exc_info=True,
+                )
+                return False
+            else:
+                self.logger.info(
+                    "Telegram alert delivered to chat %s", self.chat_id
+                )
+                return True
+
+            if attempt < self.max_send_attempts:
+                time.sleep(delay)
+
+        self.logger.error(
+            "Telegram alert NOT delivered after %d attempts; alert is lost.",
+            self.max_send_attempts,
+        )
+        return False
     
     def clear_throttle_cache(self) -> None:
         """Clear throttle cache (useful for testing)."""
