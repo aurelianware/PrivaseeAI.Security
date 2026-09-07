@@ -6,9 +6,17 @@ submodules, such as `cert_validator`, to live under
 `privaseeai_security.crypto` without name conflicts.
 """
 
-import base64
 import hashlib
 import secrets
+
+from cryptography.exceptions import InvalidTag
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+# AES-GCM parameters. 96-bit nonces are the size the GCM spec is defined for,
+# and the 128-bit tag is what AESGCM appends to the ciphertext.
+_NONCE_BYTES = 12
+_TAG_BYTES = 16
+_KEY_BYTES = 32  # AES-256
 
 
 class CryptoError(Exception):
@@ -34,54 +42,60 @@ class Crypto:
     @staticmethod
     def encrypt(data: bytes, key: bytes) -> bytes:
         """Encrypt data using AES-256-GCM.
-        
+
         Args:
-            data: Data to encrypt
-            key: Encryption key
-            
+            data: Plaintext to encrypt. Must be non-empty.
+            key: 32-byte encryption key, e.g. from :meth:`generate_key`.
+
         Returns:
-            Encrypted data with nonce prepended
-            
-        Note:
-            This is a stub implementation. Real implementation would use
-            cryptography library for actual AES-GCM encryption.
+            ``nonce || ciphertext``, where the ciphertext carries the GCM
+            authentication tag. A fresh random nonce is generated per call, so
+            encrypting the same plaintext twice yields different output.
+
+        Raises:
+            CryptoError: If the data is empty or the key is the wrong size.
         """
         if not data:
             raise CryptoError("Data cannot be empty")
-        if len(key) != 32:
+        if len(key) != _KEY_BYTES:
             raise CryptoError("Key must be 32 bytes for AES-256")
-        
-        # Stub implementation - just return base64 encoded data
-        # Real implementation would use proper AES-GCM encryption
-        nonce = secrets.token_bytes(12)
-        encrypted = base64.b64encode(data)
-        return nonce + encrypted
+
+        nonce = secrets.token_bytes(_NONCE_BYTES)
+        ciphertext = AESGCM(key).encrypt(nonce, data, None)
+        return nonce + ciphertext
 
     @staticmethod
     def decrypt(encrypted_data: bytes, key: bytes) -> bytes:
-        """Decrypt data using AES-256-GCM.
-        
+        """Decrypt and authenticate data produced by :meth:`encrypt`.
+
         Args:
-            encrypted_data: Encrypted data with nonce prepended
-            key: Decryption key
-            
+            encrypted_data: ``nonce || ciphertext`` as returned by
+                :meth:`encrypt`.
+            key: The same 32-byte key used to encrypt.
+
         Returns:
-            Decrypted data
-            
+            The original plaintext.
+
         Raises:
-            CryptoError: If decryption fails
+            CryptoError: If the key is wrong, the ciphertext was tampered with,
+                or the input is malformed. GCM authenticates the ciphertext, so
+                a wrong key fails here rather than returning garbage.
         """
         if not encrypted_data:
             raise CryptoError("Encrypted data cannot be empty")
-        if len(key) != 32:
+        if len(key) != _KEY_BYTES:
             raise CryptoError("Key must be 32 bytes for AES-256")
-        if len(encrypted_data) < 13:  # 12 bytes nonce + at least 1 byte data
+        if len(encrypted_data) < _NONCE_BYTES + _TAG_BYTES:
             raise CryptoError("Encrypted data too short")
-        
-        # Stub implementation - extract and decode base64
-        # Note: In real implementation, first 12 bytes would be the nonce for AES-GCM
-        encrypted = encrypted_data[12:]
-        return base64.b64decode(encrypted)
+
+        nonce = encrypted_data[:_NONCE_BYTES]
+        ciphertext = encrypted_data[_NONCE_BYTES:]
+        try:
+            return AESGCM(key).decrypt(nonce, ciphertext, None)
+        except InvalidTag as exc:
+            raise CryptoError(
+                "Decryption failed: wrong key or corrupted ciphertext"
+            ) from exc
 
     @staticmethod
     def hash_data(data: bytes, algorithm: str = "sha256") -> str:

@@ -77,6 +77,60 @@ class TestCrypto:
         # Encrypted data should be at least 13 bytes (12-byte nonce + data)
         assert len(encrypted) >= 13
 
+    # ------------------------------------------------------------------
+    # The checks below fail against a base64 "encryption" stub. They exist to
+    # keep the AES-256-GCM implementation honest: the key must matter, the
+    # ciphertext must be authenticated, and the plaintext must not be readable.
+    # ------------------------------------------------------------------
+
+    def test_decrypt_with_wrong_key_raises(self):
+        """A wrong key must fail loudly, not return garbage or the plaintext."""
+        data = b"Sensitive security data"
+        encrypted = Crypto.encrypt(data, Crypto.generate_key())
+
+        with pytest.raises(CryptoError, match="Decryption failed"):
+            Crypto.decrypt(encrypted, Crypto.generate_key())
+
+    def test_tampered_ciphertext_is_rejected(self):
+        """GCM authenticates the ciphertext, so any edit must be detected."""
+        key = Crypto.generate_key()
+        encrypted = bytearray(Crypto.encrypt(b"Sensitive security data", key))
+        encrypted[-1] ^= 0x01  # flip one bit in the authentication tag
+
+        with pytest.raises(CryptoError, match="Decryption failed"):
+            Crypto.decrypt(bytes(encrypted), key)
+
+    def test_tampered_nonce_is_rejected(self):
+        key = Crypto.generate_key()
+        encrypted = bytearray(Crypto.encrypt(b"Sensitive security data", key))
+        encrypted[0] ^= 0x01  # flip one bit in the nonce
+
+        with pytest.raises(CryptoError, match="Decryption failed"):
+            Crypto.decrypt(bytes(encrypted), key)
+
+    def test_plaintext_is_not_recoverable_from_ciphertext(self):
+        """The payload must not survive in the output in any readable form."""
+        import base64
+
+        data = b"Sensitive security data"
+        encrypted = Crypto.encrypt(data, Crypto.generate_key())
+
+        assert data not in encrypted, "plaintext appears verbatim in ciphertext"
+        assert base64.b64encode(data) not in encrypted, "payload is merely encoded"
+
+    def test_encryption_is_randomised(self):
+        """A fresh nonce per call means identical input yields distinct output."""
+        data = b"Sensitive security data"
+        key = Crypto.generate_key()
+
+        assert Crypto.encrypt(data, key) != Crypto.encrypt(data, key)
+
+    def test_roundtrip_preserves_binary_payloads(self):
+        data = bytes(range(256))
+        key = Crypto.generate_key()
+
+        assert Crypto.decrypt(Crypto.encrypt(data, key), key) == data
+
     def test_hash_data_sha256(self):
         """Test SHA-256 hashing."""
         data = b"Test data for hashing"

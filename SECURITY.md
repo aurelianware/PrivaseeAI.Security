@@ -12,7 +12,7 @@ PrivaseeAI.Security is designed with security and privacy as foundational princi
 - **Local Processing**: All threat analysis occurs on your infrastructure
 - **No Cloud Dependencies**: Fully self-hosted deployment model
 - **Data Sovereignty**: You maintain complete control over security data
-- **Encrypted Storage**: End-to-end encryption for sensitive information
+- **No Telemetry**: The tool makes no outbound network connections of its own
 
 ### Security Design Principles
 - **Defense in Depth**: Multi-layer security monitoring and detection
@@ -21,10 +21,28 @@ PrivaseeAI.Security is designed with security and privacy as foundational princi
 - **Zero Trust**: Verify all inputs and connections
 
 ### Data Protection
-- **Encryption at Rest**: All sensitive data encrypted using industry-standard algorithms
-- **Encryption in Transit**: TLS 1.3 for all network communications
-- **Key Management**: Secure key storage and rotation practices
-- **Access Controls**: Role-based access control (RBAC) for all operations
+
+This section describes what the code actually does today. Where a protection is
+not implemented, it says so rather than describing an intent.
+
+- **Orchestrator state**: written to disk as **plaintext JSON**, protected only by
+  filesystem permissions (`chmod 600`, owner read/write). It is **not encrypted**.
+  It holds threat counts, timestamps and threat IDs -- not backup contents.
+- **AES-256-GCM helper**: `CryptoHandler.encrypt` / `decrypt` provide authenticated
+  encryption (random 96-bit nonce, 128-bit tag) for callers that need it. It is a
+  building block; **no component currently uses it to encrypt stored data**.
+- **Encryption in transit**: not applicable. The tool makes no outbound network
+  connections. There is no TLS configuration because there is no client.
+- **Key management**: **not implemented.** `generate_key()` produces a key; storage,
+  rotation and derivation are the caller's responsibility.
+- **Access controls**: **not implemented.** There is no RBAC, no authentication and
+  no authorisation layer. Access is whatever the host filesystem grants.
+- **Backup credentials**: an iOS backup password passed to `DeviceInfoExtractor` is
+  held in memory for the life of the object and is never written to disk.
+
+> The web dashboard under `dashboard/` is an unwired prototype with **no
+> authentication**. Do not expose it on an untrusted network. See
+> [`dashboard/README.md`](dashboard/README.md).
 
 ## 📋 Supported Versions
 
