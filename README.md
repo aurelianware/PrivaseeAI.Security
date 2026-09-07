@@ -3,14 +3,14 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Code](https://img.shields.io/badge/Code-7,469%20lines-blue)]()
-[![Tests](https://img.shields.io/badge/Tests-308%20passing-brightgreen)]()
-[![Coverage](https://img.shields.io/badge/Coverage-74%25-yellow)]()
+[![Tests](https://img.shields.io/badge/Tests-312%20passing-brightgreen)]()
+[![Coverage](https://img.shields.io/badge/Coverage-73%25-yellow)]()
 
 **Real-Time iOS Threat Detection & Monitoring System**
 
 PrivaseeAI.Security is a privacy-preserving iOS threat detection system that provides continuous security monitoring through VPN integrity checks, backup analysis, and behavioral pattern detection. Built in response to a real carrier-level attack, its detection rules were derived from that incident's logs.
 
-> **Status:** v0.3.0-alpha - active development | 7,469 lines of Python | 308 tests passing, 10 skipped | 74% coverage
+> **Status:** v0.3.0-alpha - active development | 7,469 lines of Python | 312 tests passing, 10 skipped | 73% coverage
 >
 > Not production ready. Alert delivery and the AES helper work, but the web dashboard
 > is an unwired prototype, the persistence layer is not connected to any monitor, and
@@ -29,7 +29,7 @@ Unlike traditional periodic scans, PrivaseeAI.Security provides **continuous rea
 - ⚠️ **Continuous Monitoring:** `privasee start` currently runs carrier checks only;
   the VPN and API monitor loops are not yet wired to a live input
 - ✅ **Privacy-First:** analysis is 100% local, no cloud dependencies
-- ⚠️ **Alpha:** 7,469 lines of code, 308 tests passing, 74% coverage — not production ready
+- ⚠️ **Alpha:** 7,469 lines of code, 312 tests passing, 73% coverage — not production ready
 - ✅ **Open Source:** Apache 2.0 license, full transparency
 
 ## ✨ Current Features (v0.3.0-alpha)
@@ -102,7 +102,7 @@ privasee dashboard  # Launch web dashboard (NEW in v0.3.0)
 
 ### 📊 Test Coverage
 
-**318 Tests - 308 passing, 10 skipped, 74% line coverage**
+**322 Tests - 312 passing, 10 skipped, 73% line coverage**
 ```
 tests/
 ├── unit/ (~250 tests)
@@ -352,9 +352,9 @@ We welcome contributions! This project needs:
 | Metric | Value |
 |--------|-------|
 | Production Code | 7,469 lines Python |
-| Test Code | 5,926 lines |
-| Tests | 318 (308 passing, 10 skipped) |
-| Line Coverage | 74% |
+| Test Code | 5,963 lines |
+| Tests | 322 (312 passing, 10 skipped) |
+| Line Coverage | 73% (as published by the repo's own coverage workflow) |
 | Negative-test coverage | ~4% (see ASSESSMENT.md §4) |
 | Test Fixtures | Real attack logs (Jan 26, 2026 incident) |
 
@@ -411,6 +411,6 @@ If you find this project useful, please consider:
 
 **Built with 🛡️ by privacy advocates, for privacy advocates.**
 
-**Status:** v0.3.0-alpha | active development | 308 tests passing | see [`ASSESSMENT.md`](ASSESSMENT.md)
+**Status:** v0.3.0-alpha | active development | 312 tests passing | see [`ASSESSMENT.md`](ASSESSMENT.md)
 
 [Get Started](#-quick-start) | [Documentation](#-documentation) | [Contribute](#-contributing) | [Roadmap](ROADMAP.md)
