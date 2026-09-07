@@ -267,6 +267,51 @@ class TestBenignVPNProfiles:
         )
 
 
+class TestPlaceholderEndpoints:
+    """Endpoints that record nothing must not be mistaken for a destination."""
+
+    def test_unspecified_address_is_not_loopback(self, detector, backup_root, device_backup):
+        # BENIGN-BECAUSE: 0.0.0.0 means "bind all interfaces", not "the device
+        # itself". It reached the loopback set by being moved verbatim out of
+        # device_info, where it was only substring-matched against names; in a
+        # decisive role against a real address field it fired CRITICAL at
+        # confidence 0.95 on what is just a placeholder.
+        write_vpn_profile(
+            device_backup,
+            "placeholder",
+            PayloadIdentifier="com.example.placeholder",
+            PayloadDisplayName="Placeholder",
+            RemoteAddress="0.0.0.0",
+            VPNType="IKEv2",
+        )
+        assert_quiet(
+            detector.detect_localhost_routing(backup_path=backup_root),
+            context="0.0.0.0 placeholder endpoint",
+        )
+        assert any(o.kind == "NO_REMOTE_ENDPOINT" for o in detector.observations)
+
+    def test_missing_address_key_is_still_observed(self, detector, backup_root, device_backup):
+        # BENIGN-BECAUSE: a plist with no RemoteAddress or ServerAddress key is
+        # a truncated or partial profile. The parser substitutes the literal
+        # "unknown", which the endpoint check originally did not recognise -- so
+        # the observation was silently dropped for the commonest shape of an
+        # endpointless profile.
+        write_vpn_profile(
+            device_backup,
+            "endpointless",
+            PayloadIdentifier="com.example.endpointless",
+            PayloadDisplayName="Endpointless",
+            VPNType="IKEv2",
+        )
+        assert_quiet(
+            detector.detect_localhost_routing(backup_path=backup_root),
+            context="profile with no address key",
+        )
+        assert any(
+            o.kind == "NO_REMOTE_ENDPOINT" for o in detector.observations
+        ), "an endpointless profile must still be observed, not dropped"
+
+
 class TestTheDetectorStillFires:
     """B16 and friends: quieting the detector must not have disabled it."""
 

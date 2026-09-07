@@ -114,7 +114,12 @@ class DeviceInfoExtractor:
     KNOWN_LEGITIMATE_SERVICES = allowlists.KNOWN_LEGITIMATE_SERVICES
     
     # Suspicious VPN server patterns
-    SUSPICIOUS_VPN_SERVERS = allowlists.LOOPBACK_SERVER_ADDRESSES
+    # device_info substring-matches these against profile IDs and display
+    # names, so it keeps the historical union (loopback plus unspecified).
+    # carrier_detection uses the narrower loopback set for its decisive check.
+    SUSPICIOUS_VPN_SERVERS = (
+        allowlists.LOOPBACK_SERVER_ADDRESSES | {"0.0.0.0"}
+    )
 
     def __init__(self, backup_path: str, password: Optional[str] = None):
         """Initialize device info extractor.

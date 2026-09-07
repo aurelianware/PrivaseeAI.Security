@@ -69,12 +69,32 @@ KNOWN_LEGITIMATE_ORGS: Set[str] = {
 
 #: Server addresses that mean "this profile terminates on the device itself".
 #: Unlike the keyword lists below, these are matched against the *server address
-#: field*, and a match here is a genuine finding rather than a hint.
+#: field*, and a match here is a genuine finding rather than a hint -- in
+#: carrier_detection it is the decisive CRITICAL indicator.
+#:
+#: 0.0.0.0 is deliberately NOT here. It means "unspecified / bind all
+#: interfaces", not "loopback". It reached this set by being moved verbatim out
+#: of device_info, where it was only ever substring-matched against profile
+#: *names* and so was harmless; against a real address field, in a decisive
+#: role, it escalated a placeholder endpoint to CRITICAL. It belongs with the
+#: unspecified addresses below.
 LOOPBACK_SERVER_ADDRESSES: Set[str] = {
     "127.0.0.1",
     "::1",
     "localhost",
+}
+
+#: Addresses that mean "no endpoint was recorded" rather than any destination.
+#: "unknown" is included because that is the literal default
+#: ``_extract_vpn_profiles`` substitutes when a plist carries no RemoteAddress
+#: or ServerAddress key at all.
+UNSPECIFIED_SERVER_ADDRESSES: Set[str] = {
     "0.0.0.0",
+    "::",
+    "unknown",
+    "null",
+    "none",
+    "",
 }
 
 # ---------------------------------------------------------------------------
@@ -156,11 +176,24 @@ def is_loopback_address(address: str | None) -> bool:
 
     Compared against the whole, stripped address -- never a substring of a
     longer string -- so a hostname such as ``vpn.localhost-example.com`` does
-    not match.
+    not match. ``0.0.0.0`` is not loopback; see
+    :func:`is_unspecified_address`.
     """
     if not address:
         return False
     return address.strip().lower() in LOOPBACK_SERVER_ADDRESSES
+
+
+def is_unspecified_address(address: str | None) -> bool:
+    """True if *address* records no endpoint at all.
+
+    Covers a genuinely absent value, the ``"unknown"`` placeholder the profile
+    parser substitutes for a missing key, and the unspecified addresses
+    ``0.0.0.0`` and ``::``.
+    """
+    if address is None:
+        return True
+    return address.strip().lower() in UNSPECIFIED_SERVER_ADDRESSES
 
 
 __all__ = [
@@ -168,6 +201,7 @@ __all__ = [
     "KNOWN_LEGITIMATE_ORGS",
     "KNOWN_LEGITIMATE_SERVICES",
     "LOOPBACK_SERVER_ADDRESSES",
+    "UNSPECIFIED_SERVER_ADDRESSES",
     "NOTEWORTHY_ISSUER_TOKENS",
     "NOTEWORTHY_NAME_TOKENS",
     "contains_keyword_token",
@@ -176,5 +210,6 @@ __all__ = [
     "is_known_organization",
     "is_known_service",
     "is_loopback_address",
+    "is_unspecified_address",
     "tokenize",
 ]

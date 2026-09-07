@@ -776,16 +776,17 @@ class CarrierCompromiseDetector:
                     )
 
                 # Missing endpoint. INFO: usually a truncated plist rather than
-                # an attack, and the parser defaults absent values to "unknown".
-                if not profile.server_address or profile.server_address in (
-                    "",
-                    "null",
-                    "none",
-                ):
+                # an attack. This must cover the literal "unknown" that
+                # _extract_vpn_profiles substitutes when a plist carries no
+                # RemoteAddress or ServerAddress key -- the common shape for a
+                # profile with no endpoint -- and the unspecified addresses
+                # 0.0.0.0 and ::, which are placeholders, not destinations.
+                elif allowlists.is_unspecified_address(profile.server_address):
                     indicators.append(
                         Indicator(
                             IndicatorKind.NO_REMOTE_ENDPOINT,
-                            "VPN profile has no remote endpoint",
+                            "VPN profile records no remote endpoint "
+                            f"({profile.server_address or 'absent'})",
                         )
                     )
 

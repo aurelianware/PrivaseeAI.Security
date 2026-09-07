@@ -62,9 +62,21 @@ class TestContainsKeywordToken:
 
 
 class TestLoopbackMatching:
-    @pytest.mark.parametrize("addr", ["127.0.0.1", "::1", "localhost", "0.0.0.0"])
+    @pytest.mark.parametrize("addr", ["127.0.0.1", "::1", "localhost"])
     def test_loopback_addresses_match(self, addr):
         assert allowlists.is_loopback_address(addr) is True
+
+    @pytest.mark.parametrize("addr", ["0.0.0.0", "::"])
+    def test_unspecified_addresses_are_not_loopback(self, addr):
+        """0.0.0.0 means "bind all interfaces", not "the device itself".
+
+        It reached the loopback set by being moved verbatim out of device_info,
+        where it was only substring-matched against profile names. Against a
+        real address field it is decisive, so treating it as loopback escalated
+        a placeholder endpoint to CRITICAL.
+        """
+        assert allowlists.is_loopback_address(addr) is False
+        assert allowlists.is_unspecified_address(addr) is True
 
     @pytest.mark.parametrize(
         "addr",
@@ -82,6 +94,26 @@ class TestLoopbackMatching:
 
     def test_whitespace_is_tolerated(self):
         assert allowlists.is_loopback_address("  127.0.0.1 ") is True
+
+
+class TestUnspecifiedAddresses:
+    @pytest.mark.parametrize(
+        "addr", ["0.0.0.0", "::", "unknown", "null", "none", "", None, "  UNKNOWN "]
+    )
+    def test_recognised_as_no_endpoint(self, addr):
+        assert allowlists.is_unspecified_address(addr) is True
+
+    @pytest.mark.parametrize("addr", ["vpn.example.com", "10.0.0.1", "127.0.0.1"])
+    def test_real_addresses_are_specified(self, addr):
+        assert allowlists.is_unspecified_address(addr) is False
+
+    def test_unknown_is_the_parsers_own_default(self):
+        """_extract_vpn_profiles substitutes "unknown" for a missing key.
+
+        Without this the NO_REMOTE_ENDPOINT observation was silently dropped
+        for the commonest shape of an endpointless profile.
+        """
+        assert "unknown" in allowlists.UNSPECIFIED_SERVER_ADDRESSES
 
 
 class TestOrganizationAllowlist:
