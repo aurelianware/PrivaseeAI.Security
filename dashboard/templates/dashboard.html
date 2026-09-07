@@ -56,6 +56,26 @@
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 transition-colors">
+    {#
+      Provenance banner. Rendered server-side from the PRIVASEE_DEMO flag so it
+      cannot be dismissed or hidden by client state. This dashboard has no data
+      path to the detection engine, so one of these two banners is always shown.
+    #}
+    {% if demo_mode %}
+    <div role="alert"
+         class="w-full px-4 py-3 text-sm font-semibold text-center text-white bg-red-700 border-b-2 border-red-900">
+        DEMO MODE &mdash; all data on this page is fabricated. Nothing here was detected.
+    </div>
+    {% else %}
+    <div role="status"
+         class="w-full px-4 py-3 text-sm font-semibold text-center text-amber-950 bg-amber-300 border-b-2 border-amber-500">
+        No data source connected &mdash; this dashboard is not wired to the detection engine.
+        <span class="font-normal">
+            All views are empty by design. Set <code>PRIVASEE_DEMO=1</code> to populate it with
+            clearly-labelled fabricated data.
+        </span>
+    </div>
+    {% endif %}
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
         <aside class="w-64 bg-white dark:bg-gray-800 shadow-lg flex flex-col">
